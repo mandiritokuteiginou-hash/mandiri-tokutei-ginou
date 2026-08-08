@@ -4,6 +4,8 @@ import { Fragment, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import JobOrderForm, { JobOrderFormValues } from "@/components/admin/JobOrderForm";
+import Spinner from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
 import {
   CPMI_STATUS_FLOW,
@@ -35,6 +37,7 @@ const STATUS_OPTIONS: CpmiStatus[] = [
 
 export default function AdminDashboardPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [authorized, setAuthorized] = useState(false);
   const [registrations, setRegistrations] = useState<CpmiRegistration[]>([]);
   const [jobs, setJobs] = useState<JobOrder[]>([]);
@@ -93,7 +96,7 @@ export default function AdminDashboardPage() {
     setViewingDocId(null);
 
     if (error || !data) {
-      alert("Gagal membuka dokumen: " + (error?.message ?? "unknown error"));
+      showToast("Gagal membuka dokumen: " + (error?.message ?? "unknown error"), "error");
       return;
     }
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
@@ -135,11 +138,12 @@ export default function AdminDashboardPage() {
       .from("cpmi_registrations")
       .update({ status })
       .eq("id", id);
-    if (!error) {
-      setRegistrations((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status } : r))
-      );
+    if (error) {
+      showToast("Gagal mengubah status: " + error.message, "error");
+      return;
     }
+    setRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    showToast(`Status diperbarui ke "${CPMI_STATUS_LABELS[status]}"`);
   }
 
   function openCreateJobForm() {
@@ -177,6 +181,7 @@ export default function AdminDashboardPage() {
     }
 
     closeJobForm();
+    showToast(editingJob ? "Lowongan berhasil diperbarui" : "Lowongan berhasil ditambahkan");
     await loadData();
   }
 
@@ -188,13 +193,19 @@ export default function AdminDashboardPage() {
       const res = await fetch("/api/admin/sync-notion", { method: "POST" });
       const body = await res.json();
       if (!res.ok) {
-        setNotionSyncMessage(body.error ?? "Sinkronisasi gagal.");
+        const message = body.error ?? "Sinkronisasi gagal.";
+        setNotionSyncMessage(message);
+        showToast(message, "error");
       } else {
-        setNotionSyncMessage(`Berhasil sinkron ${body.synced} lowongan dari Notion.`);
+        const message = `Berhasil sinkron ${body.synced} lowongan dari Notion.`;
+        setNotionSyncMessage(message);
+        showToast(message);
         await loadData();
       }
     } catch {
-      setNotionSyncMessage("Sinkronisasi gagal: tidak bisa menghubungi server.");
+      const message = "Sinkronisasi gagal: tidak bisa menghubungi server.";
+      setNotionSyncMessage(message);
+      showToast(message, "error");
     } finally {
       setNotionSyncing(false);
     }
@@ -206,20 +217,26 @@ export default function AdminDashboardPage() {
       .from("job_orders")
       .update({ status_aktif: !job.status_aktif })
       .eq("id", job.id);
-    if (!error) {
-      setJobs((prev) =>
-        prev.map((j) => (j.id === job.id ? { ...j, status_aktif: !j.status_aktif } : j))
-      );
+    if (error) {
+      showToast("Gagal mengubah status lowongan: " + error.message, "error");
+      return;
     }
+    setJobs((prev) =>
+      prev.map((j) => (j.id === job.id ? { ...j, status_aktif: !j.status_aktif } : j))
+    );
+    showToast(job.status_aktif ? "Lowongan dinonaktifkan" : "Lowongan diaktifkan");
   }
 
   async function handleDeleteJob(job: JobOrder) {
     if (!confirm(`Hapus lowongan "${job.nama_perusahaan}"?`)) return;
     const supabase = createClient();
     const { error } = await supabase.from("job_orders").delete().eq("id", job.id);
-    if (!error) {
-      setJobs((prev) => prev.filter((j) => j.id !== job.id));
+    if (error) {
+      showToast("Gagal menghapus lowongan: " + error.message, "error");
+      return;
     }
+    setJobs((prev) => prev.filter((j) => j.id !== job.id));
+    showToast("Lowongan berhasil dihapus");
   }
 
   async function handleLogout() {
@@ -230,7 +247,8 @@ export default function AdminDashboardPage() {
 
   if (!authorized) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-navy text-sm text-neutral-300">
+      <div className="flex min-h-screen items-center justify-center gap-2 bg-brand-navy text-sm text-neutral-300">
+        <Spinner className="h-4 w-4" />
         Memeriksa akses...
       </div>
     );
@@ -392,8 +410,9 @@ export default function AdminDashboardPage() {
                 <button
                   onClick={handleSyncNotion}
                   disabled={notionSyncing}
-                  className="rounded-full border border-brand-navy px-4 py-2 text-xs font-semibold text-brand-navy hover:bg-brand-navy hover:text-white disabled:opacity-60"
+                  className="flex items-center gap-2 rounded-full border border-brand-navy px-4 py-2 text-xs font-semibold text-brand-navy hover:bg-brand-navy hover:text-white disabled:opacity-60"
                 >
+                  {notionSyncing && <Spinner className="h-3 w-3" />}
                   {notionSyncing ? "Menyinkronkan..." : "Sync dari Notion"}
                 </button>
                 <button

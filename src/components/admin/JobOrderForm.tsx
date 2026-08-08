@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Spinner from "@/components/ui/Spinner";
 import { SECTORS } from "@/lib/data";
 import { JobOrder } from "@/lib/types";
 
@@ -166,8 +167,9 @@ export default function JobOrderForm({
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-navy-dark disabled:opacity-60"
+          className="flex items-center gap-2 rounded-lg bg-brand-navy px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-navy-dark disabled:opacity-60"
         >
+          {submitting && <Spinner className="h-4 w-4" />}
           {submitting ? "Menyimpan..." : initial ? "Simpan Perubahan" : "Tambah Lowongan"}
         </button>
         <button

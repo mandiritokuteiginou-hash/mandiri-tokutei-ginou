@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PortalHeader from "@/components/portal/PortalHeader";
+import Spinner from "@/components/ui/Spinner";
 import { SECTORS } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { ensureCpmiRegistration } from "@/lib/supabase/cpmi";
@@ -180,8 +181,9 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
               >
+                {submitting && <Spinner className="h-4 w-4" />}
                 {submitting ? "Memproses..." : "Buat Akun & Daftar"}
               </button>
             </form>

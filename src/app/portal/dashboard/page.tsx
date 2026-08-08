@@ -3,6 +3,8 @@
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PortalHeader from "@/components/portal/PortalHeader";
+import Spinner from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
 import { createClient } from "@/lib/supabase/client";
 import { ensureCpmiRegistration } from "@/lib/supabase/cpmi";
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -40,6 +42,7 @@ async function uploadCandidateDocument(
 
 export default function PortalDashboardPage() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [registration, setRegistration] = useState<CpmiRegistration | null>(null);
   const [documents, setDocuments] = useState<CpmiDocument[]>([]);
   const [matchedJobs, setMatchedJobs] = useState<JobOrder[]>([]);
@@ -103,10 +106,12 @@ export default function PortalDashboardPage() {
 
     if (error) {
       setUploadError(error.message);
+      showToast("Gagal mengunggah dokumen: " + error.message, "error");
       setUploadingType(null);
       return;
     }
 
+    showToast(`${DOCUMENT_TYPE_LABELS[jenisDokumen]} berhasil diunggah`);
     await loadData();
     setUploadingType(null);
   }
@@ -119,7 +124,8 @@ export default function PortalDashboardPage() {
 
   if (loading || !registration) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-cream text-sm text-neutral-500">
+      <div className="flex min-h-screen items-center justify-center gap-2 bg-brand-cream text-sm text-neutral-500">
+        <Spinner className="h-4 w-4" />
         Memuat data...
       </div>
     );
