@@ -3,6 +3,8 @@ import { JobOrder } from "@/lib/types";
 
 async function getActiveJobs(): Promise<JobOrder[]> {
   const supabase = createPublicClient();
+  if (!supabase) return [];
+
   const { data, error } = await supabase
     .from("job_orders")
     .select("*")
