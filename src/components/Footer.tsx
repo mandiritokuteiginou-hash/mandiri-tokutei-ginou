@@ -26,6 +26,8 @@ export default function Footer() {
             <li><a href="#layanan" className="hover:text-white">Layanan</a></li>
             <li><a href="#lowongan" className="hover:text-white">Lowongan</a></li>
             <li><a href="#testimoni" className="hover:text-white">Testimoni</a></li>
+            <li><Link href="/artikel" className="hover:text-white">Artikel</Link></li>
+            <li><a href="#faq" className="hover:text-white">FAQ</a></li>
           </ul>
         </div>
 

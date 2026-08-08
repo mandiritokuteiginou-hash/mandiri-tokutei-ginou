@@ -1,0 +1,22 @@
+import { MetadataRoute } from "next";
+import { ARTICLES } from "@/lib/articles";
+
+const BASE_URL = "https://mandiritokuteiginou.com";
+
+export default function sitemap(): MetadataRoute.Sitemap {
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: BASE_URL, changeFrequency: "weekly", priority: 1 },
+    { url: `${BASE_URL}/artikel`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${BASE_URL}/portal/register`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${BASE_URL}/portal/login`, changeFrequency: "monthly", priority: 0.3 },
+  ];
+
+  const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
+    url: `${BASE_URL}/artikel/${article.slug}`,
+    lastModified: article.publishedAt,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
+  return [...staticRoutes, ...articleRoutes];
+}

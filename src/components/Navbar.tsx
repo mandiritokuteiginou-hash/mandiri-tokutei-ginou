@@ -8,6 +8,8 @@ const NAV_LINKS = [
   { href: "#layanan", label: "Layanan" },
   { href: "#lowongan", label: "Lowongan" },
   { href: "#testimoni", label: "Testimoni" },
+  { href: "/artikel", label: "Artikel" },
+  { href: "#faq", label: "FAQ" },
   { href: "#kontak", label: "Kontak" },
 ];
 
