@@ -45,6 +45,8 @@ export default function AdminDashboardPage() {
   const [jobFormError, setJobFormError] = useState("");
   const [expandedRegId, setExpandedRegId] = useState<string | null>(null);
   const [viewingDocId, setViewingDocId] = useState<string | null>(null);
+  const [notionSyncing, setNotionSyncing] = useState(false);
+  const [notionSyncMessage, setNotionSyncMessage] = useState("");
 
   const loadData = useCallback(async () => {
     const supabase = createClient();
@@ -176,6 +178,26 @@ export default function AdminDashboardPage() {
 
     closeJobForm();
     await loadData();
+  }
+
+  async function handleSyncNotion() {
+    setNotionSyncing(true);
+    setNotionSyncMessage("");
+
+    try {
+      const res = await fetch("/api/admin/sync-notion", { method: "POST" });
+      const body = await res.json();
+      if (!res.ok) {
+        setNotionSyncMessage(body.error ?? "Sinkronisasi gagal.");
+      } else {
+        setNotionSyncMessage(`Berhasil sinkron ${body.synced} lowongan dari Notion.`);
+        await loadData();
+      }
+    } catch {
+      setNotionSyncMessage("Sinkronisasi gagal: tidak bisa menghubungi server.");
+    } finally {
+      setNotionSyncing(false);
+    }
   }
 
   async function handleToggleJobActive(job: JobOrder) {
@@ -363,17 +385,30 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-sm font-semibold text-brand-navy">Lowongan</h2>
             {!jobFormOpen && (
-              <button
-                onClick={openCreateJobForm}
-                className="rounded-full bg-brand-red px-4 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
-              >
-                + Tambah Lowongan
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSyncNotion}
+                  disabled={notionSyncing}
+                  className="rounded-full border border-brand-navy px-4 py-2 text-xs font-semibold text-brand-navy hover:bg-brand-navy hover:text-white disabled:opacity-60"
+                >
+                  {notionSyncing ? "Menyinkronkan..." : "Sync dari Notion"}
+                </button>
+                <button
+                  onClick={openCreateJobForm}
+                  className="rounded-full bg-brand-red px-4 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
+                >
+                  + Tambah Lowongan
+                </button>
+              </div>
             )}
           </div>
+
+          {notionSyncMessage && (
+            <p className="mt-2 text-xs text-neutral-600">{notionSyncMessage}</p>
+          )}
 
           {jobFormOpen && (
             <JobOrderForm

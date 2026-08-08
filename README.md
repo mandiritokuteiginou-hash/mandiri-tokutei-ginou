@@ -20,7 +20,8 @@ hingga portal pendaftaran kandidat dan panel admin.
 - `/artikel`, `/artikel/[slug]` — Artikel & panduan
 - `/portal/register`, `/portal/login`, `/portal/dashboard` — Portal kandidat
   (autentikasi Supabase, status pendaftaran, unggah dokumen)
-- `/admin/login`, `/admin/dashboard` — Panel admin (kelola status kandidat)
+- `/admin/login`, `/admin/dashboard` — Panel admin: kelola status &
+  dokumen kandidat, CRUD lowongan, sinkronisasi lowongan dari Notion
 
 ## Backend (Supabase)
 
@@ -30,10 +31,12 @@ Portal dan admin terhubung ke basis data Supabase nyata (bukan mock):
   lewat `auth_user_id`. Nomor registrasi (`MTG-YYYY-NNNNNN`) dibuat otomatis.
 - `documents` — dokumen yang diunggah kandidat (`jenis_dokumen`: `ktp`, `kk`,
   `ijazah`, `skck`, `foto`, `lainnya`), file tersimpan di bucket Storage privat
-  `cpmi-documents` dengan path `<cpmi_id>/<nama-file>`.
+  `cpmi-documents` dengan path `<cpmi_id>/<nama-file>`. Admin bisa membuka
+  dokumen lewat signed URL langsung dari panel admin.
 - `admin_users` — allowlist admin. **Baris di sini dikelola manual** (lewat
   SQL/dashboard Supabase), bukan lewat pendaftaran mandiri di aplikasi.
-- `job_orders` — lowongan kerja (sumber `manual` atau `notion_sync`).
+- `job_orders` — lowongan kerja (`sumber`: `manual` atau `notion_sync`).
+  Admin bisa tambah/ubah/nonaktifkan/hapus langsung dari panel admin.
 - `status_log` — audit trail otomatis setiap kali status kandidat berubah.
 
 Semua tabel memakai Row Level Security: kandidat hanya bisa membaca/mengubah
@@ -61,6 +64,23 @@ insert into public.admin_users (id, nama)
 values ('<auth-user-uuid>', 'Nama Admin');
 ```
 
+### Sinkronisasi lowongan dari Notion
+
+Panel admin punya tombol "Sync dari Notion" yang menarik data dari database
+Notion **💼 Job Posting** (di CRM Hub Mandiri Tokutei Ginou) dan
+mengupsert-nya ke `job_orders` (dicocokkan lewat `notion_page_id`, jadi aman
+dijalankan berulang). Untuk mengaktifkannya, buat Notion internal
+integration di notion.so/my-integrations, beri akses ke database tersebut,
+lalu set di Vercel:
+
+```bash
+NOTION_API_KEY=ntn_xxx...
+NOTION_JOB_POSTING_DATABASE_ID=<id database Job Posting>
+```
+
+Tanpa kedua variabel ini, tombol sync akan menampilkan pesan bahwa fitur
+belum dikonfigurasi — fitur lain tetap berjalan normal.
+
 ## Pengembangan
 
 ```bash
@@ -69,11 +89,3 @@ npm run dev      # jalankan di http://localhost:3000
 npm run build    # build production
 npm run lint     # jalankan ESLint
 ```
-
-## Langkah selanjutnya
-
-- CRUD lowongan (`job_orders`) langsung dari panel admin (saat ini hanya
-  tampil, dikelola lewat Supabase/Notion sync).
-- Sinkronisasi `job_orders` dari Notion (`sumber = 'notion_sync'`, field
-  `notion_page_id` sudah disiapkan di skema).
-- Preview/download dokumen kandidat di panel admin lewat signed URL Storage.
