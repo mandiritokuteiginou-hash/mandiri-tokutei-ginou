@@ -64,6 +64,32 @@ export default async function MaterialDetailPage({
             ))}
           </div>
 
+          {material.chart && (
+            <div className="mt-8 grid grid-cols-5 gap-3 sm:grid-cols-8">
+              {material.chart.map((entry) => (
+                <div
+                  key={entry.char}
+                  className="flex flex-col items-center justify-center rounded-xl border border-black/5 bg-white py-3 shadow-sm"
+                >
+                  <span className="text-2xl font-medium text-brand-navy">{entry.char}</span>
+                  <span className="mt-1 text-xs text-neutral-500">{entry.romaji}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {material.examples && (
+            <div className="mt-8 space-y-3 rounded-2xl border border-black/5 p-6">
+              <h2 className="text-sm font-semibold text-brand-navy">Contoh Kalimat</h2>
+              {material.examples.map((ex, i) => (
+                <div key={i} className="border-b border-black/5 pb-3 last:border-0 last:pb-0">
+                  <p className="text-base font-medium text-brand-navy">{ex.jp}</p>
+                  <p className="text-sm text-neutral-500">{ex.id}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           {material.vocab && (
             <div className="mt-8 overflow-x-auto rounded-2xl border border-black/5">
               <table className="w-full min-w-[480px] text-left text-sm">

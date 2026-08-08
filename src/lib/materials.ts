@@ -4,6 +4,16 @@ export interface VocabEntry {
   id: string;
 }
 
+export interface CharEntry {
+  char: string;
+  romaji: string;
+}
+
+export interface ExampleSentence {
+  jp: string;
+  id: string;
+}
+
 export interface LearningMaterial {
   slug: string;
   title: string;
@@ -12,6 +22,8 @@ export interface LearningMaterial {
   excerpt: string;
   intro: string[];
   vocab?: VocabEntry[];
+  chart?: CharEntry[];
+  examples?: ExampleSentence[];
   tips?: string[];
 }
 
@@ -38,6 +50,121 @@ export const MATERIALS: LearningMaterial[] = [
       { jp: "わかりました", romaji: "wakarimashita", id: "Mengerti, paham" },
       { jp: "大丈夫です", romaji: "daijoubu desu", id: "Tidak apa-apa, baik-baik saja" },
       { jp: "お先に失礼します", romaji: "osaki ni shitsurei shimasu", id: "Permisi, saya pulang duluan" },
+    ],
+  },
+  {
+    slug: "hiragana-dasar",
+    title: "Hiragana Dasar",
+    category: "Bahasa Jepang Dasar",
+    level: "N5",
+    excerpt:
+      "46 huruf hiragana dasar (gojuon) — huruf pertama yang wajib dikuasai sebelum belajar kosakata dan kalimat.",
+    intro: [
+      "Hiragana (ひらがな) adalah huruf dasar bahasa Jepang yang dipakai untuk kata-kata asli Jepang, partikel tata bahasa, dan akhiran kata kerja. Semua materi belajar di halaman ini ditulis dengan bantuan hiragana, jadi kuasai dulu 46 huruf berikut sebelum lanjut ke modul lain.",
+      "Cara belajar paling efektif: tulis ulang setiap huruf berkali-kali sambil mengucapkan bunyinya, lalu coba baca kosakata sederhana yang memakainya.",
+    ],
+    chart: [
+      { char: "あ", romaji: "a" }, { char: "い", romaji: "i" }, { char: "う", romaji: "u" }, { char: "え", romaji: "e" }, { char: "お", romaji: "o" },
+      { char: "か", romaji: "ka" }, { char: "き", romaji: "ki" }, { char: "く", romaji: "ku" }, { char: "け", romaji: "ke" }, { char: "こ", romaji: "ko" },
+      { char: "さ", romaji: "sa" }, { char: "し", romaji: "shi" }, { char: "す", romaji: "su" }, { char: "せ", romaji: "se" }, { char: "そ", romaji: "so" },
+      { char: "た", romaji: "ta" }, { char: "ち", romaji: "chi" }, { char: "つ", romaji: "tsu" }, { char: "て", romaji: "te" }, { char: "と", romaji: "to" },
+      { char: "な", romaji: "na" }, { char: "に", romaji: "ni" }, { char: "ぬ", romaji: "nu" }, { char: "ね", romaji: "ne" }, { char: "の", romaji: "no" },
+      { char: "は", romaji: "ha" }, { char: "ひ", romaji: "hi" }, { char: "ふ", romaji: "fu" }, { char: "へ", romaji: "he" }, { char: "ほ", romaji: "ho" },
+      { char: "ま", romaji: "ma" }, { char: "み", romaji: "mi" }, { char: "む", romaji: "mu" }, { char: "め", romaji: "me" }, { char: "も", romaji: "mo" },
+      { char: "や", romaji: "ya" }, { char: "ゆ", romaji: "yu" }, { char: "よ", romaji: "yo" },
+      { char: "ら", romaji: "ra" }, { char: "り", romaji: "ri" }, { char: "る", romaji: "ru" }, { char: "れ", romaji: "re" }, { char: "ろ", romaji: "ro" },
+      { char: "わ", romaji: "wa" }, { char: "を", romaji: "wo" },
+      { char: "ん", romaji: "n" },
+    ],
+    tips: [
+      "Huruf hiragana yang sering tertukar: し (shi) vs ち (chi), つ (tsu) vs す (su) — perhatikan bentuk goresannya baik-baik.",
+      "Setelah hafal 46 huruf dasar ini, lanjut ke variasi dakuten (が/ざ/だ/ば) dan youon (きゃ/しゃ/ちゃ) yang biasanya diajarkan di kelas persiapan.",
+    ],
+  },
+  {
+    slug: "katakana-dasar",
+    title: "Katakana Dasar",
+    category: "Bahasa Jepang Dasar",
+    level: "N5",
+    excerpt:
+      "46 huruf katakana dasar — dipakai untuk menulis kata serapan asing, nama negara, dan istilah teknis/mesin di tempat kerja.",
+    intro: [
+      "Katakana (カタカナ) punya bunyi yang sama persis dengan hiragana, tapi bentuk hurufnya berbeda dan dipakai khusus untuk kata serapan dari bahasa asing (mis. ヘルメット / herumetto = helm) serta nama negara seperti インドネシア (Indoneshia). Di tempat kerja, banyak istilah alat dan mesin ditulis dalam katakana.",
+    ],
+    chart: [
+      { char: "ア", romaji: "a" }, { char: "イ", romaji: "i" }, { char: "ウ", romaji: "u" }, { char: "エ", romaji: "e" }, { char: "オ", romaji: "o" },
+      { char: "カ", romaji: "ka" }, { char: "キ", romaji: "ki" }, { char: "ク", romaji: "ku" }, { char: "ケ", romaji: "ke" }, { char: "コ", romaji: "ko" },
+      { char: "サ", romaji: "sa" }, { char: "シ", romaji: "shi" }, { char: "ス", romaji: "su" }, { char: "セ", romaji: "se" }, { char: "ソ", romaji: "so" },
+      { char: "タ", romaji: "ta" }, { char: "チ", romaji: "chi" }, { char: "ツ", romaji: "tsu" }, { char: "テ", romaji: "te" }, { char: "ト", romaji: "to" },
+      { char: "ナ", romaji: "na" }, { char: "ニ", romaji: "ni" }, { char: "ヌ", romaji: "nu" }, { char: "ネ", romaji: "ne" }, { char: "ノ", romaji: "no" },
+      { char: "ハ", romaji: "ha" }, { char: "ヒ", romaji: "hi" }, { char: "フ", romaji: "fu" }, { char: "ヘ", romaji: "he" }, { char: "ホ", romaji: "ho" },
+      { char: "マ", romaji: "ma" }, { char: "ミ", romaji: "mi" }, { char: "ム", romaji: "mu" }, { char: "メ", romaji: "me" }, { char: "モ", romaji: "mo" },
+      { char: "ヤ", romaji: "ya" }, { char: "ユ", romaji: "yu" }, { char: "ヨ", romaji: "yo" },
+      { char: "ラ", romaji: "ra" }, { char: "リ", romaji: "ri" }, { char: "ル", romaji: "ru" }, { char: "レ", romaji: "re" }, { char: "ロ", romaji: "ro" },
+      { char: "ワ", romaji: "wa" }, { char: "ヲ", romaji: "wo" },
+      { char: "ン", romaji: "n" },
+    ],
+    tips: [
+      "Huruf katakana yang sering tertukar: シ (shi) vs ツ (tsu), ソ (so) vs ン (n) — perhatikan arah goresan terakhirnya.",
+      "Coba baca nama negara dan kota dalam katakana: インドネシア (Indonesia), ジャカルタ (Jakarta), オオサカ (Osaka).",
+    ],
+  },
+  {
+    slug: "angka-hari-waktu",
+    title: "Angka, Hari & Waktu",
+    category: "Bahasa Jepang Dasar",
+    level: "N5",
+    excerpt:
+      "Kosakata angka, hari dalam seminggu, dan ungkapan waktu — dipakai setiap hari untuk memahami jadwal dan shift kerja.",
+    intro: [
+      "Memahami angka dan waktu sangat penting sejak hari pertama kerja — untuk membaca jadwal shift, jam istirahat, dan tanggal penting. Bahasa Jepang punya dua cara membaca beberapa angka (mis. 4 = yon/shi, 7 = nana/shichi); pelajari keduanya karena sama-sama umum dipakai.",
+    ],
+    vocab: [
+      { jp: "一", romaji: "ichi", id: "Satu (1)" },
+      { jp: "二", romaji: "ni", id: "Dua (2)" },
+      { jp: "三", romaji: "san", id: "Tiga (3)" },
+      { jp: "四", romaji: "yon / shi", id: "Empat (4)" },
+      { jp: "五", romaji: "go", id: "Lima (5)" },
+      { jp: "六", romaji: "roku", id: "Enam (6)" },
+      { jp: "七", romaji: "nana / shichi", id: "Tujuh (7)" },
+      { jp: "八", romaji: "hachi", id: "Delapan (8)" },
+      { jp: "九", romaji: "kyuu", id: "Sembilan (9)" },
+      { jp: "十", romaji: "juu", id: "Sepuluh (10)" },
+      { jp: "月曜日", romaji: "getsuyoubi", id: "Senin" },
+      { jp: "火曜日", romaji: "kayoubi", id: "Selasa" },
+      { jp: "水曜日", romaji: "suiyoubi", id: "Rabu" },
+      { jp: "木曜日", romaji: "mokuyoubi", id: "Kamis" },
+      { jp: "金曜日", romaji: "kinyoubi", id: "Jumat" },
+      { jp: "土曜日", romaji: "doyoubi", id: "Sabtu" },
+      { jp: "日曜日", romaji: "nichiyoubi", id: "Minggu" },
+      { jp: "今日", romaji: "kyou", id: "Hari ini" },
+      { jp: "明日", romaji: "ashita", id: "Besok" },
+      { jp: "昨日", romaji: "kinou", id: "Kemarin" },
+      { jp: "何時", romaji: "nanji", id: "Jam berapa" },
+    ],
+  },
+  {
+    slug: "partikel-dasar",
+    title: "Partikel Dasar: は・が・を・に・で・の",
+    category: "Tata Bahasa",
+    level: "N5",
+    excerpt:
+      "Enam partikel yang paling sering dipakai dan menentukan struktur kalimat dasar bahasa Jepang.",
+    intro: [
+      "Partikel (助詞 / joshi) adalah kata kecil yang menandai fungsi kata di depannya dalam kalimat — mirip \"di\", \"ke\", \"dari\" dalam bahasa Indonesia, tapi peletakannya SETELAH kata, bukan sebelum. Enam partikel berikut sudah cukup untuk membentuk kalimat dasar sehari-hari.",
+    ],
+    tips: [
+      "は (dibaca \"wa\" saat jadi partikel) — menandai topik kalimat. Contoh: 私は学生です (watashi wa gakusei desu) = Saya adalah pelajar.",
+      "が (ga) — menandai subjek, sering dipakai saat memperkenalkan info baru. Contoh: 田中さんが来ました (Tanaka-san ga kimashita) = Pak/Bu Tanaka datang.",
+      "を (dibaca \"o\" saat jadi partikel) — menandai objek langsung. Contoh: ご飯を食べます (gohan wo tabemasu) = Makan nasi.",
+      "に (ni) — menandai waktu, tujuan, atau arah. Contoh: 7時に始まります (shichiji ni hajimarimasu) = Dimulai jam 7.",
+      "で (de) — menandai lokasi terjadinya aktivitas atau alat/cara. Contoh: 工場で働きます (koujou de hatarakimasu) = Bekerja di pabrik.",
+      "の (no) — menandai kepemilikan, mirip \"-nya\" atau \"milik\". Contoh: 私の名前 (watashi no namae) = Nama saya.",
+    ],
+    examples: [
+      { jp: "私はインドネシア人です。", id: "Saya adalah orang Indonesia." },
+      { jp: "明日、工場で働きます。", id: "Besok, saya bekerja di pabrik." },
+      { jp: "8時に会社に着きます。", id: "Saya tiba di perusahaan jam 8." },
     ],
   },
   {
