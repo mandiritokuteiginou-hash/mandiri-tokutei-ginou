@@ -10,6 +10,8 @@ import Faq from "@/components/landing/Faq";
 import ArticlesTeaser from "@/components/landing/ArticlesTeaser";
 import ContactCta from "@/components/landing/ContactCta";
 
+export const revalidate = 300;
+
 export default function Home() {
   return (
     <>

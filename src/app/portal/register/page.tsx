@@ -5,44 +5,61 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PortalHeader from "@/components/portal/PortalHeader";
 import { SECTORS } from "@/lib/data";
-import { Sector } from "@/lib/types";
-import { findCandidate, saveCandidate, setCandidateSession } from "@/lib/storage";
-
-const DEFAULT_DOCUMENTS = [
-  "KTP / Paspor",
-  "Ijazah Terakhir",
-  "Surat Keterangan Sehat",
-  "Pas Foto",
-];
+import { createClient } from "@/lib/supabase/client";
+import { ensureCpmiRegistration } from "@/lib/supabase/cpmi";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [checkEmail, setCheckEmail] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email")).trim().toLowerCase();
+    const password = String(form.get("password"));
+    const fullName = String(form.get("fullName"));
+    const phone = String(form.get("phone"));
+    const sectorInterest = String(form.get("sectorInterest"));
 
-    if (findCandidate(email)) {
-      setError("Email ini sudah terdaftar. Silakan masuk lewat halaman login.");
+    const supabase = createClient();
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          nama_lengkap: fullName,
+          nomor_hp: phone,
+          sektor_minat: [sectorInterest],
+        },
+      },
+    });
+
+    if (signUpError) {
+      setError(signUpError.message);
+      setSubmitting(false);
       return;
     }
 
-    saveCandidate({
-      fullName: String(form.get("fullName")),
-      email,
-      phone: String(form.get("phone")),
-      sectorInterest: String(form.get("sectorInterest")) as Sector,
-      status: "Berkas Diverifikasi",
-      documents: DEFAULT_DOCUMENTS.map((name) => ({ name, uploaded: false })),
-      createdAt: new Date().toISOString(),
-    });
+    if (data.session && data.user) {
+      try {
+        await ensureCpmiRegistration(supabase, data.user);
+        router.push("/portal/dashboard");
+        return;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Gagal membuat pendaftaran.");
+        setSubmitting(false);
+        return;
+      }
+    }
 
-    setCandidateSession(email);
-    router.push("/portal/dashboard");
+    // Email confirmation required before a session is issued.
+    setCheckEmail(true);
+    setSubmitting(false);
   }
 
   return (
@@ -59,95 +76,117 @@ export default function RegisterPage() {
       />
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
-        <h1 className="text-2xl font-bold text-brand-navy">
-          Daftar sebagai Kandidat
-        </h1>
-        <p className="mt-2 text-sm text-neutral-600">
-          Lengkapi data diri untuk memulai proses pendaftaran program Tokutei
-          Ginou.
-        </p>
-
-        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label className="text-xs font-medium text-neutral-600" htmlFor="fullName">
-              Nama Lengkap
-            </label>
-            <input
-              id="fullName"
-              name="fullName"
-              required
-              type="text"
-              className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-neutral-600" htmlFor="email">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              required
-              type="email"
-              className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-neutral-600" htmlFor="phone">
-              Nomor WhatsApp
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              required
-              type="tel"
-              className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-neutral-600" htmlFor="sectorInterest">
-              Sektor Diminati
-            </label>
-            <select
-              id="sectorInterest"
-              name="sectorInterest"
-              required
-              defaultValue=""
-              className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+        {checkEmail ? (
+          <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
+            <span className="text-4xl">📩</span>
+            <h1 className="mt-3 text-xl font-bold text-brand-navy">
+              Cek Email Anda
+            </h1>
+            <p className="mt-2 text-sm text-neutral-600">
+              Kami telah mengirim link konfirmasi ke email Anda. Setelah
+              dikonfirmasi, silakan masuk melalui halaman login.
+            </p>
+            <Link
+              href="/portal/login"
+              className="mt-5 inline-block rounded-lg bg-brand-red px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-red-dark"
             >
-              <option value="" disabled>
-                Pilih sektor
-              </option>
-              {SECTORS.map((sector) => (
-                <option key={sector} value={sector}>
-                  {sector}
-                </option>
-              ))}
-            </select>
+              Ke Halaman Login
+            </Link>
           </div>
-          <div>
-            <label className="text-xs font-medium text-neutral-600" htmlFor="password">
-              Kata Sandi
-            </label>
-            <input
-              id="password"
-              name="password"
-              required
-              minLength={6}
-              type="password"
-              className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
-            />
-          </div>
+        ) : (
+          <>
+            <h1 className="text-2xl font-bold text-brand-navy">
+              Daftar sebagai Kandidat
+            </h1>
+            <p className="mt-2 text-sm text-neutral-600">
+              Lengkapi data diri untuk memulai proses pendaftaran program
+              Tokutei Ginou.
+            </p>
 
-          {error && <p className="text-sm text-brand-red">{error}</p>}
+            <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="fullName">
+                  Nama Lengkap
+                </label>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  required
+                  type="text"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="email">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  required
+                  type="email"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="phone">
+                  Nomor WhatsApp
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  required
+                  type="tel"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="sectorInterest">
+                  Sektor Diminati
+                </label>
+                <select
+                  id="sectorInterest"
+                  name="sectorInterest"
+                  required
+                  defaultValue=""
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                >
+                  <option value="" disabled>
+                    Pilih sektor
+                  </option>
+                  {SECTORS.map((sector) => (
+                    <option key={sector} value={sector}>
+                      {sector}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="password">
+                  Kata Sandi
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  required
+                  minLength={6}
+                  type="password"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
 
-          <button
-            type="submit"
-            className="w-full rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark"
-          >
-            Buat Akun & Daftar
-          </button>
-        </form>
+              {error && <p className="text-sm text-brand-red">{error}</p>}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
+              >
+                {submitting ? "Memproses..." : "Buat Akun & Daftar"}
+              </button>
+            </form>
+          </>
+        )}
       </main>
     </div>
   );

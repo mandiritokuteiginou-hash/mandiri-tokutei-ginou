@@ -1,62 +1,123 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import PortalHeader from "@/components/portal/PortalHeader";
-import { JOBS } from "@/lib/data";
-import { ApplicationStatus, CandidateProfile } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+import { ensureCpmiRegistration } from "@/lib/supabase/cpmi";
+import { SupabaseClient } from "@supabase/supabase-js";
 import {
-  findCandidate,
-  getCandidateSession,
-  saveCandidate,
-  setCandidateSession,
-} from "@/lib/storage";
+  CPMI_STATUS_FLOW,
+  CPMI_STATUS_LABELS,
+  CpmiDocument,
+  CpmiRegistration,
+  DOCUMENT_TYPE_LABELS,
+  DocumentType,
+  JobOrder,
+  REQUIRED_DOCUMENT_TYPES,
+} from "@/lib/types";
 
-const STATUS_STEPS: ApplicationStatus[] = [
-  "Berkas Diverifikasi",
-  "Pelatihan Bahasa",
-  "Ujian Skill & JLPT",
-  "Menunggu Penempatan",
-  "Ditempatkan di Jepang",
-];
+async function uploadCandidateDocument(
+  supabase: SupabaseClient,
+  registrationId: string,
+  jenisDokumen: DocumentType,
+  file: File
+) {
+  const path = `${registrationId}/${jenisDokumen}-${Date.now()}-${file.name}`;
+
+  const { error: uploadErr } = await supabase.storage
+    .from("cpmi-documents")
+    .upload(path, file);
+  if (uploadErr) return { error: uploadErr };
+
+  const { error: insertErr } = await supabase.from("documents").insert({
+    cpmi_id: registrationId,
+    jenis_dokumen: jenisDokumen,
+    file_url: path,
+  });
+  return { error: insertErr };
+}
 
 export default function PortalDashboardPage() {
   const router = useRouter();
-  const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
+  const [registration, setRegistration] = useState<CpmiRegistration | null>(null);
+  const [documents, setDocuments] = useState<CpmiDocument[]>([]);
+  const [matchedJobs, setMatchedJobs] = useState<JobOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState("");
 
-  useEffect(() => {
-    const email = getCandidateSession();
-    if (!email) {
+  const loadData = useCallback(async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
       router.replace("/portal/login");
       return;
     }
-    const profile = findCandidate(email);
-    if (!profile) {
-      router.replace("/portal/login");
-      return;
+
+    const reg = await ensureCpmiRegistration(supabase, user);
+    setRegistration(reg);
+
+    const { data: docs } = await supabase
+      .from("documents")
+      .select("*")
+      .eq("cpmi_id", reg.id)
+      .order("uploaded_at", { ascending: false });
+    setDocuments(docs ?? []);
+
+    if (reg.sektor_minat.length > 0) {
+      const { data: jobs } = await supabase
+        .from("job_orders")
+        .select("*")
+        .eq("status_aktif", true)
+        .in("sektor", reg.sektor_minat);
+      setMatchedJobs(jobs ?? []);
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of client-only localStorage on mount
-    setCandidate(profile);
+
     setLoading(false);
   }, [router]);
 
-  function toggleDocument(index: number) {
-    if (!candidate) return;
-    const documents = candidate.documents.map((doc, i) =>
-      i === index ? { ...doc, uploaded: !doc.uploaded } : doc
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time fetch of the signed-in candidate's data on mount
+    loadData();
+  }, [loadData]);
+
+  async function handleUpload(jenisDokumen: DocumentType, e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !registration) return;
+
+    setUploadError("");
+    setUploadingType(jenisDokumen);
+
+    const supabase = createClient();
+    const { error } = await uploadCandidateDocument(
+      supabase,
+      registration.id,
+      jenisDokumen,
+      file
     );
-    const updated = { ...candidate, documents };
-    setCandidate(updated);
-    saveCandidate(updated);
+
+    if (error) {
+      setUploadError(error.message);
+      setUploadingType(null);
+      return;
+    }
+
+    await loadData();
+    setUploadingType(null);
   }
 
-  function handleLogout() {
-    setCandidateSession(null);
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/portal/login");
   }
 
-  if (loading || !candidate) {
+  if (loading || !registration) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-brand-cream text-sm text-neutral-500">
         Memuat data...
@@ -64,8 +125,10 @@ export default function PortalDashboardPage() {
     );
   }
 
-  const currentStepIndex = STATUS_STEPS.indexOf(candidate.status);
-  const matchedJobs = JOBS.filter((j) => j.sector === candidate.sectorInterest);
+  const isTerminalStatus =
+    registration.status === "tidak_lolos" || registration.status === "mengundurkan_diri";
+  const currentStepIndex = CPMI_STATUS_FLOW.indexOf(registration.status);
+  const uploadedByType = new Map(documents.map((d) => [d.jenis_dokumen, d]));
 
   return (
     <div className="min-h-screen bg-brand-cream">
@@ -85,46 +148,57 @@ export default function PortalDashboardPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="text-xl font-bold text-brand-navy">
-                Halo, {candidate.fullName.split(" ")[0]} 👋
+                Halo, {registration.nama_lengkap.split(" ")[0]} 👋
               </h1>
               <p className="text-sm text-neutral-500">
-                Sektor diminati: {candidate.sectorInterest}
+                Sektor diminati: {registration.sektor_minat.join(", ") || "-"}
+                {registration.nomor_registrasi && (
+                  <> · No. Registrasi: {registration.nomor_registrasi}</>
+                )}
               </p>
             </div>
-            <span className="rounded-full bg-brand-red/10 px-4 py-2 text-sm font-semibold text-brand-red">
-              {candidate.status}
+            <span
+              className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                isTerminalStatus
+                  ? "bg-neutral-200 text-neutral-600"
+                  : "bg-brand-red/10 text-brand-red"
+              }`}
+            >
+              {CPMI_STATUS_LABELS[registration.status]}
             </span>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-sm font-semibold text-brand-navy">
-              Status Pendaftaran
-            </h2>
-            <ol className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              {STATUS_STEPS.map((step, i) => (
-                <li key={step} className="flex flex-1 items-center gap-3">
-                  <span
-                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                      i <= currentStepIndex
-                        ? "bg-brand-red text-white"
-                        : "bg-neutral-100 text-neutral-400"
-                    }`}
-                  >
-                    {i + 1}
-                  </span>
-                  <span
-                    className={`text-xs sm:text-sm ${
-                      i <= currentStepIndex
-                        ? "font-medium text-brand-navy"
-                        : "text-neutral-400"
-                    }`}
-                  >
-                    {step}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
+          {!isTerminalStatus && (
+            <div className="mt-8">
+              <h2 className="text-sm font-semibold text-brand-navy">
+                Status Pendaftaran
+              </h2>
+              <ol className="mt-4 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
+                {CPMI_STATUS_FLOW.map((step, i) => (
+                  <li key={step} className="flex items-center gap-2">
+                    <span
+                      className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                        i <= currentStepIndex
+                          ? "bg-brand-red text-white"
+                          : "bg-neutral-100 text-neutral-400"
+                      }`}
+                    >
+                      {i + 1}
+                    </span>
+                    <span
+                      className={`text-xs sm:text-sm ${
+                        i <= currentStepIndex
+                          ? "font-medium text-brand-navy"
+                          : "text-neutral-400"
+                      }`}
+                    >
+                      {CPMI_STATUS_LABELS[step]}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
@@ -132,22 +206,36 @@ export default function PortalDashboardPage() {
             <h2 className="text-sm font-semibold text-brand-navy">
               Checklist Dokumen
             </h2>
+            {uploadError && (
+              <p className="mt-2 text-xs text-brand-red">{uploadError}</p>
+            )}
             <ul className="mt-4 space-y-3">
-              {candidate.documents.map((doc, i) => (
-                <li key={doc.name} className="flex items-center justify-between">
-                  <span className="text-sm text-neutral-700">{doc.name}</span>
-                  <button
-                    onClick={() => toggleDocument(i)}
-                    className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-                      doc.uploaded
-                        ? "bg-green-100 text-green-700"
-                        : "bg-neutral-100 text-neutral-500"
-                    }`}
-                  >
-                    {doc.uploaded ? "Terunggah ✓" : "Belum Diunggah"}
-                  </button>
-                </li>
-              ))}
+              {REQUIRED_DOCUMENT_TYPES.map((docType) => {
+                const uploaded = uploadedByType.get(docType);
+                const isUploading = uploadingType === docType;
+                return (
+                  <li key={docType} className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-neutral-700">
+                      {DOCUMENT_TYPE_LABELS[docType]}
+                    </span>
+                    {uploaded ? (
+                      <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                        Terunggah ✓
+                      </span>
+                    ) : (
+                      <label className="cursor-pointer rounded-full bg-neutral-100 px-3 py-1 text-xs font-semibold text-neutral-600 hover:bg-neutral-200">
+                        {isUploading ? "Mengunggah..." : "Unggah"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          disabled={isUploading}
+                          onChange={(e) => handleUpload(docType, e)}
+                        />
+                      </label>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -166,9 +254,11 @@ export default function PortalDashboardPage() {
                     key={job.id}
                     className="rounded-lg border border-black/5 p-3 text-sm"
                   >
-                    <div className="font-medium text-brand-navy">{job.title}</div>
+                    <div className="font-medium text-brand-navy">
+                      {job.nama_perusahaan}
+                    </div>
                     <div className="text-xs text-neutral-500">
-                      {job.location} · {job.salaryRange}
+                      {job.lokasi_prefektur} · {job.estimasi_gaji}
                     </div>
                   </li>
                 ))}

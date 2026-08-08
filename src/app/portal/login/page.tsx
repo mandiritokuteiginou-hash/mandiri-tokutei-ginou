@@ -4,27 +4,42 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import PortalHeader from "@/components/portal/PortalHeader";
-import { findCandidate, setCandidateSession } from "@/lib/storage";
+import { createClient } from "@/lib/supabase/client";
+import { ensureCpmiRegistration } from "@/lib/supabase/cpmi";
 
 export default function PortalLoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
     const email = String(form.get("email")).trim().toLowerCase();
+    const password = String(form.get("password"));
 
-    const candidate = findCandidate(email);
-    if (!candidate) {
-      setError("Akun tidak ditemukan. Silakan daftar terlebih dahulu.");
+    const supabase = createClient();
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) {
+      setError("Email atau kata sandi salah, atau akun belum dikonfirmasi.");
+      setSubmitting(false);
       return;
     }
 
-    setCandidateSession(email);
-    router.push("/portal/dashboard");
+    try {
+      await ensureCpmiRegistration(supabase, data.user);
+      router.push("/portal/dashboard");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Gagal memuat data pendaftaran.");
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -76,16 +91,12 @@ export default function PortalLoginPage() {
 
           <button
             type="submit"
-            className="w-full rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark"
+            disabled={submitting}
+            className="w-full rounded-lg bg-brand-red px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-red-dark disabled:opacity-60"
           >
-            Masuk
+            {submitting ? "Memproses..." : "Masuk"}
           </button>
         </form>
-
-        <p className="mt-6 text-center text-xs text-neutral-400">
-          Demo: data disimpan lokal di browser Anda (belum terhubung basis
-          data server).
-        </p>
       </main>
     </div>
   );
