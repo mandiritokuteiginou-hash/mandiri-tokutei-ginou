@@ -168,6 +168,117 @@ export const MATERIALS: LearningMaterial[] = [
     ],
   },
   {
+    slug: "kata-kerja-dasar",
+    title: "Kata Kerja Dasar: Bentuk -masu, Negatif & Lampau",
+    category: "Tata Bahasa",
+    level: "N5",
+    excerpt:
+      "Cara mengubah kata kerja ke bentuk positif, negatif, dan lampau — pola paling sering dipakai dalam percakapan kerja sehari-hari.",
+    intro: [
+      "Bentuk ~masu (~ます) adalah bentuk sopan standar kata kerja bahasa Jepang, dipakai di hampir semua situasi formal termasuk tempat kerja. Empat pola dasar berikut cukup untuk menyusun kalimat tentang aktivitas kerja sehari-hari, baik sekarang, nanti, maupun yang sudah lewat.",
+    ],
+    vocab: [
+      { jp: "食べます", romaji: "tabemasu", id: "Makan (sekarang/akan datang)" },
+      { jp: "食べません", romaji: "tabemasen", id: "Tidak makan" },
+      { jp: "食べました", romaji: "tabemashita", id: "Sudah makan (lampau)" },
+      { jp: "食べませんでした", romaji: "tabemasendeshita", id: "Tidak makan (lampau)" },
+      { jp: "働きます", romaji: "hatarakimasu", id: "Bekerja" },
+      { jp: "行きます", romaji: "ikimasu", id: "Pergi" },
+      { jp: "来ます", romaji: "kimasu", id: "Datang" },
+      { jp: "します", romaji: "shimasu", id: "Melakukan" },
+      { jp: "あります", romaji: "arimasu", id: "Ada (untuk benda mati)" },
+      { jp: "います", romaji: "imasu", id: "Ada (untuk orang/makhluk hidup)" },
+    ],
+    tips: [
+      "Pola: [kata kerja]ます = positif sekarang/akan datang, [kata kerja]ません = negatif, [kata kerja]ました = positif lampau, [kata kerja]ませんでした = negatif lampau.",
+      "Bahasa Jepang tidak membedakan \"sekarang\" dan \"akan datang\" dalam bentuk kata kerja — konteks kalimat (mis. kata 明日/besok) yang menentukan waktunya.",
+    ],
+    examples: [
+      { jp: "毎日、7時に働きます。", id: "Setiap hari, saya bekerja jam 7." },
+      { jp: "昨日は残業しませんでした。", id: "Kemarin saya tidak lembur." },
+    ],
+  },
+  {
+    slug: "kata-sifat-i-na",
+    title: "Kata Sifat: Adjektiva -i dan -na",
+    category: "Tata Bahasa",
+    level: "N5",
+    excerpt:
+      "Dua kelompok kata sifat dalam bahasa Jepang dan cara memakainya dalam kalimat sehari-hari.",
+    intro: [
+      "Kata sifat bahasa Jepang terbagi dua kelompok: adjektiva -i (berakhiran い, seperti 大きい/besar) dan adjektiva -na (perlu tambahan な sebelum kata benda, seperti 元気な人/orang yang sehat). Keduanya sering dipakai untuk menjelaskan kondisi kerja, suasana hati, dan situasi sehari-hari.",
+    ],
+    vocab: [
+      { jp: "大きい", romaji: "ookii", id: "Besar (adjektiva -i)" },
+      { jp: "小さい", romaji: "chiisai", id: "Kecil (adjektiva -i)" },
+      { jp: "忙しい", romaji: "isogashii", id: "Sibuk (adjektiva -i)" },
+      { jp: "難しい", romaji: "muzukashii", id: "Sulit (adjektiva -i)" },
+      { jp: "楽しい", romaji: "tanoshii", id: "Menyenangkan (adjektiva -i)" },
+      { jp: "元気な", romaji: "genki na", id: "Sehat, semangat (adjektiva -na)" },
+      { jp: "大丈夫な", romaji: "daijoubu na", id: "Baik-baik saja (adjektiva -na)" },
+      { jp: "静かな", romaji: "shizuka na", id: "Tenang (adjektiva -na)" },
+      { jp: "便利な", romaji: "benri na", id: "Praktis, berguna (adjektiva -na)" },
+      { jp: "親切な", romaji: "shinsetsu na", id: "Ramah, baik hati (adjektiva -na)" },
+    ],
+    tips: [
+      "Adjektiva -i berdiri sendiri sebelum kata benda: 大きい荷物 (ookii nimotsu) = barang yang besar.",
+      "Adjektiva -na butuh tambahan な sebelum kata benda: 元気な人 (genki na hito) = orang yang sehat/semangat — tapi tanpa な di akhir kalimat: 彼は元気です (kare wa genki desu) = Dia sehat.",
+    ],
+  },
+  {
+    slug: "kata-tanya-dasar",
+    title: "Kata Tanya Dasar",
+    category: "Tata Bahasa",
+    level: "N5",
+    excerpt:
+      "Kata tanya yang paling sering dipakai untuk bertanya soal pekerjaan, jadwal, dan situasi sehari-hari.",
+    intro: [
+      "Menguasai kata tanya dasar membuat Anda bisa bertanya dan memahami instruksi di tempat kerja, misalnya soal jadwal, lokasi, atau prosedur. Semua kata tanya berikut biasanya diikuti partikel か (ka) di akhir kalimat untuk menandai kalimat tanya.",
+    ],
+    vocab: [
+      { jp: "何", romaji: "nani / nan", id: "Apa" },
+      { jp: "どこ", romaji: "doko", id: "Di mana" },
+      { jp: "いつ", romaji: "itsu", id: "Kapan" },
+      { jp: "誰", romaji: "dare", id: "Siapa" },
+      { jp: "なぜ / どうして", romaji: "naze / doushite", id: "Mengapa" },
+      { jp: "どう", romaji: "dou", id: "Bagaimana" },
+      { jp: "いくら", romaji: "ikura", id: "Berapa (harga)" },
+      { jp: "いくつ", romaji: "ikutsu", id: "Berapa (jumlah)" },
+    ],
+    examples: [
+      { jp: "これは何ですか。", id: "Ini apa?" },
+      { jp: "トイレはどこですか。", id: "Toilet di mana?" },
+      { jp: "休憩はいつですか。", id: "Istirahat kapan?" },
+    ],
+  },
+  {
+    slug: "kata-bantu-bilangan",
+    title: "Menghitung Benda: Kata Bantu Bilangan (Josuushi)",
+    category: "Tata Bahasa",
+    level: "N4-N5",
+    excerpt:
+      "Kata bantu bilangan (counter) yang berubah tergantung jenis benda yang dihitung — salah satu ciri khas bahasa Jepang.",
+    intro: [
+      "Berbeda dari bahasa Indonesia, bahasa Jepang memakai kata bantu bilangan (josuushi) yang berbeda tergantung jenis benda yang dihitung — orang, benda tipis, benda panjang, mesin, dan sebagainya. Pelajari yang paling sering dipakai di tempat kerja berikut.",
+    ],
+    vocab: [
+      { jp: "一つ", romaji: "hitotsu", id: "Satu buah (benda umum, hitungan universal)" },
+      { jp: "一人", romaji: "hitori", id: "Satu orang" },
+      { jp: "二人", romaji: "futari", id: "Dua orang" },
+      { jp: "三人", romaji: "sannin", id: "Tiga orang (mulai 3, pola \"angka+nin\" beraturan)" },
+      { jp: "一枚", romaji: "ichimai", id: "Satu lembar (kertas, baju, benda tipis)" },
+      { jp: "一本", romaji: "ippon", id: "Satu batang (pulpen, botol, benda panjang)" },
+      { jp: "一個", romaji: "ikko", id: "Satu buah (benda kecil bulat)" },
+      { jp: "一台", romaji: "ichidai", id: "Satu unit (mesin, kendaraan)" },
+      { jp: "一回", romaji: "ikkai", id: "Satu kali" },
+      { jp: "一時間", romaji: "ichijikan", id: "Satu jam (durasi)" },
+    ],
+    tips: [
+      "Untuk benda umum yang tidak punya counter khusus, gunakan hitungan universal: 一つ・二つ・三つ (hitotsu, futatsu, mittsu) dan seterusnya sampai 十 (too).",
+      "Bacaan angka bisa berubah tergantung counter-nya (mis. 一本 dibaca \"ippon\", bukan \"ichihon\") — hafalkan pola ini bertahap lewat latihan, bukan hafalan sekaligus.",
+    ],
+  },
+  {
     slug: "kosakata-kerja-kaigo",
     title: "Kosakata Kerja: Perawatan Lansia (Kaigo)",
     category: "Kosakata per Sektor",

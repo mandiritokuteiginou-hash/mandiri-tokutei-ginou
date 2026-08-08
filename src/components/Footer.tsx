@@ -22,7 +22,7 @@ export default function Footer() {
         <div>
           <h3 className="text-sm font-semibold text-white">Navigasi</h3>
           <ul className="mt-3 space-y-2 text-sm">
-            <li><a href="#program" className="hover:text-white">Program</a></li>
+            <li><Link href="/program" className="hover:text-white">Program Selengkapnya</Link></li>
             <li><a href="#layanan" className="hover:text-white">Layanan</a></li>
             <li><a href="#lowongan" className="hover:text-white">Lowongan</a></li>
             <li><a href="#testimoni" className="hover:text-white">Testimoni</a></li>

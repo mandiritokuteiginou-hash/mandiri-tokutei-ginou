@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { SECTORS } from "@/lib/data";
 
 export default function ProgramExplainer() {
@@ -35,6 +36,12 @@ export default function ProgramExplainer() {
               </li>
             ))}
           </ul>
+          <Link
+            href="/program"
+            className="mt-6 inline-block text-sm font-semibold text-brand-red hover:text-brand-red-dark"
+          >
+            Pelajari selengkapnya: SSW-1 vs SSW-2, alur proses, biaya & hak pekerja →
+          </Link>
         </div>
 
         <div className="rounded-2xl border border-black/5 bg-brand-cream p-6 sm:p-8">

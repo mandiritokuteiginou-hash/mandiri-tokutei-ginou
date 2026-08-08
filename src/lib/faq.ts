@@ -29,4 +29,24 @@ export const FAQS: { question: string; answer: string }[] = [
     answer:
       "Tim pelatihan kami mendampingi hingga lulus, termasuk sesi remedial dan simulasi ujian tambahan tanpa biaya tambahan untuk peserta program pelatihan reguler.",
   },
+  {
+    question: "Apa perbedaan status SSW-1 dan SSW-2?",
+    answer:
+      "SSW-1 (特定技能1号) punya masa kerja maksimal 5 tahun dan tidak boleh membawa keluarga. SSW-2 (特定技能2号) tidak dibatasi jumlah tahun, boleh membawa keluarga, tapi mensyaratkan pengalaman sebagai supervisor dan ujian skill lanjutan. Lihat halaman Program untuk perbandingan lengkap.",
+  },
+  {
+    question: "Apakah gaji dan jam kerja dijamin sesuai standar Jepang?",
+    answer:
+      "Ya. Kontrak kerja Tokutei Ginou wajib memenuhi standar upah minimum daerah kerja di Jepang, mencakup jaminan sosial (asuransi kesehatan, tenaga kerja, dan pensiun) yang sama dengan pekerja lokal.",
+  },
+  {
+    question: "Bagaimana jika saya bermasalah dengan perusahaan penerima di Jepang?",
+    answer:
+      "Setiap pemegang visa Tokutei Ginou berhak melapor ke lembaga pendukung terdaftar (registered support organization) dan, dalam kondisi tertentu, berhak pindah kerja ke perusahaan lain dalam sektor yang sama sesuai ketentuan visa.",
+  },
+  {
+    question: "Apakah program ini bekerja sama dengan calo atau agen tidak resmi?",
+    answer:
+      "Tidak. Kami hanya menempatkan kandidat melalui lembaga pengirim dan perusahaan penerima yang terdaftar resmi di Jepang, untuk melindungi Anda dari praktik ilegal dan biaya tidak wajar.",
+  },
 ];
