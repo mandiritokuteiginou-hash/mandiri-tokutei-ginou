@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import JobOrderForm, { JobOrderFormValues } from "@/components/admin/JobOrderForm";
@@ -8,11 +8,24 @@ import { createClient } from "@/lib/supabase/client";
 import {
   CPMI_STATUS_FLOW,
   CPMI_STATUS_LABELS,
+  CpmiDocument,
   CpmiRegistration,
   CpmiStatus,
+  DOCUMENT_TYPE_LABELS,
+  DocumentType,
   JobOrder,
   REQUIRED_DOCUMENT_TYPES,
 } from "@/lib/types";
+
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 const STATUS_OPTIONS: CpmiStatus[] = [
   ...CPMI_STATUS_FLOW,
@@ -25,11 +38,13 @@ export default function AdminDashboardPage() {
   const [authorized, setAuthorized] = useState(false);
   const [registrations, setRegistrations] = useState<CpmiRegistration[]>([]);
   const [jobs, setJobs] = useState<JobOrder[]>([]);
-  const [docCounts, setDocCounts] = useState<Map<string, number>>(new Map());
+  const [documentsByReg, setDocumentsByReg] = useState<Map<string, CpmiDocument[]>>(new Map());
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobOrder | null>(null);
   const [jobFormSubmitting, setJobFormSubmitting] = useState(false);
   const [jobFormError, setJobFormError] = useState("");
+  const [expandedRegId, setExpandedRegId] = useState<string | null>(null);
+  const [viewingDocId, setViewingDocId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     const supabase = createClient();
@@ -45,16 +60,42 @@ export default function AdminDashboardPage() {
       .order("created_at", { ascending: false });
     setJobs(jobOrders ?? []);
 
-    const { data: docs } = await supabase.from("documents").select("cpmi_id, jenis_dokumen");
-    const counts = new Map<string, Set<string>>();
-    for (const doc of docs ?? []) {
-      if (!counts.has(doc.cpmi_id)) counts.set(doc.cpmi_id, new Set());
-      if (REQUIRED_DOCUMENT_TYPES.includes(doc.jenis_dokumen)) {
-        counts.get(doc.cpmi_id)!.add(doc.jenis_dokumen);
-      }
+    const { data: docs } = await supabase
+      .from("documents")
+      .select("*")
+      .order("uploaded_at", { ascending: false });
+    const byReg = new Map<string, CpmiDocument[]>();
+    for (const doc of (docs ?? []) as CpmiDocument[]) {
+      if (!byReg.has(doc.cpmi_id)) byReg.set(doc.cpmi_id, []);
+      byReg.get(doc.cpmi_id)!.push(doc);
     }
-    setDocCounts(new Map([...counts].map(([id, set]) => [id, set.size])));
+    setDocumentsByReg(byReg);
   }, []);
+
+  function countUploadedRequiredDocs(regId: string) {
+    const docs = documentsByReg.get(regId) ?? [];
+    const uploadedTypes = new Set(
+      docs
+        .map((d) => d.jenis_dokumen)
+        .filter((type): type is DocumentType => REQUIRED_DOCUMENT_TYPES.includes(type as DocumentType))
+    );
+    return uploadedTypes.size;
+  }
+
+  async function handleViewDocument(doc: CpmiDocument) {
+    setViewingDocId(doc.id);
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from("cpmi-documents")
+      .createSignedUrl(doc.file_url, 60);
+    setViewingDocId(null);
+
+    if (error || !data) {
+      alert("Gagal membuka dokumen: " + (error?.message ?? "unknown error"));
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
 
   useEffect(() => {
     async function init() {
@@ -231,41 +272,90 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map((r) => (
-                    <tr key={r.id} className="border-b border-black/5">
-                      <td className="py-3 pr-4 text-xs text-neutral-500">
-                        {r.nomor_registrasi ?? "-"}
-                      </td>
-                      <td className="py-3 pr-4 font-medium text-brand-navy">
-                        {r.nama_lengkap}
-                      </td>
-                      <td className="py-3 pr-4 text-neutral-600">
-                        <div>{r.email ?? "-"}</div>
-                        <div className="text-xs text-neutral-400">{r.nomor_hp}</div>
-                      </td>
-                      <td className="py-3 pr-4 text-neutral-600">
-                        {r.sektor_minat.join(", ") || "-"}
-                      </td>
-                      <td className="py-3 pr-4 text-neutral-600">
-                        {docCounts.get(r.id) ?? 0}/{REQUIRED_DOCUMENT_TYPES.length}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <select
-                          value={r.status}
-                          onChange={(e) =>
-                            handleStatusChange(r.id, e.target.value as CpmiStatus)
-                          }
-                          className="rounded-lg border border-black/10 px-2 py-1 text-xs outline-none focus:border-brand-red"
-                        >
-                          {STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>
-                              {CPMI_STATUS_LABELS[status]}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  ))}
+                  {registrations.map((r) => {
+                    const docs = documentsByReg.get(r.id) ?? [];
+                    const isExpanded = expandedRegId === r.id;
+                    return (
+                      <Fragment key={r.id}>
+                        <tr className="border-b border-black/5">
+                          <td className="py-3 pr-4 text-xs text-neutral-500">
+                            {r.nomor_registrasi ?? "-"}
+                          </td>
+                          <td className="py-3 pr-4 font-medium text-brand-navy">
+                            {r.nama_lengkap}
+                          </td>
+                          <td className="py-3 pr-4 text-neutral-600">
+                            <div>{r.email ?? "-"}</div>
+                            <div className="text-xs text-neutral-400">{r.nomor_hp}</div>
+                          </td>
+                          <td className="py-3 pr-4 text-neutral-600">
+                            {r.sektor_minat.join(", ") || "-"}
+                          </td>
+                          <td className="py-3 pr-4">
+                            <button
+                              onClick={() =>
+                                setExpandedRegId(isExpanded ? null : r.id)
+                              }
+                              className="rounded-full border border-black/10 px-3 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100"
+                            >
+                              {countUploadedRequiredDocs(r.id)}/{REQUIRED_DOCUMENT_TYPES.length}{" "}
+                              {isExpanded ? "▲" : "▼"}
+                            </button>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <select
+                              value={r.status}
+                              onChange={(e) =>
+                                handleStatusChange(r.id, e.target.value as CpmiStatus)
+                              }
+                              className="rounded-lg border border-black/10 px-2 py-1 text-xs outline-none focus:border-brand-red"
+                            >
+                              {STATUS_OPTIONS.map((status) => (
+                                <option key={status} value={status}>
+                                  {CPMI_STATUS_LABELS[status]}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="border-b border-black/5 bg-neutral-50">
+                            <td colSpan={6} className="px-4 py-4">
+                              {docs.length === 0 ? (
+                                <p className="text-xs text-neutral-500">
+                                  Belum ada dokumen diunggah.
+                                </p>
+                              ) : (
+                                <ul className="space-y-2">
+                                  {docs.map((doc) => (
+                                    <li
+                                      key={doc.id}
+                                      className="flex items-center justify-between gap-3 text-xs"
+                                    >
+                                      <span className="text-neutral-700">
+                                        <span className="font-medium text-brand-navy">
+                                          {DOCUMENT_TYPE_LABELS[doc.jenis_dokumen as DocumentType] ??
+                                            doc.jenis_dokumen}
+                                        </span>{" "}
+                                        · diunggah {formatDateTime(doc.uploaded_at)}
+                                      </span>
+                                      <button
+                                        onClick={() => handleViewDocument(doc)}
+                                        disabled={viewingDocId === doc.id}
+                                        className="rounded-full bg-brand-navy px-3 py-1 font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-60"
+                                      >
+                                        {viewingDocId === doc.id ? "Membuka..." : "Lihat Dokumen"}
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
