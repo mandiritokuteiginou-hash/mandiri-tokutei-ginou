@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
+import JobOrderForm, { JobOrderFormValues } from "@/components/admin/JobOrderForm";
 import { createClient } from "@/lib/supabase/client";
 import {
   CPMI_STATUS_FLOW,
@@ -25,6 +26,10 @@ export default function AdminDashboardPage() {
   const [registrations, setRegistrations] = useState<CpmiRegistration[]>([]);
   const [jobs, setJobs] = useState<JobOrder[]>([]);
   const [docCounts, setDocCounts] = useState<Map<string, number>>(new Map());
+  const [jobFormOpen, setJobFormOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobOrder | null>(null);
+  const [jobFormSubmitting, setJobFormSubmitting] = useState(false);
+  const [jobFormError, setJobFormError] = useState("");
 
   const loadData = useCallback(async () => {
     const supabase = createClient();
@@ -91,6 +96,66 @@ export default function AdminDashboardPage() {
       setRegistrations((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status } : r))
       );
+    }
+  }
+
+  function openCreateJobForm() {
+    setEditingJob(null);
+    setJobFormError("");
+    setJobFormOpen(true);
+  }
+
+  function openEditJobForm(job: JobOrder) {
+    setEditingJob(job);
+    setJobFormError("");
+    setJobFormOpen(true);
+  }
+
+  function closeJobForm() {
+    setJobFormOpen(false);
+    setEditingJob(null);
+    setJobFormError("");
+  }
+
+  async function handleJobFormSubmit(values: JobOrderFormValues) {
+    setJobFormSubmitting(true);
+    setJobFormError("");
+
+    const supabase = createClient();
+    const { error } = editingJob
+      ? await supabase.from("job_orders").update(values).eq("id", editingJob.id)
+      : await supabase.from("job_orders").insert(values);
+
+    setJobFormSubmitting(false);
+
+    if (error) {
+      setJobFormError(error.message);
+      return;
+    }
+
+    closeJobForm();
+    await loadData();
+  }
+
+  async function handleToggleJobActive(job: JobOrder) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("job_orders")
+      .update({ status_aktif: !job.status_aktif })
+      .eq("id", job.id);
+    if (!error) {
+      setJobs((prev) =>
+        prev.map((j) => (j.id === job.id ? { ...j, status_aktif: !j.status_aktif } : j))
+      );
+    }
+  }
+
+  async function handleDeleteJob(job: JobOrder) {
+    if (!confirm(`Hapus lowongan "${job.nama_perusahaan}"?`)) return;
+    const supabase = createClient();
+    const { error } = await supabase.from("job_orders").delete().eq("id", job.id);
+    if (!error) {
+      setJobs((prev) => prev.filter((j) => j.id !== job.id));
     }
   }
 
@@ -208,9 +273,30 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-brand-navy">Lowongan</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-brand-navy">Lowongan</h2>
+            {!jobFormOpen && (
+              <button
+                onClick={openCreateJobForm}
+                className="rounded-full bg-brand-red px-4 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
+              >
+                + Tambah Lowongan
+              </button>
+            )}
+          </div>
+
+          {jobFormOpen && (
+            <JobOrderForm
+              initial={editingJob}
+              submitting={jobFormSubmitting}
+              error={jobFormError}
+              onSubmit={handleJobFormSubmit}
+              onCancel={closeJobForm}
+            />
+          )}
+
           <div className="mt-4 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
+            <table className="w-full min-w-[720px] text-left text-sm">
               <thead>
                 <tr className="border-b border-black/5 text-xs uppercase text-neutral-500">
                   <th className="py-2 pr-4">Perusahaan</th>
@@ -218,6 +304,7 @@ export default function AdminDashboardPage() {
                   <th className="py-2 pr-4">Lokasi</th>
                   <th className="py-2 pr-4">Gaji</th>
                   <th className="py-2 pr-4">Status</th>
+                  <th className="py-2 pr-4">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -229,18 +316,44 @@ export default function AdminDashboardPage() {
                     <td className="py-3 pr-4 text-neutral-600">{job.sektor}</td>
                     <td className="py-3 pr-4 text-neutral-600">{job.lokasi_prefektur}</td>
                     <td className="py-3 pr-4 text-neutral-600">{job.estimasi_gaji}</td>
-                    <td className="py-3 pr-4 text-neutral-600">
-                      {job.status_aktif ? "Aktif" : "Nonaktif"}
+                    <td className="py-3 pr-4">
+                      <button
+                        onClick={() => handleToggleJobActive(job)}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          job.status_aktif
+                            ? "bg-green-100 text-green-700"
+                            : "bg-neutral-200 text-neutral-500"
+                        }`}
+                      >
+                        {job.status_aktif ? "Aktif" : "Nonaktif"}
+                      </button>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEditJobForm(job)}
+                          className="text-xs font-semibold text-brand-navy hover:text-brand-red"
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          onClick={() => handleDeleteJob(job)}
+                          className="text-xs font-semibold text-brand-red hover:text-brand-red-dark"
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            {jobs.length === 0 && (
+              <p className="py-6 text-center text-sm text-neutral-500">
+                Belum ada lowongan. Tambahkan lewat tombol di atas.
+              </p>
+            )}
           </div>
-          <p className="mt-3 text-xs text-neutral-400">
-            Kelola lowongan langsung lewat Supabase (tabel job_orders) atau
-            sinkronisasi Notion — CRUD dari panel ini belum tersedia.
-          </p>
         </div>
       </main>
     </div>
