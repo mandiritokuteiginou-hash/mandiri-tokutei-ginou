@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { href: "#lowongan", label: "Lowongan" },
   { href: "#testimoni", label: "Testimoni" },
   { href: "/artikel", label: "Artikel" },
+  { href: "/materi-belajar", label: "Materi Belajar" },
   { href: "#faq", label: "FAQ" },
   { href: "#kontak", label: "Kontak" },
 ];
