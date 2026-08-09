@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Furigana from "@/components/materi/Furigana";
 import { MATERIALS, getMaterialBySlug } from "@/lib/materials";
 
 export function generateStaticParams() {
@@ -83,7 +84,9 @@ export default async function MaterialDetailPage({
               <h2 className="text-sm font-semibold text-brand-navy">Contoh Kalimat</h2>
               {material.examples.map((ex, i) => (
                 <div key={i} className="border-b border-black/5 pb-3 last:border-0 last:pb-0">
-                  <p className="text-base font-medium text-brand-navy">{ex.jp}</p>
+                  <p className="pt-2 text-base leading-loose font-medium text-brand-navy">
+                    <Furigana text={ex.jp} />
+                  </p>
                   <p className="text-sm text-neutral-500">{ex.id}</p>
                 </div>
               ))}
@@ -103,8 +106,8 @@ export default async function MaterialDetailPage({
                 <tbody>
                   {material.vocab.map((entry) => (
                     <tr key={entry.jp} className="border-b border-black/5 last:border-0">
-                      <td className="px-4 py-3 text-base font-medium text-brand-navy">
-                        {entry.jp}
+                      <td className="px-4 py-3 pt-4 text-base leading-loose font-medium text-brand-navy">
+                        <Furigana text={entry.jp} />
                       </td>
                       <td className="px-4 py-3 text-neutral-500 italic">{entry.romaji}</td>
                       <td className="px-4 py-3 text-neutral-700">{entry.id}</td>
