@@ -59,11 +59,12 @@ export default function Navbar() {
 
         <button
           type="button"
-          aria-label="Buka menu"
+          aria-label={open ? "Tutup menu" : "Buka menu"}
+          aria-expanded={open}
+          aria-controls="mobile-nav-menu"
           className="flex h-9 w-9 items-center justify-center rounded-md border border-black/10 md:hidden"
           onClick={() => setOpen((v) => !v)}
         >
-          <span className="sr-only">Menu</span>
           <div className="space-y-1">
             <span className="block h-0.5 w-5 bg-brand-navy" />
             <span className="block h-0.5 w-5 bg-brand-navy" />
@@ -73,7 +74,7 @@ export default function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-black/5 bg-white px-4 pb-4 md:hidden">
+        <div id="mobile-nav-menu" className="border-t border-black/5 bg-white px-4 pb-4 md:hidden">
           <nav className="flex flex-col gap-3 pt-3">
             {NAV_LINKS.map((link) => (
               <a

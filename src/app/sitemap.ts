@@ -12,6 +12,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE_URL}/materi-belajar`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/portal/register`, changeFrequency: "monthly", priority: 0.6 },
     { url: `${BASE_URL}/portal/login`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${BASE_URL}/kebijakan-privasi`, changeFrequency: "yearly", priority: 0.2 },
+    { url: `${BASE_URL}/syarat-ketentuan`, changeFrequency: "yearly", priority: 0.2 },
   ];
 
   const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map((article) => ({

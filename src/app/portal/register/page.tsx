@@ -178,6 +178,18 @@ export default function RegisterPage() {
 
               {error && <p className="text-sm text-brand-red">{error}</p>}
 
+              <p className="text-xs text-neutral-500">
+                Dengan mendaftar, Anda menyetujui{" "}
+                <Link href="/syarat-ketentuan" className="font-medium text-brand-red hover:text-brand-red-dark">
+                  Syarat &amp; Ketentuan
+                </Link>{" "}
+                dan{" "}
+                <Link href="/kebijakan-privasi" className="font-medium text-brand-red hover:text-brand-red-dark">
+                  Kebijakan Privasi
+                </Link>{" "}
+                kami.
+              </p>
+
               <button
                 type="submit"
                 disabled={submitting}

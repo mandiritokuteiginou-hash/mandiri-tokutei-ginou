@@ -51,8 +51,12 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/10 px-4 py-4 text-center text-xs text-neutral-500 sm:px-6">
-        © {new Date().getFullYear()} Mandiri Tokutei Ginou. Seluruh hak cipta dilindungi.
+      <div className="border-t border-white/10 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center text-xs text-neutral-500">
+          <span>© {new Date().getFullYear()} Mandiri Tokutei Ginou. Seluruh hak cipta dilindungi.</span>
+          <Link href="/kebijakan-privasi" className="hover:text-neutral-300">Kebijakan Privasi</Link>
+          <Link href="/syarat-ketentuan" className="hover:text-neutral-300">Syarat &amp; Ketentuan</Link>
+        </div>
       </div>
     </footer>
   );
