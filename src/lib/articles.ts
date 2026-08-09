@@ -69,6 +69,54 @@ export const ARTICLES: Article[] = [
       "Mitra kami di Jepang juga menyediakan pendampingan berkelanjutan untuk membantu pekerja mengatasi kendala adaptasi maupun masalah teknis terkait kontrak kerja selama masa penempatan.",
     ],
   },
+  {
+    slug: "panduan-bulan-pertama-kerja-di-jepang",
+    title: "Panduan Bertahan di Bulan Pertama Kerja di Jepang",
+    excerpt:
+      "Minggu-minggu pertama biasanya paling berat secara mental dan administratif. Ini daftar hal yang perlu Anda urus dan hadapi di awal penempatan.",
+    category: "Panduan",
+    publishedAt: "2026-08-01",
+    readMinutes: 5,
+    content: [
+      "Dalam 14 hari pertama sejak tiba, Anda wajib mendaftarkan alamat tempat tinggal ke kantor pemerintah setempat (yakuba/shiyakusho) untuk mengaktifkan Kartu Zairyu (Residence Card) sepenuhnya — proses ini biasanya didampingi oleh perusahaan penerima atau organisasi pengawas (supervising organization).",
+      "Setelah alamat terdaftar, urus pendaftaran asuransi kesehatan nasional (Kokumin Kenko Hoken) dan sistem pensiun (Nenkin) jika belum otomatis terdaftar melalui perusahaan. Iuran ini dipotong dari gaji namun memberi perlindungan kesehatan penting selama bekerja.",
+      "Buka rekening bank Jepang (banyak pekerja menggunakan Japan Post Bank/Yucho karena prosesnya relatif mudah untuk pemegang visa kerja) dan aktifkan nomor telepon lokal — keduanya sering menjadi syarat administrasi lain seperti pembayaran gaji dan pendaftaran layanan.",
+      "Secara mental, minggu-minggu awal sering terasa berat karena perbedaan bahasa, ritme kerja, dan rasa rindu keluarga. Ini normal. Manfaatkan grup komunitas pekerja Indonesia di area Anda dan tetap komunikasi rutin dengan pendamping dari agensi maupun tim Mandiri Tokutei Ginou.",
+      "Catat baik-baik jam kerja, sistem lembur, dan hari libur perusahaan Anda sejak hari pertama — memahami hak dan kewajiban kontrak sejak awal akan mencegah kesalahpahaman di kemudian hari.",
+    ],
+  },
+  {
+    slug: "cara-menabung-dan-kirim-uang-dari-jepang",
+    title: "Cara Cerdas Menabung dan Kirim Uang ke Keluarga dari Jepang",
+    excerpt:
+      "Gaji besar tidak otomatis berarti tabungan besar. Berikut strategi mengatur keuangan yang dipakai kebanyakan pekerja Tokutei Ginou yang sukses menabung.",
+    category: "Tips Belajar",
+    publishedAt: "2026-08-05",
+    readMinutes: 4,
+    content: [
+      "Langkah pertama adalah membuat anggaran bulanan sederhana: pisahkan gaji ke pos sewa/asrama, makan, transportasi, tabungan wajib, dan kiriman ke keluarga. Banyak pekerja sukses menerapkan aturan menyisihkan minimal 30-40% gaji bersih untuk ditabung atau dikirim pulang.",
+      "Untuk transfer ke Indonesia, bandingkan biaya dan kurs antara transfer bank biasa dengan layanan remitansi khusus pekerja migran (seperti Wise, WorldRemit, atau layanan mitra bank lokal) — selisih biaya antar layanan bisa cukup signifikan jika dilakukan rutin setiap bulan.",
+      "Masak sendiri dan membawa bekal ke tempat kerja adalah cara paling efektif menekan pengeluaran harian dibanding membeli makan di luar, mengingat biaya makan di Jepang bisa menjadi pos pengeluaran terbesar kedua setelah sewa tempat tinggal.",
+      "Manfaatkan diskon musiman dan aplikasi cashback/poin dari supermarket lokal (seperti sistem poin di drugstore dan minimarket) untuk belanja kebutuhan sehari-hari — kebiasaan kecil ini terakumulasi menjadi penghematan berarti dalam setahun.",
+      "Terakhir, tetapkan target tabungan jangka panjang sejak awal — baik untuk modal usaha sepulang ke Indonesia, pendidikan keluarga, atau membeli rumah — agar motivasi menabung tetap terjaga meski jauh dari rumah.",
+    ],
+  },
+  {
+    slug: "kisah-sukses-alumni-tokutei-ginou-sektor-kaigo",
+    title: "Dari Perawat di Kampung ke Tenaga Kaigo di Jepang: Kisah Sukses Alumni Kami",
+    excerpt:
+      "Perjalanan seorang kandidat dari nol bahasa Jepang hingga bekerja sebagai tenaga perawat lansia (kaigo) di Sapporo — dan apa yang ia pelajari sepanjang jalan.",
+    category: "Cerita Alumni",
+    publishedAt: "2026-08-08",
+    readMinutes: 5,
+    content: [
+      "Sebelum bergabung dengan program Tokutei Ginou, kandidat kami bekerja sebagai asisten perawat di sebuah klinik kecil di Jawa Tengah tanpa pernah belajar bahasa Jepang sama sekali. Ketertarikannya pada sektor kaigo (perawatan lansia) bermula dari cerita tetangga yang lebih dulu bekerja di Jepang.",
+      "Enam bulan pertama dihabiskan untuk persiapan intensif: kelas bahasa Jepang setiap hari, simulasi ujian JFT-Basic, serta pelatihan keterampilan dasar perawatan lansia sesuai standar kerja di Jepang seperti teknik memandikan, memindahkan pasien, dan komunikasi dengan lansia dengan sopan santun (keigo dasar).",
+      "Tantangan terbesar bukan hanya bahasa, tetapi menyesuaikan diri dengan standar ketelitian dan dokumentasi kerja di fasilitas perawatan Jepang — setiap tindakan perawatan harus dicatat dengan detail, jauh berbeda dari kebiasaan kerja sebelumnya.",
+      "Setelah dinyatakan lolos seleksi dan ditempatkan di sebuah fasilitas perawatan lansia di Sapporo, ia mengaku tiga bulan pertama adalah masa tersulit — namun dukungan dari rekan kerja Jepang dan pendampingan rutin dari tim kami membantunya melewati masa adaptasi.",
+      "Kini, setelah lebih dari setahun bekerja, ia telah dipercaya membimbing pekerja baru yang datang dari Indonesia dan tengah mempersiapkan diri untuk ujian kenaikan level bahasa demi membuka peluang perpanjangan kontrak ke SSW-2. Kisahnya menjadi bukti bahwa modal utama bukan kemampuan bahasa yang sempurna sejak awal, melainkan kesungguhan untuk terus belajar.",
+    ],
+  },
 ];
 
 export function getArticleBySlug(slug: string) {
