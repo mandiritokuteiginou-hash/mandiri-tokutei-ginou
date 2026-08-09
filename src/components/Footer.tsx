@@ -24,7 +24,7 @@ export default function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link href="/program" className="hover:text-white">Program Selengkapnya</Link></li>
             <li><a href="#layanan" className="hover:text-white">Layanan</a></li>
-            <li><a href="#lowongan" className="hover:text-white">Lowongan</a></li>
+            <li><Link href="/lowongan" className="hover:text-white">Lowongan</Link></li>
             <li><a href="#testimoni" className="hover:text-white">Testimoni</a></li>
             <li><Link href="/artikel" className="hover:text-white">Artikel</Link></li>
             <li><Link href="/materi-belajar" className="hover:text-white">Materi Belajar</Link></li>
