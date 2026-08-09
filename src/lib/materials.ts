@@ -14,11 +14,14 @@ export interface ExampleSentence {
   id: string;
 }
 
+export type JlptLevel = "Umum" | "N5" | "N4" | "N3" | "N2" | "N1";
+
 export interface LearningMaterial {
   slug: string;
   title: string;
   category: string;
   level: string;
+  jlptLevel: JlptLevel;
   excerpt: string;
   intro: string[];
   vocab?: VocabEntry[];
@@ -27,12 +30,24 @@ export interface LearningMaterial {
   tips?: string[];
 }
 
+export const JLPT_LEVELS: JlptLevel[] = ["Umum", "N5", "N4", "N3", "N2", "N1"];
+
+export const JLPT_LEVEL_LABELS: Record<JlptLevel, string> = {
+  Umum: "Umum",
+  N5: "N5 — Pemula",
+  N4: "N4 — Dasar",
+  N3: "N3 — Menengah",
+  N2: "N2 — Menengah Atas",
+  N1: "N1 — Mahir",
+};
+
 export const MATERIALS: LearningMaterial[] = [
   {
     slug: "sapaan-percakapan-sehari-hari",
     title: "Sapaan & Percakapan Dasar Sehari-hari",
     category: "Bahasa Jepang Dasar",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Kalimat sapaan dan ungkapan paling sering dipakai di lingkungan kerja Jepang — modal awal sebelum masuk kosakata per sektor.",
     intro: [
@@ -57,6 +72,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Hiragana Dasar",
     category: "Bahasa Jepang Dasar",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "46 huruf hiragana dasar (gojuon) — huruf pertama yang wajib dikuasai sebelum belajar kosakata dan kalimat.",
     intro: [
@@ -86,6 +102,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Katakana Dasar",
     category: "Bahasa Jepang Dasar",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "46 huruf katakana dasar — dipakai untuk menulis kata serapan asing, nama negara, dan istilah teknis/mesin di tempat kerja.",
     intro: [
@@ -114,6 +131,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Angka, Hari & Waktu",
     category: "Bahasa Jepang Dasar",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Kosakata angka, hari dalam seminggu, dan ungkapan waktu — dipakai setiap hari untuk memahami jadwal dan shift kerja.",
     intro: [
@@ -148,6 +166,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Partikel Dasar: は・が・を・に・で・の",
     category: "Tata Bahasa",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Enam partikel yang paling sering dipakai dan menentukan struktur kalimat dasar bahasa Jepang.",
     intro: [
@@ -172,6 +191,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kata Kerja Dasar: Bentuk -masu, Negatif & Lampau",
     category: "Tata Bahasa",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Cara mengubah kata kerja ke bentuk positif, negatif, dan lampau — pola paling sering dipakai dalam percakapan kerja sehari-hari.",
     intro: [
@@ -203,6 +223,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kata Sifat: Adjektiva -i dan -na",
     category: "Tata Bahasa",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Dua kelompok kata sifat dalam bahasa Jepang dan cara memakainya dalam kalimat sehari-hari.",
     intro: [
@@ -230,6 +251,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kata Tanya Dasar",
     category: "Tata Bahasa",
     level: "N5",
+    jlptLevel: "N5",
     excerpt:
       "Kata tanya yang paling sering dipakai untuk bertanya soal pekerjaan, jadwal, dan situasi sehari-hari.",
     intro: [
@@ -256,6 +278,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Menghitung Benda: Kata Bantu Bilangan (Josuushi)",
     category: "Tata Bahasa",
     level: "N4-N5",
+    jlptLevel: "N5",
     excerpt:
       "Kata bantu bilangan (counter) yang berubah tergantung jenis benda yang dihitung — salah satu ciri khas bahasa Jepang.",
     intro: [
@@ -279,10 +302,555 @@ export const MATERIALS: LearningMaterial[] = [
     ],
   },
   {
+    slug: "kanji-dasar-n5",
+    title: "Kanji Dasar N5",
+    category: "Kanji",
+    level: "N5",
+    jlptLevel: "N5",
+    excerpt:
+      "Kanji pertama yang wajib dikuasai: angka, arah, anggota keluarga, dan kata benda dasar sehari-hari.",
+    intro: [
+      "Setelah lancar membaca hiragana dan katakana, langkah berikutnya adalah kanji — huruf bermakna yang dipakai bersama hiragana dalam kalimat sehari-hari maupun dokumen kerja. Modul ini berisi kanji paling dasar level N5 yang sering muncul di formulir, jadwal, dan papan pengumuman tempat kerja.",
+      "Cara belajar paling efektif: hafalkan kanji dalam konteks kata, bukan satu per satu tanpa makna. Tulis ulang tiap kanji sambil mengucapkan cara bacanya.",
+    ],
+    vocab: [
+      { jp: "人", romaji: "hito / jin", id: "Orang" },
+      { jp: "大", romaji: "ookii / dai", id: "Besar" },
+      { jp: "小", romaji: "chiisai / shou", id: "Kecil" },
+      { jp: "中", romaji: "naka / chuu", id: "Tengah, dalam" },
+      { jp: "上", romaji: "ue / jou", id: "Atas" },
+      { jp: "下", romaji: "shita / ka", id: "Bawah" },
+      { jp: "左", romaji: "hidari", id: "Kiri" },
+      { jp: "右", romaji: "migi", id: "Kanan" },
+      { jp: "前", romaji: "mae / zen", id: "Depan, sebelum" },
+      { jp: "後", romaji: "ushiro / go", id: "Belakang, sesudah" },
+      { jp: "今", romaji: "ima / kon", id: "Sekarang" },
+      { jp: "年", romaji: "toshi / nen", id: "Tahun" },
+      { jp: "時", romaji: "toki / ji", id: "Waktu, jam" },
+      { jp: "分", romaji: "fun / bun", id: "Menit, bagian" },
+      { jp: "間", romaji: "aida / kan", id: "Antara, selang waktu" },
+      { jp: "山", romaji: "yama", id: "Gunung" },
+      { jp: "川", romaji: "kawa", id: "Sungai" },
+      { jp: "田", romaji: "ta / den", id: "Sawah" },
+      { jp: "女", romaji: "onna / jo", id: "Perempuan" },
+      { jp: "男", romaji: "otoko / dan", id: "Laki-laki" },
+      { jp: "子", romaji: "ko / shi", id: "Anak" },
+      { jp: "学校", romaji: "gakkou", id: "Sekolah" },
+      { jp: "先生", romaji: "sensei", id: "Guru" },
+      { jp: "会社", romaji: "kaisha", id: "Perusahaan" },
+      { jp: "仕事", romaji: "shigoto", id: "Pekerjaan" },
+      { jp: "休み", romaji: "yasumi", id: "Libur, istirahat" },
+      { jp: "家", romaji: "ie / ka", id: "Rumah" },
+      { jp: "国", romaji: "kuni / koku", id: "Negara" },
+      { jp: "名前", romaji: "namae", id: "Nama" },
+      { jp: "電話", romaji: "denwa", id: "Telepon" },
+    ],
+    tips: [
+      "Kanji punya dua jenis bacaan: kunyomi (bacaan asli Jepang, dipakai saat kanji berdiri sendiri) dan onyomi (bacaan serapan Cina, dipakai saat kanji digabung jadi kata majemuk, mis. 会社 dibaca \"kaisha\", bukan gabungan bacaan tunggalnya).",
+      "Jangan targetkan hafal semua sekaligus — pelajari 3-5 kanji baru per hari sambil mengulang yang sudah dipelajari, jauh lebih efektif daripada belajar banyak dalam sehari lalu lupa.",
+    ],
+  },
+  {
+    slug: "bentuk-te-dan-penggunaannya",
+    title: "Bentuk -Te dan Penggunaannya",
+    category: "Tata Bahasa",
+    level: "N4",
+    jlptLevel: "N4",
+    excerpt:
+      "Bentuk -te adalah salah satu bentuk kata kerja terpenting di level N4 — dipakai untuk meminta izin, memberi instruksi, dan menyambung aktivitas.",
+    intro: [
+      "Bentuk -te (て形) adalah salah satu pola kata kerja paling sering dipakai dalam percakapan kerja sehari-hari — untuk meminta tolong, memberi izin, melarang, dan menjelaskan aktivitas yang sedang berlangsung. Berbeda dari bentuk ~masu yang formal, bentuk -te adalah dasar untuk banyak pola kalimat lanjutan.",
+      "Cara membentuknya tergantung kelompok kata kerja: kata kerja kelompok 1 (godan) berubah sesuai akhirannya, kelompok 2 (ichidan) cukup ganti る dengan て, dan kata kerja tidak beraturan (する/来る) punya bentuk khusus.",
+    ],
+    vocab: [
+      { jp: "書く → 書いて", romaji: "kaku → kaite", id: "Menulis (dasar → bentuk -te)" },
+      { jp: "飲む → 飲んで", romaji: "nomu → nonde", id: "Minum (dasar → bentuk -te)" },
+      { jp: "待つ → 待って", romaji: "matsu → matte", id: "Menunggu (dasar → bentuk -te)" },
+      { jp: "話す → 話して", romaji: "hanasu → hanashite", id: "Berbicara (dasar → bentuk -te)" },
+      { jp: "食べる → 食べて", romaji: "taberu → tabete", id: "Makan (ichidan, dasar → bentuk -te)" },
+      { jp: "見る → 見て", romaji: "miru → mite", id: "Melihat (ichidan, dasar → bentuk -te)" },
+      { jp: "する → して", romaji: "suru → shite", id: "Melakukan (tidak beraturan)" },
+      { jp: "来る → 来て", romaji: "kuru → kite", id: "Datang (tidak beraturan)" },
+    ],
+    tips: [
+      "~てください (te kudasai) = tolong lakukan ~. Contoh: ここに座ってください (koko ni suwatte kudasai) = Tolong duduk di sini.",
+      "~てもいいです (te mo ii desu) = boleh melakukan ~. Contoh: 休憩してもいいです (kyuukei shite mo ii desu) = Boleh istirahat.",
+      "~てはいけません (te wa ikemasen) = tidak boleh/dilarang melakukan ~. Contoh: ここに入ってはいけません (koko ni haitte wa ikemasen) = Dilarang masuk ke sini.",
+      "~ています (te imasu) = sedang melakukan ~ (aktivitas berlangsung) atau kondisi hasil suatu tindakan. Contoh: 今、働いています (ima, hataraite imasu) = Sekarang saya sedang bekerja.",
+    ],
+    examples: [
+      { jp: "すみません、ここに車を止めてもいいですか。", id: "Permisi, boleh saya parkir mobil di sini?" },
+      { jp: "作業中は手袋をはめてください。", id: "Selama bekerja, tolong pakai sarung tangan." },
+      { jp: "危ないので、そこに入ってはいけません。", id: "Karena berbahaya, dilarang masuk ke sana." },
+    ],
+  },
+  {
+    slug: "bentuk-potensial-dan-kemauan",
+    title: "Bentuk Potensial dan Kemauan",
+    category: "Tata Bahasa",
+    level: "N4",
+    jlptLevel: "N4",
+    excerpt:
+      "Cara menyatakan kemampuan (bisa melakukan sesuatu) dan keinginan (ingin melakukan sesuatu) dalam bahasa Jepang.",
+    intro: [
+      "Bentuk potensial (可能形) dipakai untuk menyatakan kemampuan atau kemungkinan melakukan sesuatu — mis. 'bisa berbahasa Jepang'. Bentuk ~tai (~たい) dipakai untuk menyatakan keinginan diri sendiri. Keduanya sangat sering dipakai saat wawancara kerja maupun percakapan sehari-hari.",
+    ],
+    vocab: [
+      { jp: "話す → 話せます", romaji: "hanasu → hanasemasu", id: "Bisa berbicara" },
+      { jp: "読む → 読めます", romaji: "yomu → yomemasu", id: "Bisa membaca" },
+      { jp: "する → できます", romaji: "suru → dekimasu", id: "Bisa melakukan (tidak beraturan)" },
+      { jp: "起きる → 起きられます", romaji: "okiru → okiraremasu", id: "Bisa bangun (ichidan)" },
+      { jp: "働く → 働きたいです", romaji: "hataraku → hatarakitai desu", id: "Ingin bekerja" },
+      { jp: "休む → 休みたいです", romaji: "yasumu → yasumitai desu", id: "Ingin istirahat" },
+      { jp: "帰る → 帰りたいです", romaji: "kaeru → kaeritai desu", id: "Ingin pulang" },
+    ],
+    tips: [
+      "Pola umum bentuk potensial kata kerja kelompok 1: akhiran -u berubah jadi -eru (話す→話せる). Kelompok 2 (ichidan): ganti る jadi られる (食べる→食べられる). Kata kerja tidak beraturan: する→できる, 来る→来られる.",
+      "~たい hanya dipakai untuk keinginan diri sendiri; untuk menyatakan keinginan orang lain, dipakai bentuk ~たがっている yang dipelajari di level lebih lanjut.",
+      "Bentuk ~ましょう (mashou) dipakai untuk mengajak — 一緒に休みましょう (issho ni yasumimashou) = Ayo istirahat bersama.",
+    ],
+    examples: [
+      { jp: "少し日本語が話せます。", id: "Saya bisa berbicara sedikit bahasa Jepang." },
+      { jp: "将来、家族と一緒に暮らしたいです。", id: "Di masa depan, saya ingin tinggal bersama keluarga." },
+    ],
+  },
+  {
+    slug: "memberi-dan-menerima-agemasu-moraimasu-kuremasu",
+    title: "Memberi dan Menerima: あげる・もらう・くれる",
+    category: "Tata Bahasa",
+    level: "N4",
+    jlptLevel: "N4",
+    excerpt:
+      "Tiga kata kerja あげる・もらう・くれる yang menyatakan memberi dan menerima — arah penggunaannya tergantung siapa memberi ke siapa.",
+    intro: [
+      "Bahasa Jepang punya tiga kata kerja berbeda untuk 'memberi/menerima' tergantung arah dan siapa pelakunya — konsep yang tidak ada dalam bahasa Indonesia. Memahami pola ini penting untuk menceritakan situasi bantuan-membantu di tempat kerja.",
+    ],
+    vocab: [
+      { jp: "あげます", romaji: "agemasu", id: "Memberi (saya/orang lain ke orang lain, bukan ke saya)" },
+      { jp: "もらいます", romaji: "moraimasu", id: "Menerima (dari orang lain)" },
+      { jp: "くれます", romaji: "kuremasu", id: "Memberi (orang lain memberi ke saya/kelompok saya)" },
+      { jp: "貸します", romaji: "kashimasu", id: "Meminjamkan" },
+      { jp: "借ります", romaji: "karimasu", id: "Meminjam" },
+    ],
+    tips: [
+      "あげる dipakai saat SAYA memberi ke orang lain: 私は同僚にペンをあげました (watashi wa douryou ni pen wo agemashita) = Saya memberi pulpen ke rekan kerja.",
+      "くれる dipakai saat orang lain memberi KE SAYA: 先輩が仕事を教えてくれました (senpai ga shigoto wo oshiete kuremashita) = Senior mengajari saya pekerjaan.",
+      "もらう dipakai dari sudut pandang penerima: 私は先輩に仕事を教えてもらいました (watashi wa senpai ni shigoto wo oshiete moraimashita) = Saya diajari pekerjaan oleh senior.",
+      "Pola ~てくれる dan ~てもらう sering dipakai bersama kata kerja lain untuk menyatakan bantuan, seperti contoh 教えてくれる/教えてもらう (mengajari) di atas.",
+    ],
+    examples: [
+      { jp: "部長が飲み物をくれました。", id: "Manajer memberi saya minuman." },
+      { jp: "同僚に仕事の書類を貸しました。", id: "Saya meminjamkan dokumen kerja ke rekan kerja." },
+    ],
+  },
+  {
+    slug: "bentuk-kamus-dan-perbandingan",
+    title: "Bentuk Kamus dan Perbandingan",
+    category: "Tata Bahasa",
+    level: "N4",
+    jlptLevel: "N4",
+    excerpt:
+      "Bentuk kamus (kasual) kata kerja dan cara membandingkan dua hal dengan より dan ほど.",
+    intro: [
+      "Bentuk kamus (辞書形) adalah bentuk dasar kata kerja sebelum dikonjugasikan, dipakai dalam percakapan santai dengan teman dekat dan sebagai bentuk yang menempel pada banyak pola tata bahasa lanjutan. Modul ini juga mencakup pola perbandingan dasar yang sering dipakai dalam kalimat sehari-hari.",
+    ],
+    vocab: [
+      { jp: "食べます → 食べる", romaji: "tabemasu → taberu", id: "Bentuk kamus dari 'makan'" },
+      { jp: "飲みます → 飲む", romaji: "nomimasu → nomu", id: "Bentuk kamus dari 'minum'" },
+      { jp: "行きます → 行く", romaji: "ikimasu → iku", id: "Bentuk kamus dari 'pergi'" },
+      { jp: "します → する", romaji: "shimasu → suru", id: "Bentuk kamus dari 'melakukan'" },
+      { jp: "来ます → 来る", romaji: "kimasu → kuru", id: "Bentuk kamus dari 'datang'" },
+    ],
+    tips: [
+      "~より (yori) = dibanding ~. Contoh: 今日は昨日より暑いです (kyou wa kinou yori atsui desu) = Hari ini lebih panas dibanding kemarin.",
+      "~ほど〜ない (hodo ~nai) = tidak se~ seperti ~. Contoh: 今日は昨日ほど暑くないです (kyou wa kinou hodo atsukunai desu) = Hari ini tidak sepanas kemarin.",
+      "〜の方が〜です (~no hou ga ~desu) = ~ lebih ~ (membandingkan dua pilihan). Contoh: バスより電車の方が速いです (basu yori densha no hou ga hayai desu) = Kereta lebih cepat dibanding bus.",
+      "一番 (ichiban) = paling/nomor satu. Contoh: この仕事が一番大変です (kono shigoto ga ichiban taihen desu) = Pekerjaan ini yang paling berat.",
+    ],
+    examples: [
+      { jp: "日本語は英語より難しいです。", id: "Bahasa Jepang lebih sulit dibanding bahasa Inggris." },
+      { jp: "この機械があの機械より新しいです。", id: "Mesin ini lebih baru dibanding mesin itu." },
+    ],
+  },
+  {
+    slug: "kanji-dasar-n4",
+    title: "Kanji Dasar N4",
+    category: "Kanji",
+    level: "N4",
+    jlptLevel: "N4",
+    excerpt:
+      "Kanji level N4 seputar pekerjaan, waktu kerja, dan aktivitas kantor yang sering muncul di dokumen dan jadwal.",
+    intro: [
+      "Kanji level N4 mulai banyak dipakai dalam dokumen kerja seperti kontrak, slip gaji, dan pengumuman resmi. Modul ini fokus pada kanji yang relevan dengan dunia kerja.",
+    ],
+    vocab: [
+      { jp: "働く", romaji: "hataraku", id: "Bekerja" },
+      { jp: "休む", romaji: "yasumu", id: "Libur, istirahat, absen" },
+      { jp: "始まる", romaji: "hajimaru", id: "Dimulai" },
+      { jp: "終わる", romaji: "owaru", id: "Berakhir, selesai" },
+      { jp: "午前", romaji: "gozen", id: "Pagi (sebelum tengah hari)" },
+      { jp: "午後", romaji: "gogo", id: "Siang/sore (setelah tengah hari)" },
+      { jp: "週間", romaji: "shuukan", id: "(satuan) minggu" },
+      { jp: "曜日", romaji: "youbi", id: "Hari (dalam seminggu)" },
+      { jp: "英語", romaji: "eigo", id: "Bahasa Inggris" },
+      { jp: "漢字", romaji: "kanji", id: "Huruf kanji" },
+      { jp: "勉強", romaji: "benkyou", id: "Belajar" },
+      { jp: "練習", romaji: "renshuu", id: "Latihan" },
+      { jp: "経験", romaji: "keiken", id: "Pengalaman" },
+      { jp: "資格", romaji: "shikaku", id: "Kualifikasi, sertifikasi" },
+      { jp: "契約", romaji: "keiyaku", id: "Kontrak" },
+      { jp: "給料", romaji: "kyuuryou", id: "Gaji" },
+      { jp: "銀行", romaji: "ginkou", id: "Bank" },
+      { jp: "病院", romaji: "byouin", id: "Rumah sakit" },
+      { jp: "住所", romaji: "juusho", id: "Alamat" },
+      { jp: "電話番号", romaji: "denwa bangou", id: "Nomor telepon" },
+      { jp: "自転車", romaji: "jitensha", id: "Sepeda" },
+      { jp: "自動車", romaji: "jidousha", id: "Mobil" },
+      { jp: "運転", romaji: "unten", id: "Mengemudi" },
+      { jp: "借りる", romaji: "kariru", id: "Meminjam" },
+      { jp: "返す", romaji: "kaesu", id: "Mengembalikan" },
+      { jp: "送る", romaji: "okuru", id: "Mengirim" },
+      { jp: "受ける", romaji: "ukeru", id: "Menerima" },
+      { jp: "持つ", romaji: "motsu", id: "Membawa, memegang" },
+      { jp: "使う", romaji: "tsukau", id: "Memakai" },
+      { jp: "覚える", romaji: "oboeru", id: "Mengingat, menghafal" },
+    ],
+    tips: [
+      "Banyak kanji N4 berpasangan sebagai lawan kata (始まる↔終わる, 貸す↔借りる) — hafalkan sebagai pasangan agar lebih mudah diingat.",
+      "Kanji majemuk seperti 経験・資格・契約 sering muncul di formulir lamaran kerja dan CV — kuasai dulu yang relevan dengan proses pendaftaran Anda.",
+    ],
+  },
+  {
+    slug: "bentuk-pasif-dan-kausatif",
+    title: "Bentuk Pasif dan Kausatif",
+    category: "Tata Bahasa",
+    level: "N3",
+    jlptLevel: "N3",
+    excerpt:
+      "Bentuk pasif (受身形) dan kausatif (使役形) — dipakai untuk menyatakan tindakan yang diterima atau disuruh oleh orang lain.",
+    intro: [
+      "Bentuk pasif menyatakan bahwa subjek 'dikenai' suatu tindakan (mis. dimarahi, disuruh, dipuji), sedangkan bentuk kausatif menyatakan seseorang menyuruh/mengizinkan orang lain melakukan sesuatu. Keduanya sering dipakai untuk menceritakan hubungan atasan-bawahan di tempat kerja.",
+    ],
+    vocab: [
+      { jp: "叱る → 叱られる", romaji: "shikaru → shikarareru", id: "Dimarahi (pasif)" },
+      { jp: "褒める → 褒められる", romaji: "homeru → homerareru", id: "Dipuji (pasif)" },
+      { jp: "頼む → 頼まれる", romaji: "tanomu → tanomareru", id: "Diminta tolong (pasif)" },
+      { jp: "行く → 行かせる", romaji: "iku → ikaseru", id: "Menyuruh pergi (kausatif)" },
+      { jp: "書く → 書かせる", romaji: "kaku → kakaseru", id: "Menyuruh menulis (kausatif)" },
+      { jp: "休む → 休ませる", romaji: "yasumu → yasumaseru", id: "Mengizinkan/menyuruh istirahat (kausatif)" },
+    ],
+    tips: [
+      "Bentuk pasif kelompok 1: akhiran -u berubah -areru (叱る→叱られる). Kelompok 2: ganti る jadi られる (褒める→褒められる) — bedakan dari bentuk potensial lewat konteks kalimat.",
+      "Bentuk kausatif kelompok 1: akhiran -u berubah -aseru (行く→行かせる). Kelompok 2: ganti る jadi させる (見る→見させる).",
+      "Bentuk kausatif-pasif (~させられる) menyatakan terpaksa melakukan sesuatu karena disuruh: 残業させられました (zangyou saseraremashita) = Saya terpaksa disuruh lembur.",
+    ],
+    examples: [
+      { jp: "新人のとき、よく先輩に注意されました。", id: "Saat masih baru, saya sering ditegur oleh senior." },
+      { jp: "部長に会議の資料を作らせられました。", id: "Saya disuruh manajer membuat materi rapat." },
+    ],
+  },
+  {
+    slug: "ungkapan-syarat-tara-ba-to-nara",
+    title: "Ungkapan Syarat: たら・ば・と・なら",
+    category: "Tata Bahasa",
+    level: "N3",
+    jlptLevel: "N3",
+    excerpt:
+      "Empat cara menyatakan 'jika/kalau' dalam bahasa Jepang — たら・ば・と・なら — dan perbedaan nuansanya.",
+    intro: [
+      "Bahasa Jepang punya empat pola untuk menyatakan syarat (jika/kalau), masing-masing dengan nuansa dan situasi pemakaian yang sedikit berbeda. Menguasai keempatnya membuat kalimat Anda lebih natural dan sesuai konteks.",
+    ],
+    tips: [
+      "〜たら (tara): paling umum dan fleksibel, dipakai untuk syarat umum maupun kejadian satu kali. Contoh: 雨が降ったら、休みになります (ame ga futtara, yasumi ni narimasu) = Kalau hujan turun, jadi libur.",
+      "〜ば (ba): sering dipakai untuk syarat umum/aturan, terasa sedikit lebih formal. Contoh: 早く寝れば、早く起きられます (hayaku nereba, hayaku okiraremasu) = Kalau tidur cepat, bisa bangun cepat.",
+      "〜と (to): dipakai untuk hasil yang otomatis/pasti terjadi, sering untuk aturan alam atau mesin. Contoh: このボタンを押すと、機械が止まります (kono botan wo osu to, kikai ga tomarimasu) = Kalau tombol ini ditekan, mesinnya berhenti.",
+      "〜なら (nara): dipakai untuk merespons topik yang baru disebutkan lawan bicara, sering diterjemahkan 'kalau soal ~'. Contoh: 日本語を勉強するなら、この教科書がいいです (nihongo wo benkyou suru nara, kono kyoukasho ga ii desu) = Kalau soal belajar bahasa Jepang, buku ini bagus.",
+    ],
+    examples: [
+      { jp: "質問があったら、いつでも聞いてください。", id: "Kalau ada pertanyaan, silakan tanya kapan saja." },
+      { jp: "時間があれば、手伝ってください。", id: "Kalau ada waktu, tolong bantu." },
+    ],
+  },
+  {
+    slug: "menyatakan-alasan-dan-tujuan",
+    title: "Menyatakan Alasan dan Tujuan: ので・のに・ために",
+    category: "Tata Bahasa",
+    level: "N3",
+    jlptLevel: "N3",
+    excerpt:
+      "Pola ~ので, ~のに, dan ~ために untuk menjelaskan alasan, kontras yang tidak terduga, dan tujuan suatu tindakan.",
+    intro: [
+      "Menjelaskan alasan dan tujuan dengan tepat penting saat melapor ke atasan atau mengisi formulir cuti/izin. Tiga pola berikut sering dipakai dan mudah tertukar jika tidak dipahami perbedaannya.",
+    ],
+    tips: [
+      "〜ので (node): menyatakan alasan secara halus/sopan, cocok untuk situasi formal. Contoh: 熱があるので、休ませていただきます (netsu ga aru node, yasumasete itadakimasu) = Karena demam, saya izin tidak masuk kerja.",
+      "〜のに (noni): menyatakan hasil yang berlawanan dengan harapan/logika, mengandung nuansa kecewa atau heran. Contoh: 頑張ったのに、うまくいきませんでした (ganbatta noni, umaku ikimasendeshita) = Meski sudah berusaha, tidak berjalan lancar.",
+      "〜ために (tame ni): menyatakan tujuan suatu tindakan. Contoh: お金を貯めるために、毎日働いています (okane wo tameru tame ni, mainichi hataraite imasu) = Demi menabung uang, saya bekerja setiap hari.",
+      "Bedakan 〜ため(に) sebagai 'tujuan' dengan 'alasan' — jika diikuti kondisi negatif, artinya berubah jadi 'karena/akibat'. Contoh: 台風のため、電車が止まりました (taifuu no tame, densha ga tomarimashita) = Karena topan, kereta berhenti.",
+    ],
+    examples: [
+      { jp: "体調が悪いので、病院に行きます。", id: "Karena kondisi badan kurang baik, saya akan ke rumah sakit." },
+      { jp: "家族を養うために、日本で働くことにしました。", id: "Demi menafkahi keluarga, saya memutuskan bekerja di Jepang." },
+    ],
+  },
+  {
+    slug: "kanji-menengah-n3",
+    title: "Kanji Menengah N3",
+    category: "Kanji",
+    level: "N3",
+    jlptLevel: "N3",
+    excerpt:
+      "Kanji level N3 untuk membaca dokumen kerja, berita, dan pengumuman yang lebih formal.",
+    intro: [
+      "Di level N3, kanji yang dipelajari mulai mencakup topik yang lebih luas: masyarakat, ekonomi, dan situasi formal. Kanji-kanji ini sering muncul di berita, pengumuman perusahaan, dan dokumen resmi.",
+    ],
+    vocab: [
+      { jp: "社会", romaji: "shakai", id: "Masyarakat" },
+      { jp: "経済", romaji: "keizai", id: "Ekonomi" },
+      { jp: "政府", romaji: "seifu", id: "Pemerintah" },
+      { jp: "制度", romaji: "seido", id: "Sistem, aturan" },
+      { jp: "契約書", romaji: "keiyakusho", id: "Dokumen kontrak" },
+      { jp: "責任", romaji: "sekinin", id: "Tanggung jawab" },
+      { jp: "義務", romaji: "gimu", id: "Kewajiban" },
+      { jp: "権利", romaji: "kenri", id: "Hak" },
+      { jp: "保険", romaji: "hoken", id: "Asuransi" },
+      { jp: "税金", romaji: "zeikin", id: "Pajak" },
+      { jp: "給与", romaji: "kyuuyo", id: "Gaji, upah" },
+      { jp: "昇給", romaji: "shoukyuu", id: "Kenaikan gaji" },
+      { jp: "異動", romaji: "idou", id: "Mutasi/perpindahan jabatan" },
+      { jp: "退職", romaji: "taishoku", id: "Pengunduran diri/pensiun" },
+      { jp: "採用", romaji: "saiyou", id: "Perekrutan" },
+      { jp: "評価", romaji: "hyouka", id: "Penilaian" },
+      { jp: "改善", romaji: "kaizen", id: "Perbaikan berkelanjutan" },
+      { jp: "効率", romaji: "kouritsu", id: "Efisiensi" },
+      { jp: "状況", romaji: "joukyou", id: "Situasi, keadaan" },
+      { jp: "対応", romaji: "taiou", id: "Penanganan, respons" },
+      { jp: "確認", romaji: "kakunin", id: "Konfirmasi" },
+      { jp: "報告", romaji: "houkoku", id: "Laporan" },
+      { jp: "連絡", romaji: "renraku", id: "Kontak, pemberitahuan" },
+      { jp: "相談", romaji: "soudan", id: "Konsultasi" },
+      { jp: "許可", romaji: "kyoka", id: "Izin" },
+      { jp: "禁止", romaji: "kinshi", id: "Larangan" },
+      { jp: "規則", romaji: "kisoku", id: "Peraturan" },
+      { jp: "違反", romaji: "ihan", id: "Pelanggaran" },
+      { jp: "苦情", romaji: "kujou", id: "Keluhan" },
+      { jp: "解決", romaji: "kaiketsu", id: "Penyelesaian" },
+    ],
+    tips: [
+      "報告・連絡・相談 (houkoku, renraku, soudan) adalah tiga kata kunci budaya kerja Jepang yang disingkat 'hourensou' — sudah disinggung di modul Budaya Kerja Jepang, sekarang Anda bisa membaca kanjinya langsung.",
+      "Kanji seperti 権利 dan 義務 penting dipahami karena berkaitan dengan hak dan kewajiban Anda sebagai pekerja Tokutei Ginou — lihat halaman Program untuk penjelasan lengkapnya.",
+    ],
+  },
+  {
+    slug: "ungkapan-formal-dan-bisnis-n2",
+    title: "Ungkapan Formal dan Bisnis N2",
+    category: "Tata Bahasa",
+    level: "N2",
+    jlptLevel: "N2",
+    excerpt:
+      "Ungkapan keigo lanjutan dan bahasa bisnis yang dipakai dalam email kerja, rapat, dan komunikasi dengan klien.",
+    intro: [
+      "Di level N2, penguasaan keigo (bahasa sopan) diharapkan lebih matang — termasuk sonkeigo (bahasa penghormatan untuk lawan bicara) dan kenjougo (bahasa merendah untuk diri sendiri) dalam konteks bisnis. Modul ini melanjutkan dasar keigo yang sudah dipelajari di level N3.",
+    ],
+    vocab: [
+      { jp: "おっしゃいます", romaji: "osshaimasu", id: "Mengatakan (sonkeigo, untuk lawan bicara)" },
+      { jp: "いらっしゃいます", romaji: "irasshaimasu", id: "Ada/pergi/datang (sonkeigo)" },
+      { jp: "ご覧になります", romaji: "goran ni narimasu", id: "Melihat (sonkeigo)" },
+      { jp: "拝見します", romaji: "haiken shimasu", id: "Melihat (kenjougo, untuk diri sendiri)" },
+      { jp: "伺います", romaji: "ukagaimasu", id: "Bertanya/mengunjungi (kenjougo)" },
+      { jp: "存じます", romaji: "zonjimasu", id: "Mengetahui (kenjougo)" },
+      { jp: "恐れ入ります", romaji: "osoreirimasu", id: "Mohon maaf/terima kasih (sangat sopan)" },
+      { jp: "お世話になっております", romaji: "osewa ni natte orimasu", id: "Salam pembuka email/telepon bisnis" },
+    ],
+    tips: [
+      "Sonkeigo dipakai untuk mengangkat derajat lawan bicara/atasan; kenjougo dipakai untuk merendahkan diri sendiri saat berbicara ke atasan/tamu — jangan tertukar arah penggunaannya.",
+      "お世話になっております adalah kalimat pembuka standar di email bisnis Jepang, kurang lebih setara 'Dengan hormat' dalam bahasa Indonesia.",
+      "申し訳ございません (moushiwake gozaimasen) lebih formal dari すみません — dipakai untuk permintaan maaf resmi ke klien atau atasan senior.",
+    ],
+    examples: [
+      { jp: "部長は今、会議室にいらっしゃいます。", id: "Manajer sekarang sedang berada di ruang rapat (sonkeigo)." },
+      { jp: "資料を拝見しました。ありがとうございます。", id: "Saya sudah melihat dokumennya. Terima kasih (kenjougo)." },
+    ],
+  },
+  {
+    slug: "pola-kalimat-penting-n2",
+    title: "Pola Kalimat Penting N2",
+    category: "Tata Bahasa",
+    level: "N2",
+    jlptLevel: "N2",
+    excerpt:
+      "Pola tata bahasa N2 yang sering muncul dalam bacaan formal dan percakapan kerja tingkat lanjut.",
+    intro: [
+      "Pola kalimat N2 mulai memasuki nuansa bahasa yang lebih halus — menyatakan hal yang tak terduga, batasan, dan kondisi kompleks. Pola-pola berikut sering muncul dalam dokumen resmi maupun ujian JLPT N2.",
+    ],
+    tips: [
+      "〜にもかかわらず (nimo kakawarazu) = meskipun/walaupun. Contoh: 雨にもかかわらず、作業を続けました (ame nimo kakawarazu, sagyou wo tsuzukemashita) = Meski hujan, pekerjaan tetap dilanjutkan.",
+      "〜わけではない (wake dewa nai) = bukan berarti/tidak sepenuhnya. Contoh: 忙しいわけではないですが、時間があまりありません (isogashii wake dewa nai desu ga, jikan ga amari arimasen) = Bukan berarti sibuk, tapi waktu saya tidak banyak.",
+      "〜つつ (tsutsu) = sambil (formal, mirip ~ながら). Contoh: 反省しつつ、次の作業に取り組みます (hansei shitsutsu, tsugi no sagyou ni torikumimasu) = Sambil introspeksi, saya mengerjakan tugas berikutnya.",
+      "〜ざるを得ない (zaru wo enai) = terpaksa/tidak bisa tidak melakukan ~. Contoh: 規則なので、従わざるを得ません (kisoku na node, shitagawazaru wo emasen) = Karena peraturan, saya terpaksa mematuhinya.",
+      "〜上で (ue de) = setelah/dalam rangka melakukan ~. Contoh: 契約書を確認した上で、サインしてください (keiyakusho wo kakunin shita ue de, sain shite kudasai) = Setelah memeriksa dokumen kontrak, silakan tanda tangan.",
+    ],
+    examples: [
+      { jp: "経験が浅いにもかかわらず、彼はよく仕事ができます。", id: "Meski pengalamannya belum banyak, dia bekerja dengan baik." },
+      { jp: "上司と相談した上で、決定します。", id: "Saya akan memutuskan setelah berkonsultasi dengan atasan." },
+    ],
+  },
+  {
+    slug: "kanji-lanjutan-n2",
+    title: "Kanji Lanjutan N2",
+    category: "Kanji",
+    level: "N2",
+    jlptLevel: "N2",
+    excerpt:
+      "Kanji level N2 seputar hukum ketenagakerjaan, prosedur administrasi, dan topik sosial yang lebih kompleks.",
+    intro: [
+      "Kanji level N2 banyak dipakai dalam dokumen hukum dan teks berita yang lebih kompleks. Menguasai kanji ini membantu Anda memahami hak-hak pekerja dan prosedur administrasi secara mandiri.",
+    ],
+    vocab: [
+      { jp: "労働", romaji: "roudou", id: "Tenaga kerja" },
+      { jp: "雇用", romaji: "koyou", id: "Ketenagakerjaan" },
+      { jp: "契約期間", romaji: "keiyaku kikan", id: "Masa kontrak" },
+      { jp: "更新", romaji: "koushin", id: "Perpanjangan (kontrak, dsb)" },
+      { jp: "解雇", romaji: "kaiko", id: "Pemecatan" },
+      { jp: "賠償", romaji: "baishou", id: "Ganti rugi" },
+      { jp: "申請", romaji: "shinsei", id: "Permohonan/pengajuan" },
+      { jp: "審査", romaji: "shinsa", id: "Pemeriksaan/penilaian" },
+      { jp: "許容", romaji: "kyoyou", id: "Toleransi/izin" },
+      { jp: "処罰", romaji: "shobatsu", id: "Hukuman" },
+      { jp: "訴訟", romaji: "soshou", id: "Tuntutan hukum" },
+      { jp: "弁護士", romaji: "bengoshi", id: "Pengacara" },
+      { jp: "組合", romaji: "kumiai", id: "Serikat (pekerja)" },
+      { jp: "交渉", romaji: "koushou", id: "Negosiasi" },
+      { jp: "妥協", romaji: "dakyou", id: "Kompromi" },
+      { jp: "制限", romaji: "seigen", id: "Pembatasan" },
+      { jp: "維持", romaji: "iji", id: "Pemeliharaan" },
+      { jp: "向上", romaji: "koujou", id: "Peningkatan" },
+      { jp: "負担", romaji: "futan", id: "Beban (tanggungan)" },
+      { jp: "支給", romaji: "shikyuu", id: "Pemberian (tunjangan dsb)" },
+      { jp: "控除", romaji: "koujo", id: "Potongan (gaji, pajak)" },
+      { jp: "把握", romaji: "haaku", id: "Pemahaman menyeluruh" },
+      { jp: "検討", romaji: "kentou", id: "Pertimbangan" },
+      { jp: "懸念", romaji: "kenen", id: "Kekhawatiran" },
+      { jp: "方針", romaji: "houshin", id: "Kebijakan/arah" },
+      { jp: "基準", romaji: "kijun", id: "Standar" },
+      { jp: "対策", romaji: "taisaku", id: "Langkah penanggulangan" },
+      { jp: "促進", romaji: "sokushin", id: "Promosi/dorongan" },
+      { jp: "実施", romaji: "jisshi", id: "Pelaksanaan" },
+      { jp: "維持費", romaji: "ijihi", id: "Biaya pemeliharaan" },
+    ],
+    tips: [
+      "Kanji seperti 契約期間・更新・解雇 berkaitan langsung dengan hak kontrak kerja Anda — pahami baik-baik sebelum menandatangani dokumen apa pun.",
+      "Jika ada masalah dengan perusahaan penerima, kanji seperti 組合 (serikat pekerja) dan 相談 (konsultasi, dari modul N3) penting untuk mencari bantuan resmi.",
+    ],
+  },
+  {
+    slug: "pola-kalimat-lanjutan-n1",
+    title: "Pola Kalimat Lanjutan N1",
+    category: "Tata Bahasa",
+    level: "N1",
+    jlptLevel: "N1",
+    excerpt:
+      "Pola tata bahasa tingkat lanjut yang sering muncul dalam bacaan formal, berita, dan pidato level N1.",
+    intro: [
+      "Level N1 adalah level tertinggi JLPT, menuntut pemahaman nuansa bahasa yang halus — sering dipakai dalam tulisan formal, berita, dan pidato. Pola-pola berikut jarang dipakai dalam percakapan sehari-hari, tapi penting untuk memahami dokumen resmi tingkat tinggi atau melanjutkan karier ke posisi supervisor (SSW-2).",
+    ],
+    tips: [
+      "〜ないまでも (nai made mo) = walau tidak sampai ~, setidaknya ~. Contoh: 完璧ではないまでも、十分な出来です (kanpeki dewa nai made mo, juubun na deki desu) = Walau tidak sempurna, hasilnya sudah cukup baik.",
+      "〜ずにはいられない (zu ni wa irarenai) = tidak bisa tidak melakukan ~ (dorongan emosional kuat). Contoh: この結果には驚かずにはいられません (kono kekka niwa odorokazu niwa iraremasen) = Saya tidak bisa tidak terkejut dengan hasil ini.",
+      "〜べからず / 〜べきではない (bekarazu / beki dewa nai) = seharusnya tidak/dilarang (sangat formal, sering di papan peraturan lama). Contoh: 立入るべからず (tachiiru bekarazu) = Dilarang masuk.",
+      "〜を余儀なくされる (wo yogi naku sareru) = terpaksa mengalami ~ (di luar kendali sendiri). Contoh: 台風により、工事の中止を余儀なくされた (taifuu ni yori, kouji no chuushi wo yogi naku sareta) = Akibat topan, proyek terpaksa dihentikan.",
+      "〜にたえない (ni taenai) = tidak tertahankan/sangat ~ (emosi kuat, formal). Contoh: 見るにたえない光景でした (miru ni taenai koukei deshita) = Pemandangan yang sungguh tak tertahankan untuk dilihat.",
+    ],
+    examples: [
+      { jp: "厳しい状況にもかかわらず、最後までやり遂げずにはいられなかった。", id: "Meski situasinya berat, saya tidak bisa tidak menyelesaikannya sampai akhir." },
+      { jp: "事故を防ぐため、安全規則は絶対に破るべからず。", id: "Demi mencegah kecelakaan, peraturan keselamatan sama sekali tidak boleh dilanggar." },
+    ],
+  },
+  {
+    slug: "ungkapan-tertulis-formal-n1",
+    title: "Ungkapan Tertulis Formal N1",
+    category: "Tata Bahasa",
+    level: "N1",
+    jlptLevel: "N1",
+    excerpt:
+      "Ragam bahasa tulis formal (bunshougo) yang dipakai dalam dokumen resmi, kontrak, dan surat bisnis tingkat tinggi.",
+    intro: [
+      "Bahasa tulis formal Jepang (文章語) memakai kosakata dan pola kalimat yang berbeda dari bahasa lisan sehari-hari — sering ditemukan di kontrak kerja, undang-undang ketenagakerjaan, dan surat resmi perusahaan. Modul ini membantu Anda membaca dokumen semacam ini, bukan untuk dipakai dalam percakapan sehari-hari.",
+    ],
+    vocab: [
+      { jp: "〜にあたり", romaji: "~ni atari", id: "Dalam rangka/pada saat ~ (formal tertulis)" },
+      { jp: "〜に際して", romaji: "~ni saishite", id: "Pada kesempatan/saat ~ (formal tertulis)" },
+      { jp: "〜のみならず", romaji: "~nomi narazu", id: "Bukan hanya ~, tetapi juga" },
+      { jp: "〜いかんによらず", romaji: "~ikan ni yorazu", id: "Tanpa memandang ~ apa pun" },
+      { jp: "〜たる者", romaji: "~taru mono", id: "Sebagai seseorang yang berstatus ~" },
+      { jp: "〜んがため", romaji: "~n ga tame", id: "Demi/untuk tujuan ~ (sangat formal, kuno)" },
+      { jp: "〜すべく", romaji: "~subeku", id: "Untuk melakukan ~ (formal tertulis)" },
+      { jp: "甚だ", romaji: "hanahada", id: "Sangat (formal tertulis)" },
+    ],
+    tips: [
+      "Kosakata dan pola di modul ini terutama untuk KEMAMPUAN MEMBACA dokumen resmi (kontrak kerja, peraturan perusahaan, surat dari imigrasi) — bukan untuk dipakai sehari-hari, karena akan terdengar terlalu kaku dalam percakapan biasa.",
+      "Saat membaca kontrak kerja atau dokumen resmi berbahasa Jepang, jangan ragu meminta bantuan penerjemah atau lembaga pendukung terdaftar jika ada bagian yang tidak dipahami — ini adalah hak Anda sebagai pekerja Tokutei Ginou.",
+      "Latihan efektif: baca ulang contoh dokumen kontrak kerja dengan pola-pola ini, bandingkan dengan versi terjemahan Indonesia jika tersedia.",
+    ],
+    examples: [
+      { jp: "契約を締結するにあたり、以下の事項をご確認ください。", id: "Dalam rangka menandatangani kontrak, mohon periksa hal-hal berikut." },
+      { jp: "従業員たる者、就業規則を遵守しなければならない。", id: "Sebagai seorang karyawan, wajib mematuhi peraturan kerja perusahaan." },
+    ],
+  },
+  {
+    slug: "kanji-mahir-n1",
+    title: "Kanji Mahir N1",
+    category: "Kanji",
+    level: "N1",
+    jlptLevel: "N1",
+    excerpt:
+      "Kanji level N1 untuk membaca dokumen hukum, kontrak resmi, dan teks berita tingkat lanjut.",
+    intro: [
+      "Kanji level N1 mencakup kosakata abstrak dan istilah hukum/administratif yang kompleks. Modul ini cocok bagi kandidat yang berencana naik ke SSW-2 atau ingin memahami dokumen resmi secara mandiri sepenuhnya.",
+    ],
+    vocab: [
+      { jp: "締結", romaji: "teiketsu", id: "Penandatanganan (kontrak/perjanjian)" },
+      { jp: "遵守", romaji: "junshu", id: "Kepatuhan" },
+      { jp: "違反", romaji: "ihan", id: "Pelanggaran (konteks hukum formal)" },
+      { jp: "撤回", romaji: "tekkai", id: "Pencabutan/penarikan kembali" },
+      { jp: "猶予", romaji: "yuuyo", id: "Masa tenggang" },
+      { jp: "履行", romaji: "rikou", id: "Pelaksanaan (kewajiban)" },
+      { jp: "怠慢", romaji: "taiman", id: "Kelalaian" },
+      { jp: "是正", romaji: "zesei", id: "Koreksi/perbaikan" },
+      { jp: "措置", romaji: "sochi", id: "Tindakan/langkah resmi" },
+      { jp: "勧告", romaji: "kankoku", id: "Rekomendasi resmi/teguran" },
+      { jp: "妥当", romaji: "datou", id: "Kelayakan" },
+      { jp: "瑕疵", romaji: "kashi", id: "Cacat (dalam hukum/kontrak)" },
+      { jp: "賠償責任", romaji: "baishou sekinin", id: "Tanggung jawab ganti rugi" },
+      { jp: "免除", romaji: "menjo", id: "Pembebasan (dari kewajiban)" },
+      { jp: "遂行", romaji: "suikou", id: "Pelaksanaan (tugas)" },
+      { jp: "慎重", romaji: "shinchou", id: "Kehati-hatian" },
+      { jp: "公正", romaji: "kousei", id: "Keadilan" },
+      { jp: "透明性", romaji: "toumeisei", id: "Transparansi" },
+      { jp: "斡旋", romaji: "assen", id: "Mediasi/perantaraan" },
+      { jp: "仲裁", romaji: "chuusai", id: "Arbitrase" },
+      { jp: "救済", romaji: "kyuusai", id: "Bantuan/pemulihan (hak)" },
+      { jp: "逸脱", romaji: "itsudatsu", id: "Penyimpangan" },
+      { jp: "妥結", romaji: "daketsu", id: "Kesepakatan akhir" },
+      { jp: "拘束力", romaji: "kousokuryoku", id: "Daya ikat (hukum)" },
+      { jp: "遵法", romaji: "junpou", id: "Kepatuhan hukum" },
+      { jp: "甚大", romaji: "jindai", id: "Sangat besar (dampak/kerugian)" },
+      { jp: "是認", romaji: "zenin", id: "Pengakuan/persetujuan" },
+      { jp: "審理", romaji: "shinri", id: "Pemeriksaan perkara/persidangan" },
+      { jp: "裁量", romaji: "sairyou", id: "Keleluasaan/diskresi" },
+      { jp: "規制", romaji: "kisei", id: "Regulasi/pembatasan" },
+    ],
+    tips: [
+      "Kanji-kanji ini umum ditemukan dalam undang-undang ketenagakerjaan Jepang dan kontrak kerja resmi — berguna terutama jika Anda ingin memahami hak secara mandiri atau naik ke posisi SSW-2/supervisor.",
+      "Untuk keputusan penting (menandatangani dokumen, menghadapi sengketa kerja), tetap disarankan berkonsultasi dengan lembaga pendukung terdaftar meski Anda sudah paham istilahnya sendiri.",
+    ],
+  },
+  {
     slug: "kosakata-kerja-kaigo",
     title: "Kosakata Kerja: Perawatan Lansia (Kaigo)",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah yang paling sering dipakai saat membantu aktivitas sehari-hari lansia — makan, mandi, dan mobilitas.",
     intro: [
@@ -306,6 +874,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kosakata Kerja: Konstruksi",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah keselamatan kerja dan peralatan yang wajib dipahami sebelum turun ke lokasi proyek konstruksi.",
     intro: [
@@ -329,6 +898,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kosakata Kerja: Manufaktur",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah operasional lini produksi dan kontrol kualitas yang sering dipakai di pabrik.",
     intro: [
@@ -352,6 +922,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kosakata Kerja: Perikanan",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah di atas kapal dan fasilitas budidaya yang wajib dipahami sebelum bekerja di sektor perikanan.",
     intro: [
@@ -375,6 +946,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kosakata Kerja: Pertanian",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah lahan, tanam, dan panen yang sering dipakai di sektor pertanian Jepang.",
     intro: [
@@ -398,6 +970,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Kosakata Kerja: Perhotelan & Food Service",
     category: "Kosakata per Sektor",
     level: "N4",
+    jlptLevel: "N4",
     excerpt:
       "Istilah pelayanan tamu, pemesanan, dan kebersihan yang sering dipakai di hotel dan restoran.",
     intro: [
@@ -421,6 +994,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Frasa Wajib untuk Wawancara Kerja",
     category: "Persiapan Wawancara",
     level: "N4-N5",
+    jlptLevel: "N4",
     excerpt:
       "Kalimat pembuka, penutup, dan jawaban umum yang bisa dipakai saat wawancara dengan perusahaan penerima di Jepang.",
     intro: [
@@ -446,6 +1020,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Keigo Dasar: Bahasa Sopan di Tempat Kerja",
     category: "Tata Bahasa",
     level: "N3-N4",
+    jlptLevel: "N3",
     excerpt:
       "Pengenalan keigo (敬語) — tingkatan bahasa sopan yang dipakai saat berbicara dengan atasan, senior, atau tamu.",
     intro: [
@@ -469,6 +1044,7 @@ export const MATERIALS: LearningMaterial[] = [
     title: "Budaya Kerja Jepang yang Perlu Diketahui Sebelum Berangkat",
     category: "Adaptasi Budaya",
     level: "Semua level",
+    jlptLevel: "Umum",
     excerpt:
       "Kebiasaan dan etika kerja di Jepang yang sering berbeda dari Indonesia — penting dipahami sejak sebelum keberangkatan.",
     intro: [
