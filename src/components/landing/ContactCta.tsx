@@ -2,12 +2,48 @@
 
 import { FormEvent, useState } from "react";
 import { SECTORS } from "@/lib/data";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/ui/Toast";
+import Spinner from "@/components/ui/Spinner";
 
 export default function ContactCta() {
+  const { showToast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setError("");
+    setSubmitting(true);
+
+    const form = new FormData(e.currentTarget);
+    const namaLengkap = String(form.get("name") ?? "").trim();
+    const nomorHp = String(form.get("phone") ?? "").trim();
+    const sektor = String(form.get("sector") ?? "");
+
+    const supabase = createClient();
+    const { error: insertError } = await supabase.from("cpmi_registrations").insert({
+      nama_lengkap: namaLengkap,
+      nomor_hp: nomorHp,
+      sektor_minat: [sektor],
+    });
+
+    setSubmitting(false);
+
+    if (insertError) {
+      // Duplicate WhatsApp number: this person already has a record in our
+      // system (an earlier lead or a full account) — treat it as success
+      // rather than showing a confusing constraint error.
+      if (insertError.code === "23505") {
+        setSubmitted(true);
+        return;
+      }
+      setError("Gagal mengirim data: " + insertError.message);
+      showToast("Gagal mengirim data. Silakan coba lagi.", "error");
+      return;
+    }
+
     setSubmitted(true);
   }
 
@@ -50,6 +86,7 @@ export default function ContactCta() {
                 </label>
                 <input
                   id="cta-name"
+                  name="name"
                   required
                   type="text"
                   className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-red"
@@ -62,6 +99,7 @@ export default function ContactCta() {
                 </label>
                 <input
                   id="cta-phone"
+                  name="phone"
                   required
                   type="tel"
                   className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-red"
@@ -74,6 +112,7 @@ export default function ContactCta() {
                 </label>
                 <select
                   id="cta-sector"
+                  name="sector"
                   required
                   defaultValue=""
                   className="mt-1 w-full rounded-lg border border-black/10 px-3 py-2 text-sm outline-none focus:border-brand-red"
@@ -88,11 +127,16 @@ export default function ContactCta() {
                   ))}
                 </select>
               </div>
+
+              {error && <p className="text-sm text-brand-red">{error}</p>}
+
               <button
                 type="submit"
-                className="w-full rounded-lg bg-brand-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-navy-dark"
+                disabled={submitting}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-brand-navy px-4 py-3 text-sm font-semibold text-white transition hover:bg-brand-navy-dark disabled:opacity-60"
               >
-                Kirim & Konsultasi Gratis
+                {submitting && <Spinner className="h-4 w-4" />}
+                {submitting ? "Mengirim..." : "Kirim & Konsultasi Gratis"}
               </button>
             </form>
           )}

@@ -26,6 +26,11 @@ export default function RegisterPage() {
     const fullName = String(form.get("fullName"));
     const phone = String(form.get("phone"));
     const sectorInterest = String(form.get("sectorInterest"));
+    const tanggalLahir = String(form.get("tanggalLahir"));
+    const alamatDomisili = String(form.get("alamatDomisili"));
+    const pendidikanTerakhir = String(form.get("pendidikanTerakhir"));
+    const nik = String(form.get("nik") ?? "").trim();
+    const pengalamanKerja = String(form.get("pengalamanKerja") ?? "").trim();
 
     const supabase = createClient();
     const { data, error: signUpError } = await supabase.auth.signUp({
@@ -36,6 +41,11 @@ export default function RegisterPage() {
           nama_lengkap: fullName,
           nomor_hp: phone,
           sektor_minat: [sectorInterest],
+          tanggal_lahir: tanggalLahir,
+          alamat_domisili: alamatDomisili,
+          pendidikan_terakhir: pendidikanTerakhir,
+          nik: nik || null,
+          pengalaman_kerja: pengalamanKerja || null,
         },
       },
     });
@@ -76,7 +86,7 @@ export default function RegisterPage() {
         }
       />
 
-      <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-12">
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-12">
         {checkEmail ? (
           <div className="rounded-2xl bg-white p-6 text-center shadow-sm">
             <span className="text-4xl">📩</span>
@@ -161,6 +171,81 @@ export default function RegisterPage() {
                     </option>
                   ))}
                 </select>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="text-xs font-medium text-neutral-600" htmlFor="tanggalLahir">
+                    Tanggal Lahir
+                  </label>
+                  <input
+                    id="tanggalLahir"
+                    name="tanggalLahir"
+                    required
+                    type="date"
+                    className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-neutral-600" htmlFor="pendidikanTerakhir">
+                    Pendidikan Terakhir
+                  </label>
+                  <select
+                    id="pendidikanTerakhir"
+                    name="pendidikanTerakhir"
+                    required
+                    defaultValue=""
+                    className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                  >
+                    <option value="" disabled>
+                      Pilih jenjang
+                    </option>
+                    <option value="SD">SD</option>
+                    <option value="SMP">SMP</option>
+                    <option value="SMA/SMK">SMA/SMK</option>
+                    <option value="D3">D3</option>
+                    <option value="S1">S1</option>
+                    <option value="S2 atau lebih tinggi">S2 atau lebih tinggi</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="alamatDomisili">
+                  Alamat Domisili
+                </label>
+                <textarea
+                  id="alamatDomisili"
+                  name="alamatDomisili"
+                  required
+                  rows={2}
+                  placeholder="Alamat lengkap sesuai domisili saat ini"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="nik">
+                  NIK (opsional, bisa dilengkapi nanti bersama unggah KTP)
+                </label>
+                <input
+                  id="nik"
+                  name="nik"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={16}
+                  placeholder="16 digit sesuai KTP"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-neutral-600" htmlFor="pengalamanKerja">
+                  Pengalaman Kerja (opsional)
+                </label>
+                <textarea
+                  id="pengalamanKerja"
+                  name="pengalamanKerja"
+                  rows={2}
+                  placeholder="Ringkas pengalaman kerja yang relevan, jika ada"
+                  className="mt-1 w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-brand-red"
+                />
               </div>
               <div>
                 <label className="text-xs font-medium text-neutral-600" htmlFor="password">

@@ -29,6 +29,14 @@ function formatDateTime(iso: string) {
   });
 }
 
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
 const STATUS_OPTIONS: CpmiStatus[] = [
   ...CPMI_STATUS_FLOW,
   "tidak_lolos",
@@ -323,6 +331,11 @@ export default function AdminDashboardPage() {
                           </td>
                           <td className="py-3 pr-4 font-medium text-brand-navy">
                             {r.nama_lengkap}
+                            {!r.auth_user_id && (
+                              <span className="ml-2 rounded-full bg-brand-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-brand-gold">
+                                Lead
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 pr-4 text-neutral-600">
                             <div>{r.email ?? "-"}</div>
@@ -361,6 +374,36 @@ export default function AdminDashboardPage() {
                         {isExpanded && (
                           <tr className="border-b border-black/5 bg-neutral-50">
                             <td colSpan={6} className="px-4 py-4">
+                              <div className="mb-4 grid gap-3 rounded-xl border border-black/5 bg-white p-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                                <div>
+                                  <div className="font-medium text-neutral-500">NIK</div>
+                                  <div className="mt-0.5 text-neutral-800">{r.nik || "-"}</div>
+                                </div>
+                                <div>
+                                  <div className="font-medium text-neutral-500">Tanggal Lahir</div>
+                                  <div className="mt-0.5 text-neutral-800">
+                                    {r.tanggal_lahir ? formatDate(r.tanggal_lahir) : "-"}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="font-medium text-neutral-500">Pendidikan Terakhir</div>
+                                  <div className="mt-0.5 text-neutral-800">
+                                    {r.pendidikan_terakhir || "-"}
+                                  </div>
+                                </div>
+                                <div className="sm:col-span-2 lg:col-span-2">
+                                  <div className="font-medium text-neutral-500">Alamat Domisili</div>
+                                  <div className="mt-0.5 text-neutral-800">
+                                    {r.alamat_domisili || "-"}
+                                  </div>
+                                </div>
+                                <div className="sm:col-span-2 lg:col-span-3">
+                                  <div className="font-medium text-neutral-500">Pengalaman Kerja</div>
+                                  <div className="mt-0.5 whitespace-pre-line text-neutral-800">
+                                    {r.pengalaman_kerja || "-"}
+                                  </div>
+                                </div>
+                              </div>
                               {docs.length === 0 ? (
                                 <p className="text-xs text-neutral-500">
                                   Belum ada dokumen diunggah.
