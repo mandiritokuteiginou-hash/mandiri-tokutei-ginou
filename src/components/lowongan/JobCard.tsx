@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { JobOrder } from "@/lib/types";
 
 export default function JobCard({ job }: { job: JobOrder }) {
@@ -43,12 +44,12 @@ export default function JobCard({ job }: { job: JobOrder }) {
         <span className="text-sm font-semibold text-brand-navy">
           {job.estimasi_gaji}
         </span>
-        <a
+        <Link
           href="/portal/register"
           className="rounded-full bg-brand-navy px-4 py-2 text-xs font-semibold text-white hover:bg-brand-navy-dark"
         >
           Lamar Posisi Ini
-        </a>
+        </Link>
       </div>
     </div>
   );

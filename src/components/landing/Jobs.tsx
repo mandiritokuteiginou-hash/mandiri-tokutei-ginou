@@ -25,7 +25,7 @@ export default async function Jobs() {
   const jobs = await getActiveJobs();
 
   return (
-    <section id="lowongan" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <section id="lowongan" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-20 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-2xl">
           <span className="text-sm font-semibold uppercase tracking-wide text-brand-red">

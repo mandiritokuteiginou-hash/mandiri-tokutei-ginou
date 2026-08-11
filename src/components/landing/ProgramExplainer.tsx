@@ -3,7 +3,7 @@ import { SECTORS } from "@/lib/data";
 
 export default function ProgramExplainer() {
   return (
-    <section id="program" className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <section id="program" className="mx-auto max-w-6xl scroll-mt-16 px-4 py-20 sm:px-6">
       <div className="grid gap-12 md:grid-cols-2 md:items-start">
         <div>
           <span className="text-sm font-semibold uppercase tracking-wide text-brand-red">

@@ -12,7 +12,7 @@ export default function ContactCta() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+    <section id="kontak" className="mx-auto max-w-6xl px-4 py-20 sm:px-6 scroll-mt-16">
       <div className="grid gap-10 rounded-3xl bg-brand-red px-6 py-12 text-white sm:px-10 md:grid-cols-2 md:items-center">
         <div>
           <h2 className="text-2xl font-bold sm:text-3xl">

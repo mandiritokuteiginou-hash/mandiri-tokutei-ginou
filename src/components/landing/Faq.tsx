@@ -7,7 +7,7 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
+    <section id="faq" className="mx-auto max-w-4xl scroll-mt-16 px-4 py-20 sm:px-6">
       <div className="text-center">
         <span className="text-sm font-semibold uppercase tracking-wide text-brand-red">
           Pertanyaan Umum

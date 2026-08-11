@@ -2,7 +2,7 @@ import { TESTIMONIALS } from "@/lib/data";
 
 export default function Testimonials() {
   return (
-    <section id="testimoni" className="bg-brand-navy py-20 text-white">
+    <section id="testimoni" className="scroll-mt-16 bg-brand-navy py-20 text-white">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <span className="text-sm font-semibold uppercase tracking-wide text-brand-gold">

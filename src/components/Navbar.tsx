@@ -4,14 +4,14 @@ import Link from "next/link";
 import { useState } from "react";
 
 const NAV_LINKS = [
-  { href: "#program", label: "Program" },
-  { href: "#layanan", label: "Layanan" },
+  { href: "/#program", label: "Program" },
+  { href: "/#layanan", label: "Layanan" },
   { href: "/lowongan", label: "Lowongan" },
-  { href: "#testimoni", label: "Testimoni" },
+  { href: "/#testimoni", label: "Testimoni" },
   { href: "/artikel", label: "Artikel" },
   { href: "/materi-belajar", label: "Materi Belajar" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#kontak", label: "Kontak" },
+  { href: "/#faq", label: "FAQ" },
+  { href: "/#kontak", label: "Kontak" },
 ];
 
 export default function Navbar() {
@@ -32,13 +32,13 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-6 md:flex">
           {NAV_LINKS.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="text-sm font-medium text-neutral-700 transition hover:text-brand-red"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
@@ -49,12 +49,12 @@ export default function Navbar() {
           >
             Masuk Portal
           </Link>
-          <a
-            href="#kontak"
+          <Link
+            href="/#kontak"
             className="rounded-full bg-brand-red px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-red-dark"
           >
             Daftar Sekarang
-          </a>
+          </Link>
         </div>
 
         <button
@@ -77,14 +77,14 @@ export default function Navbar() {
         <div id="mobile-nav-menu" className="border-t border-black/5 bg-white px-4 pb-4 md:hidden">
           <nav className="flex flex-col gap-3 pt-3">
             {NAV_LINKS.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 className="text-sm font-medium text-neutral-700"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <Link
               href="/portal/login"
@@ -93,13 +93,13 @@ export default function Navbar() {
             >
               Masuk Portal
             </Link>
-            <a
-              href="#kontak"
+            <Link
+              href="/#kontak"
               className="rounded-full bg-brand-red px-4 py-2 text-center text-sm font-semibold text-white"
               onClick={() => setOpen(false)}
             >
               Daftar Sekarang
-            </a>
+            </Link>
           </nav>
         </div>
       )}

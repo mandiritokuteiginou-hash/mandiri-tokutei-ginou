@@ -27,18 +27,18 @@ export default function Hero() {
             tanpa biaya tersembunyi.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <a
-              href="#kontak"
+            <Link
+              href="/#kontak"
               className="rounded-full bg-brand-red px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand-red/30 transition hover:bg-brand-red-dark"
             >
               Daftar Sekarang
-            </a>
-            <a
-              href="#program"
+            </Link>
+            <Link
+              href="/#program"
               className="rounded-full border border-white/30 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
             >
               Pelajari Program
-            </a>
+            </Link>
           </div>
 
           <dl className="mt-12 grid grid-cols-3 gap-6 border-t border-white/10 pt-6">

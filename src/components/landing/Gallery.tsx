@@ -2,7 +2,7 @@ import { GALLERY } from "@/lib/gallery";
 
 export default function Gallery() {
   return (
-    <section id="galeri" className="bg-brand-cream py-20">
+    <section id="galeri" className="scroll-mt-16 bg-brand-cream py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
           <span className="text-sm font-semibold uppercase tracking-wide text-brand-red">

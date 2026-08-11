@@ -23,12 +23,12 @@ export default function Footer() {
           <h3 className="text-sm font-semibold text-white">Navigasi</h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li><Link href="/program" className="hover:text-white">Program Selengkapnya</Link></li>
-            <li><a href="#layanan" className="hover:text-white">Layanan</a></li>
+            <li><Link href="/#layanan" className="hover:text-white">Layanan</Link></li>
             <li><Link href="/lowongan" className="hover:text-white">Lowongan</Link></li>
-            <li><a href="#testimoni" className="hover:text-white">Testimoni</a></li>
+            <li><Link href="/#testimoni" className="hover:text-white">Testimoni</Link></li>
             <li><Link href="/artikel" className="hover:text-white">Artikel</Link></li>
             <li><Link href="/materi-belajar" className="hover:text-white">Materi Belajar</Link></li>
-            <li><a href="#faq" className="hover:text-white">FAQ</a></li>
+            <li><Link href="/#faq" className="hover:text-white">FAQ</Link></li>
           </ul>
         </div>
 
@@ -41,7 +41,7 @@ export default function Footer() {
           </ul>
         </div>
 
-        <div id="kontak">
+        <div>
           <h3 className="text-sm font-semibold text-white">Kontak</h3>
           <ul className="mt-3 space-y-2 text-sm text-neutral-400">
             <li>Jl. Sudirman No. 123, Jakarta Selatan</li>
