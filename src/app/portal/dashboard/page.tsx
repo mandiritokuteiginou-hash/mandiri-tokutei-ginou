@@ -15,9 +15,17 @@ import {
   CpmiRegistration,
   DOCUMENT_TYPE_LABELS,
   DocumentType,
+  JOB_MATCH_STATUS_LABELS,
+  JobMatchStatus,
   JobOrder,
   REQUIRED_DOCUMENT_TYPES,
 } from "@/lib/types";
+
+interface RecommendedMatch {
+  id: string;
+  status_match: JobMatchStatus;
+  job_orders: JobOrder | null;
+}
 
 async function uploadCandidateDocument(
   supabase: SupabaseClient,
@@ -46,6 +54,7 @@ export default function PortalDashboardPage() {
   const [registration, setRegistration] = useState<CpmiRegistration | null>(null);
   const [documents, setDocuments] = useState<CpmiDocument[]>([]);
   const [matchedJobs, setMatchedJobs] = useState<JobOrder[]>([]);
+  const [recommendedMatches, setRecommendedMatches] = useState<RecommendedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingType, setUploadingType] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState("");
@@ -79,6 +88,13 @@ export default function PortalDashboardPage() {
         .in("sektor", reg.sektor_minat);
       setMatchedJobs(jobs ?? []);
     }
+
+    const { data: matches } = await supabase
+      .from("job_order_matches")
+      .select("id, status_match, job_orders(*)")
+      .eq("cpmi_id", reg.id)
+      .order("created_at", { ascending: false });
+    setRecommendedMatches((matches ?? []) as unknown as RecommendedMatch[]);
 
     setLoading(false);
   }, [router]);
@@ -206,6 +222,47 @@ export default function PortalDashboardPage() {
             </div>
           )}
         </div>
+
+        {recommendedMatches.length > 0 && (
+          <div className="mt-6 rounded-2xl bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-semibold text-brand-navy">
+              Direkomendasikan oleh Tim Kami
+            </h2>
+            <ul className="mt-4 space-y-3">
+              {recommendedMatches.map((match) => {
+                const job = match.job_orders;
+                const statusStyle =
+                  match.status_match === "diterima"
+                    ? "bg-green-100 text-green-700"
+                    : match.status_match === "ditolak"
+                      ? "bg-neutral-200 text-neutral-500"
+                      : match.status_match === "dipilih_cpmi"
+                        ? "bg-brand-gold/15 text-brand-gold"
+                        : "bg-brand-navy/10 text-brand-navy";
+                return (
+                  <li
+                    key={match.id}
+                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-black/5 p-3 text-sm"
+                  >
+                    <div>
+                      <div className="font-medium text-brand-navy">
+                        {job?.nama_perusahaan ?? "(lowongan tidak tersedia)"}
+                      </div>
+                      {job && (
+                        <div className="text-xs text-neutral-500">
+                          {job.lokasi_prefektur} · {job.estimasi_gaji}
+                        </div>
+                      )}
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyle}`}>
+                      {JOB_MATCH_STATUS_LABELS[match.status_match]}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
 
         <div className="mt-6 grid gap-6 md:grid-cols-2">
           <div className="rounded-2xl bg-white p-6 shadow-sm">

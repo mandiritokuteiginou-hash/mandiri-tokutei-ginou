@@ -15,9 +15,19 @@ import {
   CpmiStatus,
   DOCUMENT_TYPE_LABELS,
   DocumentType,
+  JOB_MATCH_STATUS_LABELS,
+  JobMatchStatus,
   JobOrder,
+  JobOrderMatch,
   REQUIRED_DOCUMENT_TYPES,
 } from "@/lib/types";
+
+const JOB_MATCH_STATUS_OPTIONS: JobMatchStatus[] = [
+  "disarankan",
+  "dipilih_cpmi",
+  "diterima",
+  "ditolak",
+];
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("id-ID", {
@@ -50,6 +60,9 @@ export default function AdminDashboardPage() {
   const [registrations, setRegistrations] = useState<CpmiRegistration[]>([]);
   const [jobs, setJobs] = useState<JobOrder[]>([]);
   const [documentsByReg, setDocumentsByReg] = useState<Map<string, CpmiDocument[]>>(new Map());
+  const [matchesByReg, setMatchesByReg] = useState<Map<string, JobOrderMatch[]>>(new Map());
+  const [addMatchJobId, setAddMatchJobId] = useState<Record<string, string>>({});
+  const [matchActionId, setMatchActionId] = useState<string | null>(null);
   const [jobFormOpen, setJobFormOpen] = useState(false);
   const [editingJob, setEditingJob] = useState<JobOrder | null>(null);
   const [jobFormSubmitting, setJobFormSubmitting] = useState(false);
@@ -83,7 +96,64 @@ export default function AdminDashboardPage() {
       byReg.get(doc.cpmi_id)!.push(doc);
     }
     setDocumentsByReg(byReg);
+
+    const { data: matches } = await supabase
+      .from("job_order_matches")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const matchesByRegMap = new Map<string, JobOrderMatch[]>();
+    for (const match of (matches ?? []) as JobOrderMatch[]) {
+      if (!matchesByRegMap.has(match.cpmi_id)) matchesByRegMap.set(match.cpmi_id, []);
+      matchesByRegMap.get(match.cpmi_id)!.push(match);
+    }
+    setMatchesByReg(matchesByRegMap);
   }, []);
+
+  async function handleAddMatch(regId: string) {
+    const jobOrderId = addMatchJobId[regId];
+    if (!jobOrderId) return;
+
+    setMatchActionId(regId);
+    const supabase = createClient();
+    const { error } = await supabase.from("job_order_matches").insert({
+      cpmi_id: regId,
+      job_order_id: jobOrderId,
+      status_match: "disarankan",
+    });
+    setMatchActionId(null);
+
+    if (error) {
+      showToast("Gagal menambah kecocokan: " + error.message, "error");
+      return;
+    }
+    setAddMatchJobId((prev) => ({ ...prev, [regId]: "" }));
+    showToast("Lowongan berhasil ditautkan ke kandidat");
+    await loadData();
+  }
+
+  async function handleUpdateMatchStatus(matchId: string, status: JobMatchStatus) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("job_order_matches")
+      .update({ status_match: status })
+      .eq("id", matchId);
+    if (error) {
+      showToast("Gagal mengubah status kecocokan: " + error.message, "error");
+      return;
+    }
+    await loadData();
+  }
+
+  async function handleRemoveMatch(matchId: string) {
+    const supabase = createClient();
+    const { error } = await supabase.from("job_order_matches").delete().eq("id", matchId);
+    if (error) {
+      showToast("Gagal menghapus kecocokan: " + error.message, "error");
+      return;
+    }
+    showToast("Kecocokan lowongan dihapus");
+    await loadData();
+  }
 
   function countUploadedRequiredDocs(regId: string) {
     const docs = documentsByReg.get(regId) ?? [];
@@ -322,6 +392,8 @@ export default function AdminDashboardPage() {
                 <tbody>
                   {registrations.map((r) => {
                     const docs = documentsByReg.get(r.id) ?? [];
+                    const matches = matchesByReg.get(r.id) ?? [];
+                    const matchedJobIds = new Set(matches.map((m) => m.job_order_id));
                     const isExpanded = expandedRegId === r.id;
                     return (
                       <Fragment key={r.id}>
@@ -404,6 +476,86 @@ export default function AdminDashboardPage() {
                                   </div>
                                 </div>
                               </div>
+
+                              <div className="mb-4 rounded-xl border border-black/5 bg-white p-4">
+                                <h3 className="text-xs font-semibold text-brand-navy">
+                                  Lowongan Tercocokkan
+                                </h3>
+                                {matches.length === 0 ? (
+                                  <p className="mt-2 text-xs text-neutral-500">
+                                    Belum ada lowongan yang ditautkan ke kandidat ini.
+                                  </p>
+                                ) : (
+                                  <ul className="mt-3 space-y-2">
+                                    {matches.map((match) => {
+                                      const job = jobs.find((j) => j.id === match.job_order_id);
+                                      return (
+                                        <li
+                                          key={match.id}
+                                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/5 px-3 py-2 text-xs"
+                                        >
+                                          <span className="text-neutral-700">
+                                            <span className="font-medium text-brand-navy">
+                                              {job?.nama_perusahaan ?? "(lowongan dihapus)"}
+                                            </span>
+                                            {job && ` · ${job.lokasi_prefektur}`}
+                                          </span>
+                                          <span className="flex items-center gap-2">
+                                            <select
+                                              value={match.status_match}
+                                              onChange={(e) =>
+                                                handleUpdateMatchStatus(
+                                                  match.id,
+                                                  e.target.value as JobMatchStatus
+                                                )
+                                              }
+                                              className="rounded-lg border border-black/10 px-2 py-1 text-xs outline-none focus:border-brand-red"
+                                            >
+                                              {JOB_MATCH_STATUS_OPTIONS.map((status) => (
+                                                <option key={status} value={status}>
+                                                  {JOB_MATCH_STATUS_LABELS[status]}
+                                                </option>
+                                              ))}
+                                            </select>
+                                            <button
+                                              onClick={() => handleRemoveMatch(match.id)}
+                                              className="font-semibold text-brand-red hover:text-brand-red-dark"
+                                            >
+                                              Hapus
+                                            </button>
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                )}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  <select
+                                    value={addMatchJobId[r.id] ?? ""}
+                                    onChange={(e) =>
+                                      setAddMatchJobId((prev) => ({ ...prev, [r.id]: e.target.value }))
+                                    }
+                                    className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs outline-none focus:border-brand-red"
+                                  >
+                                    <option value="">Pilih lowongan untuk ditautkan...</option>
+                                    {jobs
+                                      .filter((j) => j.status_aktif && !matchedJobIds.has(j.id))
+                                      .map((j) => (
+                                        <option key={j.id} value={j.id}>
+                                          {j.nama_perusahaan} · {j.sektor}
+                                        </option>
+                                      ))}
+                                  </select>
+                                  <button
+                                    onClick={() => handleAddMatch(r.id)}
+                                    disabled={!addMatchJobId[r.id] || matchActionId === r.id}
+                                    className="rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-60"
+                                  >
+                                    Tautkan
+                                  </button>
+                                </div>
+                              </div>
+
                               {docs.length === 0 ? (
                                 <p className="text-xs text-neutral-500">
                                   Belum ada dokumen diunggah.

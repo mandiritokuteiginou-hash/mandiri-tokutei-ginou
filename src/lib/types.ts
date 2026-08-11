@@ -76,6 +76,25 @@ export interface CpmiRegistration {
   updated_at: string;
 }
 
+// Mirrors the job_order_matches_status_match_check constraint in Supabase.
+export type JobMatchStatus = "disarankan" | "dipilih_cpmi" | "diterima" | "ditolak";
+
+export const JOB_MATCH_STATUS_LABELS: Record<JobMatchStatus, string> = {
+  disarankan: "Disarankan",
+  dipilih_cpmi: "Dipilih Kandidat",
+  diterima: "Diterima",
+  ditolak: "Ditolak",
+};
+
+// public.job_order_matches
+export interface JobOrderMatch {
+  id: string;
+  cpmi_id: string;
+  job_order_id: string;
+  status_match: JobMatchStatus;
+  created_at: string;
+}
+
 // public.documents
 export interface CpmiDocument {
   id: string;
