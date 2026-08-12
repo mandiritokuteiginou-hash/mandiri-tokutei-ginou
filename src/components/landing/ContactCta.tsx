@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { SECTORS } from "@/lib/data";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/components/ui/Toast";
@@ -11,13 +11,31 @@ export default function ContactCta() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const formOpenedAt = useRef<number | null>(null);
+
+  useEffect(() => {
+    formOpenedAt.current = Date.now();
+  }, []);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    setSubmitting(true);
 
     const form = new FormData(e.currentTarget);
+
+    // Anti-spam: a hidden field only a bot would fill, and a minimum time
+    // a human needs to read and fill the form. Bots that trip either check
+    // see a fake success instead of a hint their submission was rejected.
+    const honeypot = String(form.get("company") ?? "").trim();
+    const filledTooFast =
+      formOpenedAt.current === null || Date.now() - formOpenedAt.current < 1500;
+    if (honeypot || filledTooFast) {
+      setSubmitted(true);
+      return;
+    }
+
+    setSubmitting(true);
+
     const namaLengkap = String(form.get("name") ?? "").trim();
     const nomorHp = String(form.get("phone") ?? "").trim();
     const sektor = String(form.get("sector") ?? "");
@@ -80,6 +98,14 @@ export default function ContactCta() {
             </div>
           ) : (
             <form className="space-y-4" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                className="absolute -left-[9999px] h-0 w-0 opacity-0"
+              />
               <div>
                 <label className="text-xs font-medium text-neutral-600" htmlFor="cta-name">
                   Nama Lengkap
