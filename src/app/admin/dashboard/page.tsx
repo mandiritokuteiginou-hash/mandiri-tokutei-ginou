@@ -71,6 +71,10 @@ export default function AdminDashboardPage() {
   const [viewingDocId, setViewingDocId] = useState<string | null>(null);
   const [notionSyncing, setNotionSyncing] = useState(false);
   const [notionSyncMessage, setNotionSyncMessage] = useState("");
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [editingRegId, setEditingRegId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Partial<CpmiRegistration>>({});
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const loadData = useCallback(async () => {
     const supabase = createClient();
@@ -152,6 +156,52 @@ export default function AdminDashboardPage() {
       return;
     }
     showToast("Kecocokan lowongan dihapus");
+    await loadData();
+  }
+
+  function startEditProfile(r: CpmiRegistration) {
+    setEditingRegId(r.id);
+    setEditDraft({
+      nama_lengkap: r.nama_lengkap,
+      nomor_hp: r.nomor_hp,
+      email: r.email,
+      nik: r.nik,
+      tanggal_lahir: r.tanggal_lahir,
+      alamat_domisili: r.alamat_domisili,
+      pendidikan_terakhir: r.pendidikan_terakhir,
+      pengalaman_kerja: r.pengalaman_kerja,
+    });
+  }
+
+  function cancelEditProfile() {
+    setEditingRegId(null);
+    setEditDraft({});
+  }
+
+  async function handleSaveProfile(regId: string) {
+    setSavingProfile(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("cpmi_registrations")
+      .update({
+        nama_lengkap: editDraft.nama_lengkap,
+        nomor_hp: editDraft.nomor_hp,
+        email: editDraft.email || null,
+        nik: editDraft.nik || null,
+        tanggal_lahir: editDraft.tanggal_lahir || null,
+        alamat_domisili: editDraft.alamat_domisili || null,
+        pendidikan_terakhir: editDraft.pendidikan_terakhir || null,
+        pengalaman_kerja: editDraft.pengalaman_kerja || null,
+      })
+      .eq("id", regId);
+    setSavingProfile(false);
+
+    if (error) {
+      showToast("Gagal menyimpan profil: " + error.message, "error");
+      return;
+    }
+    setEditingRegId(null);
+    showToast("Profil kandidat berhasil diperbarui");
     await loadData();
   }
 
@@ -333,6 +383,14 @@ export default function AdminDashboardPage() {
   }
 
   const activeJobs = jobs.filter((j) => j.status_aktif);
+  const candidateQuery = candidateSearch.trim().toLowerCase();
+  const filteredRegistrations = candidateQuery
+    ? registrations.filter((r) =>
+        [r.nama_lengkap, r.nomor_hp, r.email, r.nomor_registrasi, CPMI_STATUS_LABELS[r.status]]
+          .filter(Boolean)
+          .some((field) => field!.toLowerCase().includes(candidateQuery))
+      )
+    : registrations;
 
   return (
     <div className="min-h-screen bg-neutral-50">
@@ -370,11 +428,31 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
-          <h2 className="text-sm font-semibold text-brand-navy">Daftar Kandidat</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-brand-navy">Daftar Kandidat</h2>
+            {registrations.length > 0 && (
+              <input
+                type="text"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+                placeholder="Cari nama, telepon, email, status..."
+                className="w-full max-w-xs rounded-lg border border-black/10 px-3 py-1.5 text-xs outline-none focus:border-brand-red"
+              />
+            )}
+          </div>
+          {candidateQuery && (
+            <p className="mt-2 text-xs text-neutral-500">
+              Menampilkan {filteredRegistrations.length} dari {registrations.length} kandidat
+            </p>
+          )}
 
           {registrations.length === 0 ? (
             <p className="mt-4 text-sm text-neutral-500">
               Belum ada kandidat terdaftar.
+            </p>
+          ) : filteredRegistrations.length === 0 ? (
+            <p className="mt-4 text-sm text-neutral-500">
+              Tidak ada kandidat yang cocok dengan pencarian &quot;{candidateSearch}&quot;.
             </p>
           ) : (
             <div className="mt-4 overflow-x-auto">
@@ -390,7 +468,7 @@ export default function AdminDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {registrations.map((r) => {
+                  {filteredRegistrations.map((r) => {
                     const docs = documentsByReg.get(r.id) ?? [];
                     const matches = matchesByReg.get(r.id) ?? [];
                     const matchedJobIds = new Set(matches.map((m) => m.job_order_id));
@@ -446,35 +524,172 @@ export default function AdminDashboardPage() {
                         {isExpanded && (
                           <tr className="border-b border-black/5 bg-neutral-50">
                             <td colSpan={6} className="px-4 py-4">
-                              <div className="mb-4 grid gap-3 rounded-xl border border-black/5 bg-white p-4 text-xs sm:grid-cols-2 lg:grid-cols-3">
-                                <div>
-                                  <div className="font-medium text-neutral-500">NIK</div>
-                                  <div className="mt-0.5 text-neutral-800">{r.nik || "-"}</div>
+                              <div className="mb-4 rounded-xl border border-black/5 bg-white p-4">
+                                <div className="flex items-center justify-between gap-2">
+                                  <h3 className="text-xs font-semibold text-brand-navy">
+                                    Profil Kandidat
+                                  </h3>
+                                  {editingRegId === r.id ? (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={cancelEditProfile}
+                                        disabled={savingProfile}
+                                        className="text-xs font-semibold text-neutral-500 hover:text-neutral-700"
+                                      >
+                                        Batal
+                                      </button>
+                                      <button
+                                        onClick={() => handleSaveProfile(r.id)}
+                                        disabled={savingProfile}
+                                        className="rounded-full bg-brand-red px-3 py-1 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-60"
+                                      >
+                                        {savingProfile ? "Menyimpan..." : "Simpan"}
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => startEditProfile(r)}
+                                      className="text-xs font-semibold text-brand-navy hover:text-brand-red"
+                                    >
+                                      Edit Profil
+                                    </button>
+                                  )}
                                 </div>
-                                <div>
-                                  <div className="font-medium text-neutral-500">Tanggal Lahir</div>
-                                  <div className="mt-0.5 text-neutral-800">
-                                    {r.tanggal_lahir ? formatDate(r.tanggal_lahir) : "-"}
+
+                                {editingRegId === r.id ? (
+                                  <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Nama Lengkap</span>
+                                      <input
+                                        type="text"
+                                        value={editDraft.nama_lengkap ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nama_lengkap: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Nomor HP</span>
+                                      <input
+                                        type="text"
+                                        value={editDraft.nomor_hp ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nomor_hp: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Email</span>
+                                      <input
+                                        type="email"
+                                        value={editDraft.email ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, email: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">NIK</span>
+                                      <input
+                                        type="text"
+                                        maxLength={16}
+                                        value={editDraft.nik ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nik: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Tanggal Lahir</span>
+                                      <input
+                                        type="date"
+                                        value={editDraft.tanggal_lahir ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, tanggal_lahir: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Pendidikan Terakhir</span>
+                                      <select
+                                        value={editDraft.pendidikan_terakhir ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({
+                                            ...d,
+                                            pendidikan_terakhir: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      >
+                                        <option value="">-</option>
+                                        <option value="SD">SD</option>
+                                        <option value="SMP">SMP</option>
+                                        <option value="SMA/SMK">SMA/SMK</option>
+                                        <option value="D3">D3</option>
+                                        <option value="S1">S1</option>
+                                        <option value="S2 atau lebih tinggi">S2 atau lebih tinggi</option>
+                                      </select>
+                                    </label>
+                                    <label className="block sm:col-span-2 lg:col-span-2">
+                                      <span className="font-medium text-neutral-500">Alamat Domisili</span>
+                                      <textarea
+                                        rows={2}
+                                        value={editDraft.alamat_domisili ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, alamat_domisili: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block sm:col-span-2 lg:col-span-3">
+                                      <span className="font-medium text-neutral-500">Pengalaman Kerja</span>
+                                      <textarea
+                                        rows={2}
+                                        value={editDraft.pengalaman_kerja ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, pengalaman_kerja: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
                                   </div>
-                                </div>
-                                <div>
-                                  <div className="font-medium text-neutral-500">Pendidikan Terakhir</div>
-                                  <div className="mt-0.5 text-neutral-800">
-                                    {r.pendidikan_terakhir || "-"}
+                                ) : (
+                                  <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                                    <div>
+                                      <div className="font-medium text-neutral-500">NIK</div>
+                                      <div className="mt-0.5 text-neutral-800">{r.nik || "-"}</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-neutral-500">Tanggal Lahir</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.tanggal_lahir ? formatDate(r.tanggal_lahir) : "-"}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-neutral-500">Pendidikan Terakhir</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.pendidikan_terakhir || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-2 lg:col-span-2">
+                                      <div className="font-medium text-neutral-500">Alamat Domisili</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.alamat_domisili || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-2 lg:col-span-3">
+                                      <div className="font-medium text-neutral-500">Pengalaman Kerja</div>
+                                      <div className="mt-0.5 whitespace-pre-line text-neutral-800">
+                                        {r.pengalaman_kerja || "-"}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="sm:col-span-2 lg:col-span-2">
-                                  <div className="font-medium text-neutral-500">Alamat Domisili</div>
-                                  <div className="mt-0.5 text-neutral-800">
-                                    {r.alamat_domisili || "-"}
-                                  </div>
-                                </div>
-                                <div className="sm:col-span-2 lg:col-span-3">
-                                  <div className="font-medium text-neutral-500">Pengalaman Kerja</div>
-                                  <div className="mt-0.5 whitespace-pre-line text-neutral-800">
-                                    {r.pengalaman_kerja || "-"}
-                                  </div>
-                                </div>
+                                )}
                               </div>
 
                               <div className="mb-4 rounded-xl border border-black/5 bg-white p-4">
