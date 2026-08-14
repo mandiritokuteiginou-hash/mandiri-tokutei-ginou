@@ -36,7 +36,7 @@ interface NotionNumberProperty {
   number: number | null;
 }
 
-interface NotionJobPostingPage {
+export interface NotionJobPostingPage {
   id: string;
   properties: {
     Posisi: NotionTitleProperty;
