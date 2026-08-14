@@ -119,4 +119,11 @@ npm install
 npm run dev      # jalankan di http://localhost:3000
 npm run build    # build production
 npm run lint     # jalankan ESLint
+npm test         # jalankan unit test (Vitest)
 ```
+
+Unit test mencakup logika murni yang paling berisiko regresi diam-diam:
+parser furigana (`src/lib/furigana.ts`), pemetaan sinkronisasi Notion
+(`src/lib/notion-sync.ts`), dan pengecekan integritas data di seluruh
+konten `materi-belajar` & `artikel` (slug unik, kurung furigana seimbang,
+setiap field berkanji sudah dianotasi).
