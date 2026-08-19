@@ -1,0 +1,915 @@
+"use client";
+
+import { Fragment, useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import AdminHeader from "@/components/admin/AdminHeader";
+import JobOrderForm, { JobOrderFormValues } from "@/components/admin/JobOrderForm";
+import Spinner from "@/components/ui/Spinner";
+import { useToast } from "@/components/ui/Toast";
+import { createClient } from "@/lib/supabase/client";
+import {
+  CPMI_STATUS_FLOW,
+  CPMI_STATUS_LABELS,
+  CpmiDocument,
+  CpmiRegistration,
+  CpmiStatus,
+  DOCUMENT_TYPE_LABELS,
+  DocumentType,
+  JOB_MATCH_STATUS_LABELS,
+  JobMatchStatus,
+  JobOrder,
+  JobOrderMatch,
+  REQUIRED_DOCUMENT_TYPES,
+} from "@/lib/types";
+
+const JOB_MATCH_STATUS_OPTIONS: JobMatchStatus[] = [
+  "disarankan",
+  "dipilih_cpmi",
+  "diterima",
+  "ditolak",
+];
+
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+const STATUS_OPTIONS: CpmiStatus[] = [
+  ...CPMI_STATUS_FLOW,
+  "tidak_lolos",
+  "mengundurkan_diri",
+];
+
+export default function AdminDashboardPage() {
+  const router = useRouter();
+  const { showToast } = useToast();
+  const [authorized, setAuthorized] = useState(false);
+  const [registrations, setRegistrations] = useState<CpmiRegistration[]>([]);
+  const [jobs, setJobs] = useState<JobOrder[]>([]);
+  const [documentsByReg, setDocumentsByReg] = useState<Map<string, CpmiDocument[]>>(new Map());
+  const [matchesByReg, setMatchesByReg] = useState<Map<string, JobOrderMatch[]>>(new Map());
+  const [addMatchJobId, setAddMatchJobId] = useState<Record<string, string>>({});
+  const [matchActionId, setMatchActionId] = useState<string | null>(null);
+  const [jobFormOpen, setJobFormOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<JobOrder | null>(null);
+  const [jobFormSubmitting, setJobFormSubmitting] = useState(false);
+  const [jobFormError, setJobFormError] = useState("");
+  const [expandedRegId, setExpandedRegId] = useState<string | null>(null);
+  const [viewingDocId, setViewingDocId] = useState<string | null>(null);
+  const [notionSyncing, setNotionSyncing] = useState(false);
+  const [notionSyncMessage, setNotionSyncMessage] = useState("");
+  const [candidateSearch, setCandidateSearch] = useState("");
+  const [editingRegId, setEditingRegId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Partial<CpmiRegistration>>({});
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const loadData = useCallback(async () => {
+    const supabase = createClient();
+    const { data: regs } = await supabase
+      .from("cpmi_registrations")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setRegistrations(regs ?? []);
+
+    const { data: jobOrders } = await supabase
+      .from("job_orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setJobs(jobOrders ?? []);
+
+    const { data: docs } = await supabase
+      .from("documents")
+      .select("*")
+      .order("uploaded_at", { ascending: false });
+    const byReg = new Map<string, CpmiDocument[]>();
+    for (const doc of (docs ?? []) as CpmiDocument[]) {
+      if (!byReg.has(doc.cpmi_id)) byReg.set(doc.cpmi_id, []);
+      byReg.get(doc.cpmi_id)!.push(doc);
+    }
+    setDocumentsByReg(byReg);
+
+    const { data: matches } = await supabase
+      .from("job_order_matches")
+      .select("*")
+      .order("created_at", { ascending: false });
+    const matchesByRegMap = new Map<string, JobOrderMatch[]>();
+    for (const match of (matches ?? []) as JobOrderMatch[]) {
+      if (!matchesByRegMap.has(match.cpmi_id)) matchesByRegMap.set(match.cpmi_id, []);
+      matchesByRegMap.get(match.cpmi_id)!.push(match);
+    }
+    setMatchesByReg(matchesByRegMap);
+  }, []);
+
+  async function handleAddMatch(regId: string) {
+    const jobOrderId = addMatchJobId[regId];
+    if (!jobOrderId) return;
+
+    setMatchActionId(regId);
+    const supabase = createClient();
+    const { error } = await supabase.from("job_order_matches").insert({
+      cpmi_id: regId,
+      job_order_id: jobOrderId,
+      status_match: "disarankan",
+    });
+    setMatchActionId(null);
+
+    if (error) {
+      showToast("Gagal menambah kecocokan: " + error.message, "error");
+      return;
+    }
+    setAddMatchJobId((prev) => ({ ...prev, [regId]: "" }));
+    showToast("Lowongan berhasil ditautkan ke kandidat");
+    await loadData();
+  }
+
+  async function handleUpdateMatchStatus(matchId: string, status: JobMatchStatus) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("job_order_matches")
+      .update({ status_match: status })
+      .eq("id", matchId);
+    if (error) {
+      showToast("Gagal mengubah status kecocokan: " + error.message, "error");
+      return;
+    }
+    await loadData();
+  }
+
+  async function handleRemoveMatch(matchId: string) {
+    const supabase = createClient();
+    const { error } = await supabase.from("job_order_matches").delete().eq("id", matchId);
+    if (error) {
+      showToast("Gagal menghapus kecocokan: " + error.message, "error");
+      return;
+    }
+    showToast("Kecocokan lowongan dihapus");
+    await loadData();
+  }
+
+  function startEditProfile(r: CpmiRegistration) {
+    setEditingRegId(r.id);
+    setEditDraft({
+      nama_lengkap: r.nama_lengkap,
+      nomor_hp: r.nomor_hp,
+      email: r.email,
+      nik: r.nik,
+      tanggal_lahir: r.tanggal_lahir,
+      alamat_domisili: r.alamat_domisili,
+      pendidikan_terakhir: r.pendidikan_terakhir,
+      pengalaman_kerja: r.pengalaman_kerja,
+    });
+  }
+
+  function cancelEditProfile() {
+    setEditingRegId(null);
+    setEditDraft({});
+  }
+
+  async function handleSaveProfile(regId: string) {
+    setSavingProfile(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("cpmi_registrations")
+      .update({
+        nama_lengkap: editDraft.nama_lengkap,
+        nomor_hp: editDraft.nomor_hp,
+        email: editDraft.email || null,
+        nik: editDraft.nik || null,
+        tanggal_lahir: editDraft.tanggal_lahir || null,
+        alamat_domisili: editDraft.alamat_domisili || null,
+        pendidikan_terakhir: editDraft.pendidikan_terakhir || null,
+        pengalaman_kerja: editDraft.pengalaman_kerja || null,
+      })
+      .eq("id", regId);
+    setSavingProfile(false);
+
+    if (error) {
+      showToast("Gagal menyimpan profil: " + error.message, "error");
+      return;
+    }
+    setEditingRegId(null);
+    showToast("Profil kandidat berhasil diperbarui");
+    await loadData();
+  }
+
+  function countUploadedRequiredDocs(regId: string) {
+    const docs = documentsByReg.get(regId) ?? [];
+    const uploadedTypes = new Set(
+      docs
+        .map((d) => d.jenis_dokumen)
+        .filter((type): type is DocumentType => REQUIRED_DOCUMENT_TYPES.includes(type as DocumentType))
+    );
+    return uploadedTypes.size;
+  }
+
+  async function handleViewDocument(doc: CpmiDocument) {
+    setViewingDocId(doc.id);
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from("cpmi-documents")
+      .createSignedUrl(doc.file_url, 60);
+    setViewingDocId(null);
+
+    if (error || !data) {
+      showToast("Gagal membuka dokumen: " + (error?.message ?? "unknown error"), "error");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+  }
+
+  useEffect(() => {
+    async function init() {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.replace("/admin/login");
+        return;
+      }
+
+      const { data: adminRow } = await supabase
+        .from("admin_users")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!adminRow) {
+        await supabase.auth.signOut();
+        router.replace("/admin/login");
+        return;
+      }
+
+      setAuthorized(true);
+      await loadData();
+    }
+    init();
+  }, [router, loadData]);
+
+  async function handleStatusChange(id: string, status: CpmiStatus) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("cpmi_registrations")
+      .update({ status })
+      .eq("id", id);
+    if (error) {
+      showToast("Gagal mengubah status: " + error.message, "error");
+      return;
+    }
+    setRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    showToast(`Status diperbarui ke "${CPMI_STATUS_LABELS[status]}"`);
+  }
+
+  function openCreateJobForm() {
+    setEditingJob(null);
+    setJobFormError("");
+    setJobFormOpen(true);
+  }
+
+  function openEditJobForm(job: JobOrder) {
+    setEditingJob(job);
+    setJobFormError("");
+    setJobFormOpen(true);
+  }
+
+  function closeJobForm() {
+    setJobFormOpen(false);
+    setEditingJob(null);
+    setJobFormError("");
+  }
+
+  async function handleJobFormSubmit(values: JobOrderFormValues) {
+    setJobFormSubmitting(true);
+    setJobFormError("");
+
+    const supabase = createClient();
+    const { error } = editingJob
+      ? await supabase.from("job_orders").update(values).eq("id", editingJob.id)
+      : await supabase.from("job_orders").insert(values);
+
+    setJobFormSubmitting(false);
+
+    if (error) {
+      setJobFormError(error.message);
+      return;
+    }
+
+    closeJobForm();
+    showToast(editingJob ? "Lowongan berhasil diperbarui" : "Lowongan berhasil ditambahkan");
+    await loadData();
+  }
+
+  async function handleSyncNotion() {
+    setNotionSyncing(true);
+    setNotionSyncMessage("");
+
+    try {
+      const res = await fetch("/api/admin/sync-notion", { method: "POST" });
+      const body = await res.json();
+      if (!res.ok) {
+        const message = body.error ?? "Sinkronisasi gagal.";
+        setNotionSyncMessage(message);
+        showToast(message, "error");
+      } else {
+        const message = `Berhasil sinkron ${body.synced} lowongan dari Notion.`;
+        setNotionSyncMessage(message);
+        showToast(message);
+        await loadData();
+      }
+    } catch {
+      const message = "Sinkronisasi gagal: tidak bisa menghubungi server.";
+      setNotionSyncMessage(message);
+      showToast(message, "error");
+    } finally {
+      setNotionSyncing(false);
+    }
+  }
+
+  async function handleToggleJobActive(job: JobOrder) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("job_orders")
+      .update({ status_aktif: !job.status_aktif })
+      .eq("id", job.id);
+    if (error) {
+      showToast("Gagal mengubah status lowongan: " + error.message, "error");
+      return;
+    }
+    setJobs((prev) =>
+      prev.map((j) => (j.id === job.id ? { ...j, status_aktif: !j.status_aktif } : j))
+    );
+    showToast(job.status_aktif ? "Lowongan dinonaktifkan" : "Lowongan diaktifkan");
+  }
+
+  async function handleDeleteJob(job: JobOrder) {
+    if (!confirm(`Hapus lowongan "${job.nama_perusahaan}"?`)) return;
+    const supabase = createClient();
+    const { error } = await supabase.from("job_orders").delete().eq("id", job.id);
+    if (error) {
+      showToast("Gagal menghapus lowongan: " + error.message, "error");
+      return;
+    }
+    setJobs((prev) => prev.filter((j) => j.id !== job.id));
+    showToast("Lowongan berhasil dihapus");
+  }
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/admin/login");
+  }
+
+  if (!authorized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center gap-2 bg-brand-navy text-sm text-neutral-300">
+        <Spinner className="h-4 w-4" />
+        Memeriksa akses...
+      </div>
+    );
+  }
+
+  const activeJobs = jobs.filter((j) => j.status_aktif);
+  const candidateQuery = candidateSearch.trim().toLowerCase();
+  const filteredRegistrations = candidateQuery
+    ? registrations.filter((r) =>
+        [r.nama_lengkap, r.nomor_hp, r.email, r.nomor_registrasi, CPMI_STATUS_LABELS[r.status]]
+          .filter(Boolean)
+          .some((field) => field!.toLowerCase().includes(candidateQuery))
+      )
+    : registrations;
+
+  return (
+    <div className="min-h-screen bg-neutral-50">
+      <AdminHeader
+        action={
+          <button
+            onClick={handleLogout}
+            className="text-sm font-medium text-white hover:text-brand-gold"
+          >
+            Keluar
+          </button>
+        }
+      />
+
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="text-xs font-medium text-neutral-500">Total Kandidat</div>
+            <div className="mt-2 text-2xl font-bold text-brand-navy">
+              {registrations.length}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="text-xs font-medium text-neutral-500">Bekerja di Jepang</div>
+            <div className="mt-2 text-2xl font-bold text-brand-navy">
+              {registrations.filter((r) => r.status === "bekerja_di_jepang").length}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-white p-5 shadow-sm">
+            <div className="text-xs font-medium text-neutral-500">Lowongan Aktif</div>
+            <div className="mt-2 text-2xl font-bold text-brand-navy">
+              {activeJobs.length}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-brand-navy">Daftar Kandidat</h2>
+            {registrations.length > 0 && (
+              <input
+                type="text"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+                placeholder="Cari nama, telepon, email, status..."
+                className="w-full max-w-xs rounded-lg border border-black/10 px-3 py-1.5 text-xs outline-none focus:border-brand-red"
+              />
+            )}
+          </div>
+          {candidateQuery && (
+            <p className="mt-2 text-xs text-neutral-500">
+              Menampilkan {filteredRegistrations.length} dari {registrations.length} kandidat
+            </p>
+          )}
+
+          {registrations.length === 0 ? (
+            <p className="mt-4 text-sm text-neutral-500">
+              Belum ada kandidat terdaftar.
+            </p>
+          ) : filteredRegistrations.length === 0 ? (
+            <p className="mt-4 text-sm text-neutral-500">
+              Tidak ada kandidat yang cocok dengan pencarian &quot;{candidateSearch}&quot;.
+            </p>
+          ) : (
+            <div className="mt-4 overflow-x-auto">
+              <table className="w-full min-w-[720px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-black/5 text-xs uppercase text-neutral-500">
+                    <th className="py-2 pr-4">No. Registrasi</th>
+                    <th className="py-2 pr-4">Nama</th>
+                    <th className="py-2 pr-4">Kontak</th>
+                    <th className="py-2 pr-4">Sektor</th>
+                    <th className="py-2 pr-4">Dokumen</th>
+                    <th className="py-2 pr-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRegistrations.map((r) => {
+                    const docs = documentsByReg.get(r.id) ?? [];
+                    const matches = matchesByReg.get(r.id) ?? [];
+                    const matchedJobIds = new Set(matches.map((m) => m.job_order_id));
+                    const isExpanded = expandedRegId === r.id;
+                    return (
+                      <Fragment key={r.id}>
+                        <tr className="border-b border-black/5">
+                          <td className="py-3 pr-4 text-xs text-neutral-500">
+                            {r.nomor_registrasi ?? "-"}
+                          </td>
+                          <td className="py-3 pr-4 font-medium text-brand-navy">
+                            {r.nama_lengkap}
+                            {!r.auth_user_id && (
+                              <span className="ml-2 rounded-full bg-brand-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase text-brand-gold">
+                                Lead
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 pr-4 text-neutral-600">
+                            <div>{r.email ?? "-"}</div>
+                            <div className="text-xs text-neutral-400">{r.nomor_hp}</div>
+                          </td>
+                          <td className="py-3 pr-4 text-neutral-600">
+                            {r.sektor_minat.join(", ") || "-"}
+                          </td>
+                          <td className="py-3 pr-4">
+                            <button
+                              onClick={() =>
+                                setExpandedRegId(isExpanded ? null : r.id)
+                              }
+                              className="rounded-full border border-black/10 px-3 py-1 text-xs font-medium text-neutral-600 hover:bg-neutral-100"
+                            >
+                              {countUploadedRequiredDocs(r.id)}/{REQUIRED_DOCUMENT_TYPES.length}{" "}
+                              {isExpanded ? "▲" : "▼"}
+                            </button>
+                          </td>
+                          <td className="py-3 pr-4">
+                            <select
+                              value={r.status}
+                              onChange={(e) =>
+                                handleStatusChange(r.id, e.target.value as CpmiStatus)
+                              }
+                              className="rounded-lg border border-black/10 px-2 py-1 text-xs outline-none focus:border-brand-red"
+                            >
+                              {STATUS_OPTIONS.map((status) => (
+                                <option key={status} value={status}>
+                                  {CPMI_STATUS_LABELS[status]}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                        </tr>
+                        {isExpanded && (
+                          <tr className="border-b border-black/5 bg-neutral-50">
+                            <td colSpan={6} className="px-4 py-4">
+                              <div className="mb-4 rounded-xl border border-black/5 bg-white p-4">
+                                <div className="flex items-center justify-between gap-2">
+                                  <h3 className="text-xs font-semibold text-brand-navy">
+                                    Profil Kandidat
+                                  </h3>
+                                  {editingRegId === r.id ? (
+                                    <div className="flex gap-2">
+                                      <button
+                                        onClick={cancelEditProfile}
+                                        disabled={savingProfile}
+                                        className="text-xs font-semibold text-neutral-500 hover:text-neutral-700"
+                                      >
+                                        Batal
+                                      </button>
+                                      <button
+                                        onClick={() => handleSaveProfile(r.id)}
+                                        disabled={savingProfile}
+                                        className="rounded-full bg-brand-red px-3 py-1 text-xs font-semibold text-white hover:bg-brand-red-dark disabled:opacity-60"
+                                      >
+                                        {savingProfile ? "Menyimpan..." : "Simpan"}
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => startEditProfile(r)}
+                                      className="text-xs font-semibold text-brand-navy hover:text-brand-red"
+                                    >
+                                      Edit Profil
+                                    </button>
+                                  )}
+                                </div>
+
+                                {editingRegId === r.id ? (
+                                  <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Nama Lengkap</span>
+                                      <input
+                                        type="text"
+                                        value={editDraft.nama_lengkap ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nama_lengkap: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Nomor HP</span>
+                                      <input
+                                        type="text"
+                                        value={editDraft.nomor_hp ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nomor_hp: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Email</span>
+                                      <input
+                                        type="email"
+                                        value={editDraft.email ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, email: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">NIK</span>
+                                      <input
+                                        type="text"
+                                        maxLength={16}
+                                        value={editDraft.nik ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, nik: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Tanggal Lahir</span>
+                                      <input
+                                        type="date"
+                                        value={editDraft.tanggal_lahir ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, tanggal_lahir: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block">
+                                      <span className="font-medium text-neutral-500">Pendidikan Terakhir</span>
+                                      <select
+                                        value={editDraft.pendidikan_terakhir ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({
+                                            ...d,
+                                            pendidikan_terakhir: e.target.value,
+                                          }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      >
+                                        <option value="">-</option>
+                                        <option value="SD">SD</option>
+                                        <option value="SMP">SMP</option>
+                                        <option value="SMA/SMK">SMA/SMK</option>
+                                        <option value="D3">D3</option>
+                                        <option value="S1">S1</option>
+                                        <option value="S2 atau lebih tinggi">S2 atau lebih tinggi</option>
+                                      </select>
+                                    </label>
+                                    <label className="block sm:col-span-2 lg:col-span-2">
+                                      <span className="font-medium text-neutral-500">Alamat Domisili</span>
+                                      <textarea
+                                        rows={2}
+                                        value={editDraft.alamat_domisili ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, alamat_domisili: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                    <label className="block sm:col-span-2 lg:col-span-3">
+                                      <span className="font-medium text-neutral-500">Pengalaman Kerja</span>
+                                      <textarea
+                                        rows={2}
+                                        value={editDraft.pengalaman_kerja ?? ""}
+                                        onChange={(e) =>
+                                          setEditDraft((d) => ({ ...d, pengalaman_kerja: e.target.value }))
+                                        }
+                                        className="mt-1 w-full rounded-lg border border-black/10 px-2 py-1.5 outline-none focus:border-brand-red"
+                                      />
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <div className="mt-3 grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                                    <div>
+                                      <div className="font-medium text-neutral-500">NIK</div>
+                                      <div className="mt-0.5 text-neutral-800">{r.nik || "-"}</div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-neutral-500">Tanggal Lahir</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.tanggal_lahir ? formatDate(r.tanggal_lahir) : "-"}
+                                      </div>
+                                    </div>
+                                    <div>
+                                      <div className="font-medium text-neutral-500">Pendidikan Terakhir</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.pendidikan_terakhir || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-2 lg:col-span-2">
+                                      <div className="font-medium text-neutral-500">Alamat Domisili</div>
+                                      <div className="mt-0.5 text-neutral-800">
+                                        {r.alamat_domisili || "-"}
+                                      </div>
+                                    </div>
+                                    <div className="sm:col-span-2 lg:col-span-3">
+                                      <div className="font-medium text-neutral-500">Pengalaman Kerja</div>
+                                      <div className="mt-0.5 whitespace-pre-line text-neutral-800">
+                                        {r.pengalaman_kerja || "-"}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="mb-4 rounded-xl border border-black/5 bg-white p-4">
+                                <h3 className="text-xs font-semibold text-brand-navy">
+                                  Lowongan Tercocokkan
+                                </h3>
+                                {matches.length === 0 ? (
+                                  <p className="mt-2 text-xs text-neutral-500">
+                                    Belum ada lowongan yang ditautkan ke kandidat ini.
+                                  </p>
+                                ) : (
+                                  <ul className="mt-3 space-y-2">
+                                    {matches.map((match) => {
+                                      const job = jobs.find((j) => j.id === match.job_order_id);
+                                      return (
+                                        <li
+                                          key={match.id}
+                                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-black/5 px-3 py-2 text-xs"
+                                        >
+                                          <span className="text-neutral-700">
+                                            <span className="font-medium text-brand-navy">
+                                              {job?.nama_perusahaan ?? "(lowongan dihapus)"}
+                                            </span>
+                                            {job && ` · ${job.lokasi_prefektur}`}
+                                          </span>
+                                          <span className="flex items-center gap-2">
+                                            <select
+                                              value={match.status_match}
+                                              onChange={(e) =>
+                                                handleUpdateMatchStatus(
+                                                  match.id,
+                                                  e.target.value as JobMatchStatus
+                                                )
+                                              }
+                                              className="rounded-lg border border-black/10 px-2 py-1 text-xs outline-none focus:border-brand-red"
+                                            >
+                                              {JOB_MATCH_STATUS_OPTIONS.map((status) => (
+                                                <option key={status} value={status}>
+                                                  {JOB_MATCH_STATUS_LABELS[status]}
+                                                </option>
+                                              ))}
+                                            </select>
+                                            <button
+                                              onClick={() => handleRemoveMatch(match.id)}
+                                              className="font-semibold text-brand-red hover:text-brand-red-dark"
+                                            >
+                                              Hapus
+                                            </button>
+                                          </span>
+                                        </li>
+                                      );
+                                    })}
+                                  </ul>
+                                )}
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  <select
+                                    value={addMatchJobId[r.id] ?? ""}
+                                    onChange={(e) =>
+                                      setAddMatchJobId((prev) => ({ ...prev, [r.id]: e.target.value }))
+                                    }
+                                    className="flex-1 rounded-lg border border-black/10 px-2 py-1.5 text-xs outline-none focus:border-brand-red"
+                                  >
+                                    <option value="">Pilih lowongan untuk ditautkan...</option>
+                                    {jobs
+                                      .filter((j) => j.status_aktif && !matchedJobIds.has(j.id))
+                                      .map((j) => (
+                                        <option key={j.id} value={j.id}>
+                                          {j.nama_perusahaan} · {j.sektor}
+                                        </option>
+                                      ))}
+                                  </select>
+                                  <button
+                                    onClick={() => handleAddMatch(r.id)}
+                                    disabled={!addMatchJobId[r.id] || matchActionId === r.id}
+                                    className="rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-60"
+                                  >
+                                    Tautkan
+                                  </button>
+                                </div>
+                              </div>
+
+                              {docs.length === 0 ? (
+                                <p className="text-xs text-neutral-500">
+                                  Belum ada dokumen diunggah.
+                                </p>
+                              ) : (
+                                <ul className="space-y-2">
+                                  {docs.map((doc) => (
+                                    <li
+                                      key={doc.id}
+                                      className="flex items-center justify-between gap-3 text-xs"
+                                    >
+                                      <span className="text-neutral-700">
+                                        <span className="font-medium text-brand-navy">
+                                          {DOCUMENT_TYPE_LABELS[doc.jenis_dokumen as DocumentType] ??
+                                            doc.jenis_dokumen}
+                                        </span>{" "}
+                                        · diunggah {formatDateTime(doc.uploaded_at)}
+                                      </span>
+                                      <button
+                                        onClick={() => handleViewDocument(doc)}
+                                        disabled={viewingDocId === doc.id}
+                                        className="rounded-full bg-brand-navy px-3 py-1 font-semibold text-white hover:bg-brand-navy-dark disabled:opacity-60"
+                                      >
+                                        {viewingDocId === doc.id ? "Membuka..." : "Lihat Dokumen"}
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-8 rounded-2xl bg-white p-6 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-brand-navy">Lowongan</h2>
+            {!jobFormOpen && (
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSyncNotion}
+                  disabled={notionSyncing}
+                  className="flex items-center gap-2 rounded-full border border-brand-navy px-4 py-2 text-xs font-semibold text-brand-navy hover:bg-brand-navy hover:text-white disabled:opacity-60"
+                >
+                  {notionSyncing && <Spinner className="h-3 w-3" />}
+                  {notionSyncing ? "Menyinkronkan..." : "Sync dari Notion"}
+                </button>
+                <button
+                  onClick={openCreateJobForm}
+                  className="rounded-full bg-brand-red px-4 py-2 text-xs font-semibold text-white hover:bg-brand-red-dark"
+                >
+                  + Tambah Lowongan
+                </button>
+              </div>
+            )}
+          </div>
+
+          {notionSyncMessage && (
+            <p className="mt-2 text-xs text-neutral-600">{notionSyncMessage}</p>
+          )}
+
+          {jobFormOpen && (
+            <JobOrderForm
+              initial={editingJob}
+              submitting={jobFormSubmitting}
+              error={jobFormError}
+              onSubmit={handleJobFormSubmit}
+              onCancel={closeJobForm}
+            />
+          )}
+
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full min-w-[720px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-black/5 text-xs uppercase text-neutral-500">
+                  <th className="py-2 pr-4">Perusahaan</th>
+                  <th className="py-2 pr-4">Sektor</th>
+                  <th className="py-2 pr-4">Lokasi</th>
+                  <th className="py-2 pr-4">Gaji</th>
+                  <th className="py-2 pr-4">Status</th>
+                  <th className="py-2 pr-4">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {jobs.map((job) => (
+                  <tr key={job.id} className="border-b border-black/5">
+                    <td className="py-3 pr-4 font-medium text-brand-navy">
+                      {job.nama_perusahaan}
+                    </td>
+                    <td className="py-3 pr-4 text-neutral-600">{job.sektor}</td>
+                    <td className="py-3 pr-4 text-neutral-600">{job.lokasi_prefektur}</td>
+                    <td className="py-3 pr-4 text-neutral-600">{job.estimasi_gaji}</td>
+                    <td className="py-3 pr-4">
+                      <button
+                        onClick={() => handleToggleJobActive(job)}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                          job.status_aktif
+                            ? "bg-green-100 text-green-700"
+                            : "bg-neutral-200 text-neutral-500"
+                        }`}
+                      >
+                        {job.status_aktif ? "Aktif" : "Nonaktif"}
+                      </button>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEditJobForm(job)}
+                          className="text-xs font-semibold text-brand-navy hover:text-brand-red"
+                        >
+                          Ubah
+                        </button>
+                        <button
+                          onClick={() => handleDeleteJob(job)}
+                          className="text-xs font-semibold text-brand-red hover:text-brand-red-dark"
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {jobs.length === 0 && (
+              <p className="py-6 text-center text-sm text-neutral-500">
+                Belum ada lowongan. Tambahkan lewat tombol di atas.
+              </p>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
