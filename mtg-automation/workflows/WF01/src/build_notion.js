@@ -1,0 +1,47 @@
+// Build Notion Payload: Master Job DB page body. Unknown/empty facts are omitted (never invented); Missing Data lists them.
+const cfg = $('Config').first().json;
+const U = (v) => v === undefined || v === null || String(v).trim() === '' || String(v).trim() === 'UNKNOWN' ? '' : String(v).trim();
+const clip = (s, n) => String(s).slice(0, n || 1900);
+const out = [];
+for (const it of $input.all()) {
+  const j = it.json; const e = j.extract || {}; const h = j.hard || {}; const s = j.score || {};
+  const P = {}; const sent = {}; const missing = [];
+  const title = (k, v) => { P[k] = { title: [{ type: 'text', text: { content: clip(v, 200) } }] }; sent[k] = clip(v, 200); };
+  const rt = (k, v, keep) => { const t = U(v); if (!t) { if (!keep) missing.push(k); return; } P[k] = { rich_text: [{ type: 'text', text: { content: clip(t) } }] }; sent[k] = clip(t); };
+  const num = (k, v) => { const n = Number(v); if (v === null || v === undefined || v === '' || !isFinite(n)) { missing.push(k); return; } P[k] = { number: n }; sent[k] = n; };
+  const sel = (k, v) => { P[k] = { select: { name: v } }; sent[k] = v; };
+  const wage = String(h.wage_monthly_text || '').replace(/,/g, '').match(/[0-9]{4,7}/g) || [];
+  const hr = String(h.wage_form || '').replace(/,/g, '').match(/時給([0-9]{3,5})/);
+  title('Job Title', U(e.job_title_jp) || j.title);
+  rt('Job Number', j.job_number, true); rt('Company', e.company_name_final); rt('Position', e.role_summary_jp);
+  sel('Field', e.sector_notion || 'その他');
+  rt('Prefecture', e.prefecture); rt('City', e.city); rt('Address', e.address);
+  rt('Salary', [h.wage_form ? '賃金形態: ' + h.wage_form : '', h.wage_monthly_text ? 'サイト表示の月額: ' + h.wage_monthly_text : '', U(e.salary && e.salary.allowances_text) ? '手当: ' + e.salary.allowances_text : '', (e.salary && e.salary.fixed_overtime_amount) ? '固定残業代: ' + e.salary.fixed_overtime_amount : ''].filter(Boolean).join(' / '));
+  num('Monthly Salary Min', wage[0] ? Number(wage[0]) : e.monthly_min); if (wage[1] || e.monthly_min) num('Monthly Salary Max', wage[1] ? Number(wage[1]) : e.monthly_min);
+  if (hr) num('Effective Hourly Wage', Number(hr[1]));
+  rt('Bonus', e.bonus); rt('Overtime', e.overtime_hours_per_month); rt('Salary Increase', e.salary_increase);
+  rt('Working Hours', U(e.working_hours) || h.workhours1); rt('Work Days', e.work_days_per_month); rt('Holidays', e.holiday_text);
+  rt('Annual Holidays', e.annual_holidays_n ? String(e.annual_holidays_n) + '日' : ''); rt('Break', e.break_minutes);
+  rt('Housing', e.housing_text); rt('Benefits', [U(e.benefits_text), U(e.insurance_text)].filter(Boolean).join(' / '));
+  rt('Japanese Level', e.japanese_level); rt('Experience', e.experience); rt('Certificates', e.certificates);
+  rt('Age', e.age_limit_text); rt('Nationality', e.nationality_text);
+  rt('Visa Status', '特定技能 根拠引用: 「' + U(e.ssw_evidence_quote) + '」' + (U(e.visa_text) ? ' / ' + e.visa_text : ''));
+  if (e.quota) num('Quota', e.quota); rt('Selection Process', e.selection_text);
+  sel('Application Route', 'Hello Work');
+  P['Source URL'] = { url: j.detail_url }; sent['Source URL'] = j.detail_url;
+  sel('Source Type', 'Website'); sel('Source Confidence', 'High'); sel('Status', 'NEW'); sel('Duplicate Check', 'Unique');
+  num('Quality Score', s.total);
+  const keyFields = ['Company', 'Prefecture', 'City', 'Address', 'Salary', 'Monthly Salary Min', 'Working Hours', 'Holidays', 'Annual Holidays', 'Break', 'Benefits', 'Japanese Level', 'Experience', 'Housing', 'Bonus', 'Overtime', 'Selection Process'];
+  const comp = Math.round(100 * (keyFields.length - keyFields.filter((f) => missing.indexOf(f) >= 0).length) / keyFields.length);
+  num('Data Completeness', comp);
+  rt('Missing Data', missing.join(', '), true);
+  sel('Audit Status', 'Unverified');
+  rt('Audit Notes', 'MTG#01 ' + cfg.workflow_name + ' | M1-M8 PASS | score ' + s.total + ' (' + s.class + ') ' + JSON.stringify(s.parts) + ' | flags: ' + (j.flags || []).join(',') + ' | 法人番号: ' + (e.corporate_number_n || 'UNKNOWN') + ' | AI: ' + clip(U(s.ai && s.ai.rationale_jp), 400), true);
+  P['Recheck Required'] = { checkbox: true }; sent['Recheck Required'] = true;
+  rt('Recheck Reason', 'Workflow #02 verification pending (employer, salary, active status)', true);
+  sel('Ingestion Source', 'N8N'); sel('Agent', 'N8N');
+  rt('Automation Workflow', 'MTG #01 ' + cfg.workflow_name, true); rt('Run ID', cfg.run_id, true);
+  P['Scout Run Date'] = { date: { start: cfg.run_date } }; rt('Scout Run Time', cfg.run_time, true); rt('Discovery Batch ID', cfg.run_id, true);
+  out.push({ json: Object.assign({}, j, { notion_sent: sent, notion_create_body: { parent: { type: 'data_source_id', data_source_id: cfg.notion_job_ds_id }, properties: P }, notion_query_body: { filter: { property: 'Job Number', rich_text: { equals: j.job_number } }, page_size: 1 } }) });
+}
+return out;

@@ -1,0 +1,20 @@
+const h=require('./harness'),fs=require('fs');
+const cfg={json:{run_id:'R2',run_date:'2026-10-05',run_started:'2026-10-05T00:00:00Z',workflow_name:'Job Verification & QC V1.0',job_threshold:80,company_threshold:90,min_days_left:3,staleness_days:180,min_monthly:150000,min_hourly:1000,max_monthly:1000000,require_overseas_verified:'true',gbiz_base:'https://info.gbiz.go.jp/hojin',notion_company_ds_id:'x'}};
+const mk=(id,t)=>({id,url:'u'+id,created_time:'2026-10-01T00:00:00Z',properties:t});
+const rtx=s=>({type:'rich_text',rich_text:[{plain_text:s}]});
+const page=mk('p1',{Status:{type:'select',select:{name:'EXTRACTED'}},'Job Number':rtx('29050-1'),'Job Title':{type:'title',title:[{plain_text:'健康食品の製造'}]},Company:rtx('東商テクノ　株式会社'),Prefecture:rtx('岐阜県'),City:rtx('揖斐郡池田町'),Address:rtx('岐阜県揖斐郡池田町小牛'),'Monthly Salary Min':{type:'number',number:225120},'Annual Holidays':rtx('120日'),'Source URL':{type:'url',url:'https://hellowork.careers/x'},'Visa Status':rtx('特定技能 根拠引用: 「特定技能歓迎」'),'Quality Score':{type:'number',number:85},'Audit Notes':rtx('MTG#01 法人番号: 1234567890123'),'Field':{type:'select',select:{name:'製造'}}});
+const fl=h.run('flatten_queue.js',{input:[{json:{results:[page]}}],nodes:{Config:[cfg]}});
+console.log('flatten',JSON.stringify(fl[0].json).slice(0,300));
+console.log('empty',h.run('flatten_queue.js',{input:[{json:{results:[]}}],nodes:{Config:[cfg]}})[0].json.status, h.run('flatten_queue.js',{input:[{json:{error:{message:'x'}}}],nodes:{Config:[cfg]}})[0].json.status);
+const html=fs.readFileSync('../detail.html','utf8');
+const rcI=h.run('recheck.js',{input:[{json:{data:html}},{json:{error:{message:'404 not found'}}}],nodes:{Config:[cfg],'Flatten Queue':[fl[0],fl[0]]}});
+console.log('rc',JSON.stringify(rcI[0].json.rc),'\nrc2',rcI[1].json.rc.source_state,rcI[1].json.errors);
+const dup=h.run('dup_check.js',{input:[{json:{results:[mk('p1',{}),mk('p9',{'Job Number':rtx('29050-1'),'Job Title':{type:'title',title:[]},City:rtx(''),Status:{type:'select',select:{name:'VERIFIED'}}})]}},{json:{error:{message:'x'}}}],nodes:{'Re-check Source':rcI}});
+console.log('dup',dup[0].json.dup,dup[1].json.dup);
+const gr=h.run('gbiz_request.js',{input:rcI,nodes:{Config:[cfg]}});console.log(gr[0].json.gbiz,gr[1].json.gbiz);
+// registry responses
+const reg={json:{'hojin-infos':[{corporate_number:'5200001003646',name:'東商テクノ株式会社',location:'岐阜県揖斐郡池田町小牛123',status:'',close_date:null}]}};
+gr[0].json.gbiz={mode:'BY_NAME',url:'x',given_number:''};
+const cm=h.run('company_match.js',{input:[reg,{json:{error:{message:'401 Unauthorized'}}}],nodes:{Config:[cfg],'Build Registry Request':[gr[0],gr[0]]}});
+console.log('co1',JSON.stringify(cm[0].json.company),cm[0].json.needs_ai);console.log('co2',cm[1].json.company.verdict,cm[1].json.errors);
+fs.writeFileSync('/tmp/cm.json',JSON.stringify(cm));

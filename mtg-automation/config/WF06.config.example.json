@@ -1,0 +1,17 @@
+{
+ "run_id": "={{ \"CQ-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Content QC and Approval V1.0",
+ "max_per_run": 25,
+ "max_attempts": 3,
+ "use_ai": "true",
+ "require_ai_second_pass": "true",
+ "ai_model_qc": "claude-sonnet-5-5",
+ "template_version": "v1",
+ "banned_phrases": "jaminan|dijamin|garansi|pasti|100%|gratis|tanpa biaya|gaji besar|gaji tinggi|gaji fantastis|cepat berangkat",
+ "regulatory_phrases": "P3MI|berizin|izin resmi|penempatan resmi|resmi MTGI|terdaftar resmi|agen resmi|penyalur resmi|lembaga resmi|SIP2MI|BP2MI|KP2MI",
+ "disclaimer": "Informasi bersumber dari lowongan publik dan bisa berubah. Pastikan detail dan syarat resmi sebelum melamar.",
+ "brand_footer": "",
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9"
+}

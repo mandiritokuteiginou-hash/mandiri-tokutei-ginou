@@ -1,0 +1,16 @@
+{
+ "run_id": "={{ \"LC-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Canonicalization & Lifecycle V1.0",
+ "max_per_run": 40,
+ "lookback_hours": 14,
+ "tier_s_min_salary": 300000,
+ "tier_a_min_salary": 270000,
+ "tier_b_min_salary": 240000,
+ "tier_s_min_score": 90,
+ "tier_a_min_score": 85,
+ "tier_b_min_score": 80,
+ "tier_min_company": 90,
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9"
+}

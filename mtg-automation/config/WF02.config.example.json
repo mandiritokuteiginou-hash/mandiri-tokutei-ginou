@@ -1,0 +1,19 @@
+{
+ "run_id": "={{ \"QC-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Job Verification & QC V1.0",
+ "job_threshold": 80,
+ "company_threshold": 90,
+ "max_per_run": 30,
+ "min_days_left": 3,
+ "staleness_days": 180,
+ "min_monthly": 150000,
+ "max_monthly": 1000000,
+ "min_hourly": 1000,
+ "require_overseas_verified": "true",
+ "gbiz_base": "https://info.gbiz.go.jp/hojin",
+ "ai_model_verify": "claude-sonnet-5-5",
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9",
+ "notion_company_ds_id": "a72e12ca-f829-407f-945e-4b87e9195cd2"
+}

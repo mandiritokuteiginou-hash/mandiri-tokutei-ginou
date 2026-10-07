@@ -1,0 +1,130 @@
+{
+ "data_source_id": "05a640fc-dff7-4975-9b85-e818008c642e",
+ "database_page_id": "8d8807e6-eadc-4111-b0c0-87631147f8d8",
+ "name": "🇯🇵 MTG — Leads / Applicants",
+ "snapshot": "2026-10-07 via Notion MCP fetch",
+ "properties": {
+  "Age": "number",
+  "Applicant JLPT": "select",
+  "Consent Date": "date",
+  "Consent Requested At": "date",
+  "Consent Source": "select",
+  "Consent Status": "select",
+  "Consent Version": "text",
+  "Draft Facts Hash": "text",
+  "Draft Kind": "select",
+  "Eligibility Detail": "text",
+  "Eligibility Result": "select",
+  "Experience Years": "number",
+  "Facts Hash": "text",
+  "Handoff Ref": "text",
+  "Has License": "select",
+  "Human Action": "select",
+  "JFT-Basic": "select",
+  "Job ID": "text",
+  "Last Contact": "date",
+  "Last Inbound": "date",
+  "Last Intent": "select",
+  "Last Run": "text",
+  "Lead ID": "title",
+  "Lead Key": "text",
+  "Lead Notes": "text",
+  "Lead Status": "select",
+  "Name": "text",
+  "PII Purged": "checkbox",
+  "PII Purged At": "date",
+  "Phone": "phone_number",
+  "Phone Hash": "text",
+  "Prev Status": "select",
+  "Purge After": "date",
+  "Reply Draft": "text",
+  "Skill Test Passed": "select",
+  "Source": "select",
+  "Status Changed": "date",
+  "Status Reason": "text",
+  "Tech Intern Completed": "select"
+ },
+ "select_options": {
+  "Lead Status": [
+   "NEW",
+   "CONTACTED",
+   "SCREENING",
+   "ELIGIBLE",
+   "NOT_ELIGIBLE",
+   "DOCS_REQUESTED",
+   "DOCS_RECEIVED",
+   "HANDOFF",
+   "WITHDRAWN",
+   "DORMANT",
+   "MANUAL_REVIEW"
+  ],
+  "Prev Status": [
+   "same as Lead Status"
+  ],
+  "Consent Status": [
+   "NONE",
+   "GRANTED",
+   "WITHDRAWN"
+  ],
+  "Consent Source": [
+   "WA_OPTIN",
+   "FORM",
+   "VERBAL_LOGGED",
+   "OTHER"
+  ],
+  "Draft Kind": [
+   "CONSENT_REQUEST",
+   "QUESTIONS",
+   "NEXT_STEP",
+   "NOT_ELIGIBLE_NOTICE",
+   "WITHDRAW_ACK"
+  ],
+  "Eligibility Result": [
+   "NOT_EVALUATED",
+   "ELIGIBLE",
+   "NOT_ELIGIBLE",
+   "UNKNOWN"
+  ],
+  "Human Action": [
+   "DRAFT_SENT",
+   "DOCS_REQUESTED",
+   "DOCS_RECEIVED",
+   "RESUME",
+   "CLOSE"
+  ],
+  "Last Intent": [
+   "GREETING",
+   "INTEREST",
+   "JOB_QUESTION",
+   "SUPPLY_INFO",
+   "DOCS_SENT",
+   "CONSENT_YES",
+   "CONSENT_NO",
+   "WITHDRAW",
+   "LEGAL_SENSITIVE",
+   "OTHER"
+  ],
+  "Applicant JLPT": [
+   "None",
+   "N5",
+   "N4",
+   "N3",
+   "N2",
+   "N1",
+   "Unknown"
+  ],
+  "Has License / JFT-Basic / Skill Test Passed / Tech Intern Completed": [
+   "Yes",
+   "No",
+   "Unknown"
+  ],
+  "Source": [
+   "WHATSAPP",
+   "MANUAL"
+  ]
+ },
+ "notes": [
+  "created at workspace level (user to move)",
+  "Lead Notes is human-only: never written by WF09"
+ ]
+}

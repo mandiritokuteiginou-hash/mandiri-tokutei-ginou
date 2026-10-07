@@ -1,0 +1,491 @@
+{
+ "project_id": "XBMeLOTcweLo9fcD",
+ "note": "mtg_* tables only (43 tables exist in the project; others belong to other MTGI projects)",
+ "tables": {
+  "mtg_monitor_run_log": {
+   "id": "EYpQp1RcJcYpUEQt",
+   "columns": {
+    "alert_status": "string",
+    "exec_status": "string",
+    "findings_high": "number",
+    "findings_info": "number",
+    "findings_warn": "number",
+    "finished_at": "string",
+    "health": "string",
+    "leads_scanned": "number",
+    "new_findings": "number",
+    "prune_candidates": "number",
+    "pruned": "number",
+    "queue_rows": "number",
+    "recoveries": "number",
+    "resolved": "number",
+    "run_id": "string",
+    "started_at": "string",
+    "summary_json": "string"
+   }
+  },
+  "mtg_monitor_log": {
+   "id": "ZVVCS9izakoLhGpG",
+   "columns": {
+    "code": "string",
+    "detail": "string",
+    "event": "string",
+    "outcome": "string",
+    "run_id": "string",
+    "severity": "string",
+    "subject": "string",
+    "ts": "string"
+   }
+  },
+  "mtg_monitor_state": {
+   "id": "R9RmOhVr2PdOa1h0",
+   "columns": {
+    "code": "string",
+    "detail": "string",
+    "first_seen": "string",
+    "last_alerted": "string",
+    "last_seen": "string",
+    "severity": "string",
+    "state_key": "string",
+    "status": "string",
+    "subject": "string",
+    "times_alerted": "number"
+   }
+  },
+  "mtg_lead_message_dedup": {
+   "id": "Zw2NhbdJcQKtteJT",
+   "columns": {
+    "first_seen": "string",
+    "lead_key": "string",
+    "msg_hash": "string"
+   }
+  },
+  "mtg_lead_run_log": {
+   "id": "MofYmLaTYA2rveHy",
+   "columns": {
+    "created": "number",
+    "drafts": "number",
+    "finished_at": "string",
+    "inbox_status": "string",
+    "leads_loaded": "number",
+    "manual_review": "number",
+    "messages_new": "number",
+    "messages_seen": "number",
+    "purged": "number",
+    "run_id": "string",
+    "started_at": "string",
+    "summary_json": "string",
+    "transitions": "number",
+    "withdrawn": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_lead_log": {
+   "id": "wyr8I7StWOXrJ3go",
+   "columns": {
+    "consent_status": "string",
+    "draft_kind": "string",
+    "eligibility": "string",
+    "event": "string",
+    "from_status": "string",
+    "intent": "string",
+    "job_id": "string",
+    "lead_id": "string",
+    "lead_key": "string",
+    "outcome": "string",
+    "reason": "string",
+    "run_id": "string",
+    "to_status": "string",
+    "ts": "string"
+   }
+  },
+  "mtg_distribution_run_log": {
+   "id": "7NwKoW12I5UK7ume",
+   "columns": {
+    "deferred": "number",
+    "dry_run": "number",
+    "failed": "number",
+    "finished_at": "string",
+    "legal_hold": "number",
+    "manual_review": "number",
+    "not_eligible": "number",
+    "publish_mode": "string",
+    "published": "number",
+    "queue_status": "string",
+    "run_id": "string",
+    "seen": "number",
+    "skipped_published": "number",
+    "stale": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "waiting_retry": "number"
+   }
+  },
+  "mtg_distribution_log": {
+   "id": "IBMCNlfFQLl0W6k4",
+   "columns": {
+    "attempt": "string",
+    "content_hash": "string",
+    "distribution_hash": "string",
+    "error_code": "string",
+    "error_message": "string",
+    "external_post_id": "string",
+    "image_build_hash": "string",
+    "job_id": "string",
+    "job_number": "string",
+    "outcome": "string",
+    "page_id": "string",
+    "platform": "string",
+    "publish_mode": "string",
+    "published_at": "string",
+    "reason": "string",
+    "run_id": "string",
+    "status": "string",
+    "ts": "string"
+   }
+  },
+  "mtg_distribution_queue": {
+   "id": "Bf7f3fyNwswNj5Ms",
+   "columns": {
+    "attempt": "number",
+    "content_hash": "string",
+    "distribution_hash": "string",
+    "error_code": "string",
+    "error_message": "string",
+    "external_post_id": "string",
+    "image_build_hash": "string",
+    "job_id": "string",
+    "page_id": "string",
+    "platform": "string",
+    "published_at": "string",
+    "status": "string",
+    "updated_at": "string"
+   }
+  },
+  "mtg_image_generation_run_log": {
+   "id": "ZqAMNzVGyxU3sK3G",
+   "columns": {
+    "ai_errors": "number",
+    "deferred": "number",
+    "failed": "number",
+    "finished_at": "string",
+    "manual_review": "number",
+    "not_eligible": "number",
+    "queue_status": "string",
+    "ready": "number",
+    "regenerate": "number",
+    "render_errors": "number",
+    "rendered": "number",
+    "run_id": "string",
+    "seen": "number",
+    "skipped_unchanged": "number",
+    "stale": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_image_generation_log": {
+   "id": "axk4oVpR7GQ5e38k",
+   "columns": {
+    "attempt": "string",
+    "content_hash": "string",
+    "fact_hash": "string",
+    "generation_method": "string",
+    "image_build_hash": "string",
+    "image_status": "string",
+    "image_url": "string",
+    "job_id": "string",
+    "job_number": "string",
+    "outcome": "string",
+    "page_id": "string",
+    "qc_flags": "string",
+    "qc_result": "string",
+    "reason": "string",
+    "run_id": "string",
+    "template_version": "string",
+    "ts": "string",
+    "visual_hash": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_content_qc_run_log": {
+   "id": "LCGIivbqmibph5v0",
+   "columns": {
+    "ai_errors": "number",
+    "approved": "number",
+    "awaiting_regen": "number",
+    "deferred": "number",
+    "finished_at": "string",
+    "manual_review": "number",
+    "queue_status": "string",
+    "rejected": "number",
+    "revision_required": "number",
+    "run_id": "string",
+    "seen": "number",
+    "stale": "number",
+    "started_at": "string",
+    "still_valid": "number",
+    "summary_json": "string",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_content_qc_log": {
+   "id": "xdy342jiDZWW3xqX",
+   "columns": {
+    "ai_result": "string",
+    "content_hash": "string",
+    "deterministic_result": "string",
+    "fact_hash": "string",
+    "job_id": "string",
+    "job_number": "string",
+    "manual_review": "string",
+    "outcome": "string",
+    "page_id": "string",
+    "qc_attempt": "string",
+    "qc_decision": "string",
+    "reason": "string",
+    "risk_flags": "string",
+    "risk_level": "string",
+    "run_id": "string",
+    "ts": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_job_content_run_log": {
+   "id": "2XJF0jkRHu19TeYQ",
+   "columns": {
+    "ai_errors": "number",
+    "drafted": "number",
+    "drafted_ai": "number",
+    "drafted_template": "number",
+    "finished_at": "string",
+    "insufficient_facts": "number",
+    "not_eligible": "number",
+    "queue_status": "string",
+    "run_id": "string",
+    "seen": "number",
+    "skipped_unchanged": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_job_content_log": {
+   "id": "tIjWfredb24HlR6X",
+   "columns": {
+    "action": "string",
+    "channel_lengths": "string",
+    "content_hash": "string",
+    "issues": "string",
+    "job_number": "string",
+    "method": "string",
+    "mtg_job_id": "string",
+    "page_id": "string",
+    "reason": "string",
+    "run_id": "string",
+    "ts": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_job_enrichment_run_log": {
+   "id": "5Kf4Vo5L7XxNNLwS",
+   "columns": {
+    "ai_calls": "number",
+    "ai_rejected": "number",
+    "checked_no_new_data": "number",
+    "conflicts": "number",
+    "enriched": "number",
+    "fields_filled": "number",
+    "finished_at": "string",
+    "processed": "number",
+    "queue_status": "string",
+    "run_id": "string",
+    "source_errors": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "unchanged": "number",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_job_enrichment_log": {
+   "id": "mPyItJvjK8LNt3OK",
+   "columns": {
+    "changed": "string",
+    "confidence": "string",
+    "evidence": "string",
+    "field": "string",
+    "job_number": "string",
+    "mtg_job_id": "string",
+    "new_value": "string",
+    "old_value": "string",
+    "page_id": "string",
+    "run_id": "string",
+    "source_url": "string",
+    "ts": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_job_organize_run_log": {
+   "id": "ikIuhYTxRJo0C9Og",
+   "columns": {
+    "changed": "number",
+    "duplicates_archived": "number",
+    "expired_or_closed": "number",
+    "finished_at": "string",
+    "processed": "number",
+    "queue_status": "string",
+    "requeued_to_wf02": "number",
+    "run_id": "string",
+    "source_errors": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "unchanged": "number",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_job_lifecycle_log": {
+   "id": "Dd88TbpFskWXLX65",
+   "columns": {
+    "changed_fields": "string",
+    "company": "string",
+    "job_number": "string",
+    "mtg_job_id": "string",
+    "new_lifecycle": "string",
+    "page_id": "string",
+    "prev_lifecycle": "string",
+    "qc_decision": "string",
+    "reason": "string",
+    "run_id": "string",
+    "tier": "string",
+    "ts": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_job_qc_run_log": {
+   "id": "Wj0hNNK1amp0aeTp",
+   "columns": {
+    "ai_errors": "number",
+    "approved": "number",
+    "company_errors": "number",
+    "company_written": "number",
+    "finished_at": "string",
+    "queue_status": "string",
+    "queued": "number",
+    "registry_errors": "number",
+    "rejected": "number",
+    "review": "number",
+    "run_id": "string",
+    "source_errors": "number",
+    "started_at": "string",
+    "summary_json": "string",
+    "verify_failed": "number",
+    "write_errors": "number",
+    "written_ok": "number"
+   }
+  },
+  "mtg_job_qc_log": {
+   "id": "IgxLfdQ57qwIvemd",
+   "columns": {
+    "checks_json": "string",
+    "company": "string",
+    "company_score": "number",
+    "corp_number": "string",
+    "decision": "string",
+    "job_number": "string",
+    "page_id": "string",
+    "prev_status": "string",
+    "reasons": "string",
+    "run_id": "string",
+    "ts": "string",
+    "write_reason": "string",
+    "write_status": "string"
+   }
+  },
+  "mtg_job_scout_run_log": {
+   "id": "5bQIDgUyRgNDqvSb",
+   "columns": {
+    "ai_errors": "number",
+    "ai_screen_rejected": "number",
+    "below_threshold": "number",
+    "deferred": "number",
+    "detail_fetch_errors": "number",
+    "duplicates_skipped_by_cache": "number",
+    "fetch_errors": "number",
+    "final_candidates_json": "string",
+    "finished_at": "string",
+    "gate_rejected": "number",
+    "high_priority": "number",
+    "listings_found": "number",
+    "new_after_dedup": "number",
+    "notion_duplicates": "number",
+    "notion_errors": "number",
+    "prefilter_rejected": "number",
+    "run_id": "string",
+    "sources_disabled": "string",
+    "sources_enabled": "string",
+    "started_at": "string",
+    "tasks": "number",
+    "verify_failed": "number",
+    "written_verified": "number"
+   }
+  },
+  "mtg_job_scout_error_log": {
+   "id": "JKoYI4ySiObQ6PHj",
+   "columns": {
+    "error_message": "string",
+    "error_type": "string",
+    "job_key": "string",
+    "retry_status": "string",
+    "run_id": "string",
+    "source": "string",
+    "stage": "string",
+    "ts": "string"
+   }
+  },
+  "mtg_job_scout_cache": {
+   "id": "PT1ZsiOuF6TTo7Oh",
+   "columns": {
+    "company": "string",
+    "first_seen": "string",
+    "job_key": "string",
+    "job_score": "number",
+    "notion_page_id": "string",
+    "reason": "string",
+    "run_id": "string",
+    "source": "string",
+    "status": "string",
+    "title": "string"
+   }
+  },
+  "mtg_rirekisho_submissions": {
+   "id": "0qmU87DvWG4LhLJg",
+   "columns": {
+    "alamat": "string",
+    "created_at": "string",
+    "email": "string",
+    "furigana": "string",
+    "jenis_kelamin": "string",
+    "kewarganegaraan": "string",
+    "masa_berlaku_izin_tinggal": "string",
+    "nama_lengkap": "string",
+    "raw_form_data": "string",
+    "sheet_url": "string",
+    "status": "string",
+    "tanggal_lahir": "string",
+    "telepon": "string"
+   }
+  }
+ }
+}

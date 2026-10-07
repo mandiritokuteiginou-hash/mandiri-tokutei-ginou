@@ -1,0 +1,10 @@
+const cfg = $('Config').first().json;
+const all = $input.all().map((i) => i.json);
+const jobs = all.filter((j) => j._kind === 'enriched' || j._kind === 'write_row');
+const w = all.filter((j) => j._kind === 'write_row');
+const meta = all.filter((j) => j._kind === 'meta')[0];
+const errs = [].concat.apply([], all.map((j) => Array.isArray(j.errors) ? j.errors : []));
+const filled = jobs.reduce((n, j) => n + (Array.isArray(j.filled) ? j.filled.length : 0), 0);
+const rejected = jobs.reduce((n, j) => n + (j.rows || []).filter((r) => r.field === 'ai_rejected').length, 0);
+const conflicts = jobs.reduce((n, j) => n + (Array.isArray(j.conflicts) ? j.conflicts.length : 0), 0);
+return [{ json: { run_id: cfg.run_id, started_at: cfg.run_started, finished_at: new Date().toISOString(), queue_status: meta ? meta.status : 'OK', processed: jobs.length, unchanged: jobs.filter((j) => j.outcome === 'NO_CHANGE').length, checked_no_new_data: jobs.filter((j) => j.outcome === 'CHECKED_NO_NEW_DATA').length, enriched: jobs.filter((j) => j.outcome === 'ENRICHED').length, fields_filled: filled, ai_calls: jobs.filter((j) => j.ai_used === 'true').length, ai_rejected: rejected, conflicts, written_ok: w.filter((j) => j.write_status === 'OK').length, write_errors: w.filter((j) => j.write_status === 'NOTION_ERROR').length, verify_failed: w.filter((j) => j.write_status === 'VERIFY_FAILED').length, source_errors: errs.filter((e) => e.stage === 'source_fetch').length, summary_json: JSON.stringify({ outcomes: jobs.reduce((o, j) => { o[j.outcome] = (o[j.outcome] || 0) + 1; return o; }, {}) }).slice(0, 3000) } }];
