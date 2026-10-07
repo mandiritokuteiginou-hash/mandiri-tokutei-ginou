@@ -44,7 +44,7 @@ def convert(wf):
             for t in targets:
                 edges.append((a, oi, t['node'], t['index']))
     first = [n for n in nodes if 'Trigger' in n['type'].split('.')[-1]][0]
-    chain = ["export default workflow(%s, %s)" % (json.dumps(wf['name'][:20]), json.dumps(wf['name'])), "  .add(%s)" % var[first['name']]]
+    chain = ["export default workflow(%s, %s)" % (json.dumps(re.sub(r'[^a-z0-9]+', '-', wf['name'].split(' - ')[0].lower()).strip('-')), json.dumps(wf['name'])), "  .add(%s)" % var[first['name']]]
     for a, oi, b, ii in edges:
         src = var[a] + ('.output(%d)' % oi if oi else '')
         dst = var[b] + ('.input(%d)' % ii if ii else '')
