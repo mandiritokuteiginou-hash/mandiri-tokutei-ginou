@@ -26,7 +26,7 @@ for (let k = 0; k < inputs.length; k++) {
   const gates = {}; const fails = []; const flags = [];
   const G = (id, ok, why) => { gates[id] = ok ? 'PASS' : 'FAIL: ' + why; if (!ok) fails.push(id + ' ' + why); };
   if (job.detail_ok === false) { out.push({ json: Object.assign(base, { _kind: 'outcome', status: 'FETCH_DETAIL_ERROR', reason: job.detail_error, gate_pass: false, gates }) }); continue; }
-  const e = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);
+  const e = parseJson(it.json && ((it.json.choices && it.json.choices[0] && it.json.choices[0].message && it.json.choices[0].message.content) || (it.json.content && it.json.content[0] && it.json.content[0].text)));
   if (it.json && it.json.error || !e) { out.push({ json: Object.assign(base, { _kind: 'outcome', status: 'AI_ERROR', reason: 'extract failed: ' + (it.json && it.json.error ? String(it.json.error.message || it.json.error).slice(0, 200) : 'unparseable JSON'), gate_pass: false, gates, detail_text: undefined }) }); continue; }
   const h = job.hard || {}; const text = norm(job.detail_text);
   const sal = e.salary || {};

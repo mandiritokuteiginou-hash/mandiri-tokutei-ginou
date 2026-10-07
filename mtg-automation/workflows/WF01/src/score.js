@@ -10,7 +10,7 @@ for (let k = 0; k < inputs.length; k++) {
   let job = {};
   try { job = $('Prepare Score').itemMatching(k).json; } catch (e) { job = {}; }
   const base = Object.assign({}, job); delete base.ai_score_req;
-  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);
+  const a = parseJson(it.json && ((it.json.choices && it.json.choices[0] && it.json.choices[0].message && it.json.choices[0].message.content) || (it.json.content && it.json.content[0] && it.json.content[0].text)));
   if ((it.json && it.json.error) || !a) { out.push({ json: Object.assign(base, { _kind: 'outcome', status: 'AI_ERROR', reason: 'score failed: ' + (it.json && it.json.error ? String(it.json.error.message || it.json.error).slice(0, 200) : 'unparseable JSON'), detail_text: undefined }) }); continue; }
   const e = job.extract || {}; const flags = (job.flags || []).slice();
   // salary 0-25 (deterministic; basic monthly excluding fixed overtime)

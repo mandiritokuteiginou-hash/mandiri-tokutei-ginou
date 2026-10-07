@@ -5,7 +5,7 @@ const out = []; const inputs = $input.all();
 for (let k = 0; k < inputs.length; k++) {
   const it = inputs[k]; let j = {};
   try { j = $('Prepare AI').itemMatching(k).json; } catch (e) { j = {}; }
-  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);
+  const a = parseJson(it.json && ((it.json.choices && it.json.choices[0] && it.json.choices[0].message && it.json.choices[0].message.content) || (it.json.content && it.json.content[0] && it.json.content[0].text)));
   const ok = a && OK.includes(a.intent);
   out.push({ json: Object.assign({}, j, { ai_req: undefined, ai_ok: ok ? 'true' : 'false', ai_intent: ok ? a.intent : 'OTHER', ai_sensitive: ok && a.sensitive === true ? 'true' : 'false', ai_error: ok ? '' : ((it.json && it.json.error) ? 'AI_ERROR' : 'AI_UNPARSEABLE') }) });
 }

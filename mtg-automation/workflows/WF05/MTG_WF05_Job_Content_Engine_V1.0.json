@@ -74,7 +74,7 @@
       {
        "id": "cfg-ai_model_content",
        "name": "ai_model_content",
-       "value": "claude-sonnet-5-5",
+       "value": "gpt-4o-mini",
        "type": "string"
       },
       {
@@ -344,16 +344,12 @@
   {
    "parameters": {
     "method": "POST",
-    "url": "https://api.anthropic.com/v1/messages",
+    "url": "https://ai.sumopod.com/v1/chat/completions",
     "authentication": "genericCredentialType",
-    "genericAuthType": "httpTemplatedCustomAuth",
+    "genericAuthType": "httpHeaderAuth",
     "sendHeaders": true,
     "headerParameters": {
      "parameters": [
-      {
-       "name": "anthropic-version",
-       "value": "2023-06-01"
-      },
       {
        "name": "content-type",
        "value": "application/json"
@@ -363,7 +359,7 @@
     "sendBody": true,
     "contentType": "json",
     "specifyBody": "json",
-    "jsonBody": "={{ JSON.stringify($json.ai_req) }}",
+    "jsonBody": "={{ JSON.stringify((() => { const r = $json.ai_req; const conv = (c) => Array.isArray(c) ? c.map((b) => b.type === \"image\" ? { type: \"image_url\", image_url: { url: b.source && b.source.url } } : b) : c; const body = { model: r.model, max_tokens: r.max_tokens, messages: [{ role: \"system\", content: r.system }].concat(r.messages.map((m) => ({ role: m.role, content: conv(m.content) }))) }; if (r.temperature !== undefined) body.temperature = r.temperature; return body; })()) }}",
     "options": {
      "timeout": 90000,
      "batching": {
@@ -387,9 +383,9 @@
    "waitBetweenTries": 5000,
    "onError": "continueRegularOutput",
    "credentials": {
-    "httpTemplatedCustomAuth": {
+    "httpHeaderAuth": {
      "id": "",
-     "name": "Anthropic API Key (x-api-key)"
+     "name": "Sumopod AI API Key (Bearer)"
     }
    }
   },
@@ -397,7 +393,7 @@
    "parameters": {
     "mode": "runOnceForAllItems",
     "language": "javaScript",
-    "jsCode": "// Parse AI (WF05): JSON parse only. Validation happens in Compose against the fact sheet.\nconst parseJson = (t) => { let s = String(t || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); const a = s.indexOf('{'); const b = s.lastIndexOf('}'); if (a < 0 || b < a) return null; try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } };\nconst out = []; const inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let j = {};\n  try { j = $('Prepare AI').itemMatching(k).json; } catch (e) { j = {}; }\n  const errors = (j.errors || []).slice(); const base = Object.assign({}, j, { ai_req: undefined, errors });\n  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);\n  if ((it.json && it.json.error) || !a) { errors.push({ stage: 'ai_content', type: 'ai_error', msg: (it.json && it.json.error ? String(it.json.error.message || it.json.error) : 'unparseable JSON').slice(0, 200) }); out.push({ json: Object.assign(base, { ai: null }) }); continue; }\n  out.push({ json: Object.assign(base, { ai: a }) });\n}\nreturn out;\n"
+    "jsCode": "// Parse AI (WF05): JSON parse only. Validation happens in Compose against the fact sheet.\nconst parseJson = (t) => { let s = String(t || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); const a = s.indexOf('{'); const b = s.lastIndexOf('}'); if (a < 0 || b < a) return null; try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } };\nconst out = []; const inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let j = {};\n  try { j = $('Prepare AI').itemMatching(k).json; } catch (e) { j = {}; }\n  const errors = (j.errors || []).slice(); const base = Object.assign({}, j, { ai_req: undefined, errors });\n  const a = parseJson(it.json && ((it.json.choices && it.json.choices[0] && it.json.choices[0].message && it.json.choices[0].message.content) || (it.json.content && it.json.content[0] && it.json.content[0].text)));\n  if ((it.json && it.json.error) || !a) { errors.push({ stage: 'ai_content', type: 'ai_error', msg: (it.json && it.json.error ? String(it.json.error.message || it.json.error) : 'unparseable JSON').slice(0, 200) }); out.push({ json: Object.assign(base, { ai: null }) }); continue; }\n  out.push({ json: Object.assign(base, { ai: a }) });\n}\nreturn out;\n"
    },
    "id": "343c9d24-bab0-5c2a-1571-68a0dbc82f1d",
    "name": "Parse AI",

@@ -6,7 +6,7 @@ for (let k = 0; k < inputs.length; k++) {
   const it = inputs[k]; let j = {};
   try { j = $('Prepare AI').itemMatching(k).json; } catch (e) { j = {}; }
   const errors = (j.errors || []).slice(); const base = Object.assign({}, j, { ai_req: undefined, errors });
-  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);
+  const a = parseJson(it.json && ((it.json.choices && it.json.choices[0] && it.json.choices[0].message && it.json.choices[0].message.content) || (it.json.content && it.json.content[0] && it.json.content[0].text)));
   if ((it.json && it.json.error) || !a || ['PASS', 'MINOR', 'FAIL', 'UNSURE'].indexOf(a.verdict) < 0) { errors.push({ stage: 'ai_qc', type: 'ai_error', msg: (it.json && it.json.error ? String(it.json.error.message || it.json.error) : 'unparseable or invalid verdict').slice(0, 200) }); out.push({ json: Object.assign(base, { ai_result: { ok: false, verdict: 'UNAVAILABLE', issues: [], dropped: 0, model_verdict: '' } }) }); continue; }
   const all = NS([j.copy.poster, j.copy.wa, j.copy.ig, j.copy.tt].join('\n'));
   const issues = []; let dropped = 0;
