@@ -1,0 +1,1842 @@
+{
+ "name": "MTG #02 - Job Verification & QC V1.0",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 9,21 * * *"
+      }
+     ]
+    }
+   },
+   "id": "ddf81cad-cbe7-8a82-6b89-651c8667ea8d",
+   "name": "Schedule 09:00 and 21:00 JST",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.4,
+   "position": [
+    0,
+    336
+   ],
+   "notes": "1h after WF01 (08:00/20:00 JST) so fresh candidates are verified the same morning/evening. Workflow timezone = Asia/Tokyo.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "manual",
+    "includeOtherFields": false,
+    "assignments": {
+     "assignments": [
+      {
+       "id": "cfg-run_id",
+       "name": "run_id",
+       "value": "={{ \"QC-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-run_date",
+       "name": "run_date",
+       "value": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-run_started",
+       "name": "run_started",
+       "value": "={{ $now.toISO() }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-workflow_name",
+       "name": "workflow_name",
+       "value": "Job Verification & QC V1.0",
+       "type": "string"
+      },
+      {
+       "id": "cfg-job_threshold",
+       "name": "job_threshold",
+       "value": 80,
+       "type": "number"
+      },
+      {
+       "id": "cfg-company_threshold",
+       "name": "company_threshold",
+       "value": 90,
+       "type": "number"
+      },
+      {
+       "id": "cfg-max_per_run",
+       "name": "max_per_run",
+       "value": 30,
+       "type": "number"
+      },
+      {
+       "id": "cfg-min_days_left",
+       "name": "min_days_left",
+       "value": 3,
+       "type": "number"
+      },
+      {
+       "id": "cfg-staleness_days",
+       "name": "staleness_days",
+       "value": 180,
+       "type": "number"
+      },
+      {
+       "id": "cfg-min_monthly",
+       "name": "min_monthly",
+       "value": 150000,
+       "type": "number"
+      },
+      {
+       "id": "cfg-max_monthly",
+       "name": "max_monthly",
+       "value": 1000000,
+       "type": "number"
+      },
+      {
+       "id": "cfg-min_hourly",
+       "name": "min_hourly",
+       "value": 1000,
+       "type": "number"
+      },
+      {
+       "id": "cfg-require_overseas_verified",
+       "name": "require_overseas_verified",
+       "value": "true",
+       "type": "string"
+      },
+      {
+       "id": "cfg-gbiz_base",
+       "name": "gbiz_base",
+       "value": "https://info.gbiz.go.jp/hojin",
+       "type": "string"
+      },
+      {
+       "id": "cfg-ai_model_verify",
+       "name": "ai_model_verify",
+       "value": "claude-sonnet-5-5",
+       "type": "string"
+      },
+      {
+       "id": "cfg-notion_job_ds_id",
+       "name": "notion_job_ds_id",
+       "value": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9",
+       "type": "string"
+      },
+      {
+       "id": "cfg-notion_company_ds_id",
+       "name": "notion_company_ds_id",
+       "value": "a72e12ca-f829-407f-945e-4b87e9195cd2",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "id": "eb5868b2-58aa-c0cf-73f9-6b6ecfb22650",
+   "name": "Config",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    224,
+    336
+   ],
+   "notes": "Thresholds, wage floors, overseas gate, gBizINFO base URL, AI model, Notion ids.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "={{ \"https://api.notion.com/v1/data_sources/\" + $(\"Config\").first().json.notion_job_ds_id + \"/query\" }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ filter: { and: [ { property: 'Ingestion Source', select: { equals: 'N8N' } }, { or: [ { property: 'Status', select: { equals: 'EXTRACTED' } }, { and: [ { property: 'Status', select: { equals: 'VERIFICATION_REQUIRED' } }, { property: 'Recheck Required', checkbox: { equals: true } } ] } ] } ] }, sorts: [ { timestamp: 'created_time', direction: 'ascending' } ], page_size: $('Config').first().json.max_per_run }) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "bef98b94-d715-8621-2df6-f0079fa35102",
+   "name": "Query Queue",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    448,
+    336
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Flatten Queue: Notion query response -> one item per job page (facts as stored by WF01). Empty / error -> a single meta item (never silent).\nconst cfg = $('Config').first().json;\nconst resp = ($input.first() && $input.first().json) || {};\nconst plain = (a) => (a || []).map((x) => x.plain_text || '').join('');\nconst pv = (p) => { if (!p) return ''; switch (p.type) { case 'title': return plain(p.title); case 'rich_text': return plain(p.rich_text); case 'number': return p.number; case 'select': return p.select ? p.select.name : ''; case 'url': return p.url || ''; case 'checkbox': return !!p.checkbox; case 'date': return p.date ? p.date.start : ''; default: return ''; } };\nif (resp.error || resp.object === 'error' || !Array.isArray(resp.results)) {\n  return [{ json: { _kind: 'meta', status: 'QUEUE_ERROR', reason: 'Notion queue query failed: ' + String((resp.error && (resp.error.message || resp.error)) || resp.message || 'bad response').slice(0, 250), errors: [{ stage: 'queue', type: 'notion_error', msg: String((resp.error && resp.error.message) || resp.message || 'bad response').slice(0, 250) }] } }];\n}\nif (resp.results.length === 0) return [{ json: { _kind: 'meta', status: 'EMPTY_QUEUE', reason: 'no EXTRACTED / re-queued jobs', errors: [] } }];\nconst out = [];\nfor (const pg of resp.results) {\n  const P = pg.properties || {};\n  const visa = String(pv(P['Visa Status']) || '');\n  const q = (visa.match(/「([^」]+)」/) || [])[1] || '';\n  const notes = String(pv(P['Audit Notes']) || '');\n  const status = pv(P['Status']);\n  out.push({ json: {\n    _kind: 'job', page_id: pg.id, page_url: pg.url, created_time: pg.created_time, status,\n    requeued: status === 'VERIFICATION_REQUIRED',\n    human_employer_verified: status === 'VERIFICATION_REQUIRED' && pv(P['Employer Verified']) === true,\n    job_number: String(pv(P['Job Number']) || '').trim(), title: pv(P['Job Title']), company: String(pv(P['Company']) || '').trim(),\n    sector: pv(P['Field']), prefecture: pv(P['Prefecture']), city: pv(P['City']), address: pv(P['Address']),\n    monthly_min: pv(P['Monthly Salary Min']) === '' ? null : pv(P['Monthly Salary Min']), monthly_max: pv(P['Monthly Salary Max']) === '' ? null : pv(P['Monthly Salary Max']),\n    hourly: pv(P['Effective Hourly Wage']) === '' ? null : pv(P['Effective Hourly Wage']),\n    annual_holidays: Number(String(pv(P['Annual Holidays']) || '').replace(/[^0-9]/g, '')) || null,\n    source_url: pv(P['Source URL']), ssw_quote: q, quality_score: pv(P['Quality Score']) === '' ? null : pv(P['Quality Score']),\n    wf01_notes: notes, wf01_corp: (notes.match(/法人番号:\\s*([0-9]{13})/) || [])[1] || '', wf01_run: pv(P['Run ID'])\n  } });\n}\nreturn out;\n"
+   },
+   "id": "97f11dc6-213a-8653-ee16-100a25bbdee8",
+   "name": "Flatten Queue",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    672,
+    336
+   ],
+   "notes": "Queue = N8N-ingested jobs with Status EXTRACTED, or VERIFICATION_REQUIRED + Recheck Required (human re-queue).",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "551482f7-8645-eb77-1471-55dea6e35d71",
+       "leftValue": "={{ String($json._kind) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "job"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "566eaf8f-d782-ec5c-44be-b978623fdb8f",
+   "name": "Is Queue Job?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    896,
+    336
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.source_url }}",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "User-Agent",
+       "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+      },
+      {
+       "name": "Accept-Language",
+       "value": "ja,en;q=0.8"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 30000,
+     "response": {
+      "response": {
+       "responseFormat": "text"
+      }
+     },
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 2000
+      }
+     }
+    }
+   },
+   "id": "824602bb-2dc9-ce3e-d46f-ca0b4ca0d935",
+   "name": "Fetch Source",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    1120,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 4000,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Re-check Source: re-fetch the HelloWork detail page and compare with what WF01 stored. Deterministic. Nothing is trusted from WF01 without re-proof.\nconst cfg = $('Config').first().json;\nconst norm = (s) => String(s || '').replace(/[\\s　]+/g, '');\nconst nowJ = new Date(Date.now() + 9 * 3600 * 1000);\nconst todayUTC = Date.UTC(nowJ.getUTCFullYear(), nowJ.getUTCMonth(), nowJ.getUTCDate());\nconst md2date = (arr, mode) => { if (!arr || arr.length < 2) return null; const m = Number(arr[0]); const d = Number(arr[1]); if (!m || !d) return null; const y = nowJ.getUTCFullYear(); let t = Date.UTC(y, m - 1, d); if (mode === 'posted' && t > todayUTC + 2 * 86400000) t = Date.UTC(y - 1, m - 1, d); if (mode === 'expiry' && t < todayUTC - 200 * 86400000) t = Date.UTC(y + 1, m - 1, d); return t; };\nconst toText = (h) => String(h || '').replace(/<script[\\s\\S]*?<\\/script>/gi, '').replace(/<style[\\s\\S]*?<\\/style>/gi, '').replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|div|tr|li|h\\d|table|dt|dd)>/gi, '\\n').replace(/<[^>]+>/g, '\\n').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\n[ \\t　]*(?=\\n)/g, '').replace(/\\n{2,}/g, '\\n').trim();\nconst OVERSEAS_OK = [/海外(在住)?(の方|者)?(から|在住).{0,8}(応募|可|歓迎|OK|ＯＫ)/, /(国外|海外)在住.{0,4}(可|OK|ＯＫ|歓迎)/, /来日前.{0,12}(応募|面接|内定|選考)/, /(入国前|渡日前).{0,12}(応募|面接|内定|選考)/, /(海外|来日前).{0,20}オンライン面接|オンライン面接.{0,20}(海外|来日前)/];\nconst DOMESTIC = [/(海外|国外)在住.{0,4}(不可|不可能|ＮＧ|NG)/, /国内(に)?在住(の方|者)?(のみ|限)/, /日本(国)?内に(在住|居住).{0,10}(方|者|必須)/, /在留カード.{0,12}(必須|をお持ちの方のみ)/];\nconst hit = (arr, t) => { for (const r of arr) { const m = t.match(r); if (m) return m[0].slice(0, 80); } return ''; };\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let job = {};\n  try { job = $('Flatten Queue').itemMatching(k).json; } catch (e) { job = {}; }\n  const err = it.json && it.json.error;\n  const html = (it.json && it.json.data) || '';\n  const errors = [];\n  const rc = { source_state: 'OK', host_ok: /^https:\\/\\/(www\\.)?hellowork\\.careers\\//.test(job.source_url || '') || /^https:\\/\\/www\\.hellowork\\.mhlw\\.go\\.jp\\//.test(job.source_url || ''), conflicts: [] };\n  let text = '';\n  if (err) { const m = String(err.message || err.description || err); rc.source_state = /404|410|not found/i.test(m) ? 'GONE' : 'UNREACHABLE'; rc.detail = m.slice(0, 200); errors.push({ stage: 'source_fetch', type: rc.source_state, msg: m.slice(0, 200) }); }\n  else if (typeof html !== 'string' || html.length < 3000) { rc.source_state = /Fatal error|detail\\.php/.test(String(html)) ? 'BROKEN' : 'UNREACHABLE'; rc.detail = 'response too short (' + String(html || '').length + ')'; errors.push({ stage: 'source_fetch', type: rc.source_state, msg: rc.detail }); }\n  else {\n    const full = toText(html);\n    const start = full.indexOf('の募集内容、仕事概要');\n    if (/(掲載を終了|受付を終了|募集を終了|求人は終了|この求人は.{0,6}(終了|締め切)|ページが見つかりません)/.test(full.slice(0, 4000)) && start < 0) rc.source_state = 'CLOSED_ON_SOURCE';\n    const body = (start >= 0 ? full.slice(Math.max(0, start - 80)) : full).slice(0, 12000);\n    text = body;\n    const lines = body.split('\\n').map((s) => s.trim()).filter((s) => s.length);\n    const after = (label) => { const i = lines.indexOf(label); return i >= 0 && i + 1 < lines.length ? lines[i + 1] : ''; };\n    const hdr = lines.find((l) => /の募集内容、仕事概要$/.test(l));\n    rc.page_company = hdr ? hdr.replace(/の募集内容、仕事概要$/, '').trim() : '';\n    const wi = lines.indexOf('勤務地');\n    rc.page_address = wi >= 0 ? lines.slice(wi + 1, wi + 4).filter((l) => !/^〒/.test(l) && !/^就業場所|^マイカー|^転勤/.test(l))[0] || '' : '';\n    rc.haken = after('派遣・請負等'); rc.wage_text = after('賃金'); rc.wage_form = after('賃金形態'); rc.annual_text = after('年間休日');\n    const wnum = String(rc.wage_text).replace(/,/g, '').match(/([0-9]{4,7})/);\n    rc.wage_min = wnum ? Number(wnum[1]) : null;\n    const hm = String(rc.wage_form).replace(/,/g, '').match(/時給([0-9]{3,5})/);\n    rc.hourly = hm ? Number(hm[1]) : null;\n    rc.annual = Number(String(rc.annual_text).replace(/[^0-9]/g, '')) || null;\n    const posted = md2date((full.match(/受理日：([0-9]{1,2})月([0-9]{1,2})日/) || []).slice(1, 3), 'posted');\n    const expiry = md2date((full.match(/有効期限：([0-9]{1,2})月([0-9]{1,2})日/) || []).slice(1, 3), 'expiry');\n    rc.days_left = expiry ? Math.round((expiry - todayUTC) / 86400000) : null;\n    rc.posted_age_days = posted ? Math.round((todayUTC - posted) / 86400000) : null;\n    rc.page_corp = (body.match(/法人番号[^0-9]{0,6}([0-9]{13})/) || [])[1] || '';\n    const jn = String(job.job_number || '').replace(/-/g, '');\n    rc.source_job_match = !!jn && full.replace(/-/g, '').indexOf(jn) >= 0;\n    rc.ssw_in_text = body.indexOf('特定技能') >= 0;\n    rc.ssw_quote_ok = !!job.ssw_quote && job.ssw_quote.length >= 4 && norm(body).indexOf(norm(job.ssw_quote)) >= 0;\n    rc.overseas_hit = hit(OVERSEAS_OK, body); rc.domestic_hit = hit(DOMESTIC, body);\n    // conflicts vs WF01-stored facts\n    if (job.monthly_min && rc.wage_min && !job.hourly && Math.abs(job.monthly_min - rc.wage_min) > Math.max(1000, job.monthly_min * 0.01)) rc.conflicts.push('salary: stored ' + job.monthly_min + ' vs source ' + rc.wage_min);\n    if (job.hourly && rc.hourly && job.hourly !== rc.hourly) rc.conflicts.push('hourly: stored ' + job.hourly + ' vs source ' + rc.hourly);\n    if (job.annual_holidays && rc.annual && job.annual_holidays !== rc.annual) rc.conflicts.push('annual holidays: stored ' + job.annual_holidays + ' vs source ' + rc.annual);\n    if (job.wf01_corp && rc.page_corp && job.wf01_corp !== rc.page_corp) rc.conflicts.push('法人番号: stored ' + job.wf01_corp + ' vs source ' + rc.page_corp);\n    const core = (s) => String(s || '').normalize('NFKC').replace(/株式会社|有限会社|合同会社|\\(株\\)|\\(有\\)|[\\s　]/g, '');\n    if (job.company && rc.page_company && core(job.company) !== core(rc.page_company)) rc.conflicts.push('company: stored ' + job.company + ' vs source ' + rc.page_company);\n  }\n  const base = Object.assign({}, job, { rc, detail_text: text, errors });\n  base.dup_query_body = job.company\n    ? { filter: { property: 'Company', rich_text: { equals: job.company } }, page_size: 25 }\n    : { filter: { property: 'Job Number', rich_text: { equals: job.job_number } }, page_size: 25 };\n  out.push({ json: base });\n}\nreturn out;\n"
+   },
+   "id": "f2e7335f-05c4-1388-3b7e-f1ed8b810a21",
+   "name": "Re-check Source",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1344,
+    272
+   ],
+   "notes": "Re-fetch HelloWork page: freshness, source/job match, SSW quote, wage/holiday conflicts, dispatch field, overseas wording.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "={{ \"https://api.notion.com/v1/data_sources/\" + $(\"Config\").first().json.notion_job_ds_id + \"/query\" }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.dup_query_body) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "a93fe59a-38f4-bc68-76ac-150287257120",
+   "name": "Dup Query",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    1568,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Duplicate / Conflict check against Master Job DB (same company). Notion is the source of truth.\nconst norm = (s) => String(s || '').normalize('NFKC').replace(/[\\s　]+/g, '');\nconst plain = (a) => (a || []).map((x) => x.plain_text || '').join('');\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let job = {};\n  try { job = $('Re-check Source').itemMatching(k).json; } catch (e) { job = {}; }\n  const errors = (job.errors || []).slice();\n  const res = it.json && Array.isArray(it.json.results) ? it.json.results : null;\n  let dup = { state: 'Unknown', note: '' };\n  if (!res || (it.json && it.json.error)) { dup.note = 'duplicate query failed'; errors.push({ stage: 'dup_check', type: 'notion_error', msg: String((it.json && it.json.error && it.json.error.message) || 'bad response').slice(0, 200) }); }\n  else {\n    dup = { state: 'Unique', note: '' };\n    const advanced = ['VERIFIED', 'CONTENT_READY', 'IMAGE_READY', 'APPROVED', 'PUBLISHED', 'UPDATED'];\n    for (const o of res) {\n      if (o.id === job.page_id) continue;\n      const P = o.properties || {};\n      const ojn = plain((P['Job Number'] || {}).rich_text).trim();\n      const ot = plain((P['Job Title'] || {}).title);\n      const oc = plain((P['City'] || {}).rich_text); const os = P['Status'] && P['Status'].select ? P['Status'].select.name : '';\n      const earlier = String(o.created_time) <= String(job.created_time) || advanced.indexOf(os) >= 0;\n      if (ojn && ojn === job.job_number && earlier) { dup = { state: 'Duplicate', note: 'same Job Number as ' + o.id + ' (' + os + ')' }; break; }\n      if (norm(ot) === norm(job.title) && norm(oc) === norm(job.city) && earlier && dup.state !== 'Duplicate') dup = { state: 'Possible Duplicate', note: 'same company+title+city as ' + o.id + ' (' + os + ', job ' + ojn + ')' };\n    }\n  }\n  out.push({ json: Object.assign({}, job, { dup, errors, dup_query_body: undefined }) });\n}\nreturn out;\n"
+   },
+   "id": "60e94669-2c27-d629-dff0-d2d7149c4f98",
+   "name": "Duplicate Check",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1792,
+    272
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Build Registry Request: company verification is its own process (not dependent on 法人番号 being printed in the posting).\nconst cfg = $('Config').first().json;\nconst corpOK = (c) => { if (!/^[0-9]{13}$/.test(c || '')) return false; const d = c.split('').map(Number); let s = 0; for (let n = 1; n <= 12; n++) { const p = d[13 - n]; s += p * (n % 2 === 1 ? 1 : 2); } return (9 - (s % 9)) === d[0]; };\nconst base = String(cfg.gbiz_base || 'https://info.gbiz.go.jp/hojin').replace(/\\/$/, '');\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json; const rc = j.rc || {};\n  const given = [rc.page_corp, j.wf01_corp].filter((c) => corpOK(c))[0] || '';\n  const name = String(rc.page_company || j.company || '').normalize('NFKC').replace(/[\\s　]+/g, '');\n  let mode = 'NONE'; let url = base + '/v1/hojin?name=' + encodeURIComponent('__none__') + '&limit=1';\n  if (given) { mode = 'BY_NUMBER'; url = base + '/v1/hojin/' + given; }\n  else if (name) { mode = 'BY_NAME'; url = base + '/v1/hojin?name=' + encodeURIComponent(name) + '&limit=20'; }\n  out.push({ json: Object.assign({}, j, { gbiz: { mode, url, given_number: given } }) });\n}\nreturn out;\n"
+   },
+   "id": "6657708f-ff07-6b67-4e42-4c3f21102793",
+   "name": "Build Registry Request",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2016,
+    272
+   ],
+   "notes": "Company verification is independent of the posting: by 法人番号 if known, else by company name.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.gbiz.url }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Accept",
+       "value": "application/json"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 1100
+      }
+     }
+    }
+   },
+   "id": "6d6bc332-feb8-e80d-7f2a-7df168ffbc5c",
+   "name": "Registry Lookup",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    2240,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 3000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "gBizINFO API Token"
+    }
+   },
+   "notes": "gBizINFO REST API. Credential: Header Auth, name X-hojinInfo-api-token, value = your token.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Company Score: match registry record vs posting on 法人番号 + name + address (+ active status). Deterministic, facts only.\nconst cfg = $('Config').first().json;\nconst th = Number(cfg.company_threshold) || 90;\nconst N = (s) => String(s || '').normalize('NFKC').replace(/[\\s　]+/g, '');\nconst core = (s) => N(s).replace(/株式会社|有限会社|合同会社|合資会社|合名会社|一般社団法人|一般財団法人|公益社団法人|公益財団法人|社会福祉法人|医療法人社団|医療法人財団|医療法人|農事組合法人|協同組合|\\(株\\)|\\(有\\)|\\(同\\)|\\(社\\)|\\(医\\)|\\(福\\)/g, '').replace(/[()（）]/g, '');\nconst corpOK = (c) => { if (!/^[0-9]{13}$/.test(c || '')) return false; const d = c.split('').map(Number); let s = 0; for (let n = 1; n <= 12; n++) { const p = d[13 - n]; s += p * (n % 2 === 1 ? 1 : 2); } return (9 - (s % 9)) === d[0]; };\nconst nameMatch = (a, b) => { const x = core(a); const y = core(b); if (!x || !y) return 'NONE'; if (x === y) return 'EXACT'; const [s, l] = x.length <= y.length ? [x, y] : [y, x]; return (l.indexOf(s) >= 0 && s.length / l.length >= 0.7) ? 'PARTIAL' : 'NONE'; };\nconst addrMatch = (loc, j) => { const L = N(loc); const pref = N(j.prefecture); const city = N(j.city); const rcA = N((j.rc && j.rc.page_address) || ''); const A = N(j.address); let lvl = 'NONE';\n  if (pref && L.indexOf(pref) >= 0) lvl = 'PREF';\n  if (!pref && rcA) { const m = rcA.match(/^(.{2,3}?[都道府県])/); if (m && L.indexOf(m[1]) >= 0) lvl = 'PREF'; }\n  const cityTxt = city || (rcA.replace(/^.{2,3}?[都道府県]/, '').match(/^(.{1,6}?[市区町村郡])/) || [])[1] || '';\n  if (cityTxt && L.indexOf(cityTxt) >= 0 && (lvl === 'PREF' || !pref)) lvl = 'CITY';\n  return lvl; };\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let j = {};\n  try { j = $('Build Registry Request').itemMatching(k).json; } catch (e) { j = {}; }\n  const errors = (j.errors || []).slice();\n  const g = j.gbiz || {}; const rc = j.rc || {};\n  const co = { verdict: 'REVIEW', score: 0, parts: { number: 0, name: 0, address: 0, active: 0, direct: 0 }, number: '', number_source: 'NONE', number_confirmed: false, registry_name: '', registry_location: '', active: null, notes: [], conflict: '' };\n  const err = it.json && it.json.error;\n  const arr = it.json && (it.json['hojin-infos'] || it.json.hojin_infos || it.json.hojinInfos);\n  const msg = err ? String(err.message || err.description || err) : '';\n  if (g.mode === 'NONE') { co.verdict = 'REVIEW'; co.notes.push('no company name or 法人番号 to search'); }\n  else if (err) {\n    if (/404|not found/i.test(msg)) { co.notes.push('registry: not found (' + g.mode + ')'); if (g.mode === 'BY_NUMBER') co.conflict = '法人番号 ' + g.given_number + ' not found in registry'; }\n    else { co.verdict = 'REGISTRY_UNAVAILABLE'; co.notes.push('registry request failed: ' + msg.slice(0, 120)); errors.push({ stage: 'registry', type: /401|403|unauthor|forbidden/i.test(msg) ? 'auth' : 'request', msg: msg.slice(0, 200) }); }\n  } else if (!Array.isArray(arr)) { co.verdict = 'REGISTRY_UNAVAILABLE'; co.notes.push('registry: unexpected response shape'); errors.push({ stage: 'registry', type: 'shape', msg: 'no hojin-infos array' }); }\n  else {\n    const postName = rc.page_company || j.company;\n    let pick = null;\n    if (g.mode === 'BY_NUMBER') { pick = arr.filter((x) => x.corporate_number === g.given_number)[0] || null; if (!pick) co.notes.push('registry returned no matching record for ' + g.given_number); }\n    else {\n      const cands = arr.filter((x) => nameMatch(x.name, postName) === 'EXACT' && addrMatch(x.location, j) === 'CITY');\n      if (cands.length === 1) pick = cands[0];\n      else if (cands.length > 1) co.notes.push('ambiguous: ' + cands.length + ' registry records match name+city');\n      else { const loose = arr.filter((x) => nameMatch(x.name, postName) !== 'NONE'); co.notes.push('no registry record matches name+city (' + arr.length + ' returned, ' + loose.length + ' loose name hits)'); }\n    }\n    if (pick) {\n      co.registry_name = pick.name || ''; co.registry_location = pick.location || ''; co.number = pick.corporate_number || '';\n      co.number_source = g.mode === 'BY_NUMBER' ? 'POSTING' : 'REGISTRY_DISCOVERED';\n      const nm = nameMatch(pick.name, postName); const am = addrMatch(pick.location, j);\n      co.parts.number = corpOK(co.number) ? 35 : 0; co.number_confirmed = co.parts.number === 35;\n      co.parts.name = nm === 'EXACT' ? 25 : nm === 'PARTIAL' ? 12 : 0;\n      co.parts.address = am === 'CITY' ? 20 : am === 'PREF' ? 8 : 0;\n      const closed = !!pick.close_date || /閉鎖|解散|清算|合併|廃止/.test(String(pick.status || '') + String(pick.close_cause || ''));\n      co.active = !closed; co.parts.active = closed ? 0 : 10;\n      if (nm === 'NONE') co.conflict = '法人番号 ' + co.number + ' belongs to 「' + co.registry_name + '」 but posting says 「' + postName + '」';\n      if (closed) { co.verdict = 'CLOSED'; co.notes.push('registry marks company closed: ' + String(pick.status || '') + ' ' + String(pick.close_date || '')); }\n    }\n  }\n  const dispatch = (/派遣|請負/.test(rc.haken || '') && !/(ではない|でない|ではありません|なし)/.test(rc.haken || ''));\n  co.parts.direct = (!dispatch && rc.source_state === 'OK') ? 10 : 0;\n  co.score = co.parts.number + co.parts.name + co.parts.address + co.parts.active + co.parts.direct;\n  if (co.verdict !== 'CLOSED' && co.verdict !== 'REGISTRY_UNAVAILABLE') co.verdict = (co.score >= th && !co.conflict) ? 'VERIFIED' : 'REVIEW';\n  co.registry_status = co.verdict;\n  // Per-record manual override ONLY: a human ticked Employer Verified. Affects the registry verdict alone; every other gate still runs. CLOSED is never overridden.\n  if (j.human_employer_verified && (co.verdict === 'REVIEW' || co.verdict === 'REGISTRY_UNAVAILABLE')) { co.verdict = 'MANUAL_VERIFIED'; co.notes.push('Employer Verified ticked by a human in Notion (registry status: ' + co.registry_status + '; NOT registry-verified)'); }\n  const hard = rc.source_state === 'GONE' || rc.source_state === 'CLOSED_ON_SOURCE' || dispatch || (j.dup && j.dup.state === 'Duplicate') || co.verdict === 'CLOSED' || (rc.days_left !== null && rc.days_left !== undefined && rc.days_left < 0) || (rc.source_state === 'OK' && !rc.ssw_in_text);\n  const needs_ai = !hard && !!j.detail_text && rc.source_state === 'OK';\n  out.push({ json: Object.assign({}, j, { co: co, errors, needs_ai: needs_ai ? 'true' : 'false' }) });\n}\nreturn out;\n"
+   },
+   "id": "5ec0847d-01cd-8e99-9edb-3d6bd5c11464",
+   "name": "Company Score",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2464,
+    272
+   ],
+   "notes": "法人番号 35 + name 25 + address 20 + active 10 + direct employer 10. >= company_threshold and no conflict => VERIFIED.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "e97112f9-245a-d5c4-38d2-9ac0b1339a24",
+       "leftValue": "={{ String($json.needs_ai) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "true"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "8b5812f5-bd23-4b75-c753-98cf1e92b696",
+   "name": "Needs AI?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    2688,
+    272
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Prepare Verify: AI second opinion on judgement-type checks only. AI may propose; deterministic code verifies every quote and can only DOWNGRADE.\nconst cfg = $('Config').first().json;\nconst SYSTEM = `あなたは求人票の「検証」専用エンジンです。与えられた求人票テキストに書かれていることだけを根拠に判定します。推測・一般知識・補完は禁止。判断できない場合は必ず UNKNOWN / UNVERIFIED にします。\n出力はJSONオブジェクトのみ（前後の説明・コードフェンス禁止）。引用は求人票テキストからの一字一句そのままの抜粋（60字以内）。見つからなければ \"\"。\n判定項目:\n1. employer_is_direct: この求人の雇用主が自社で直接雇用する事業者なら true。派遣・紹介・請負・登録支援機関・協同組合・プラットフォーム運営なら false。不明なら \"UNKNOWN\"。employer_quote に根拠引用。\n2. ssw_recruit_explicit: この求人自体が特定技能外国人を採用対象としていると明記されているなら true。単なる在籍/活躍/社員区分の言及、管理・支援側の仕事なら false。ssw_quote に根拠引用。\n3. role_is_management: 仕事内容が特定技能外国人の「管理・教育・支援・通訳」側の役割なら true、そうでなければ false。\n4. overseas_applicability: 海外在住のまま応募・面接・内定が可能と明記されていれば \"VERIFIED\"、国内在住者のみ/在留カード必須等と明記なら \"DOMESTIC_ONLY\"、明記なしは \"UNVERIFIED\"（ハローワーク求人というだけでは UNVERIFIED）。overseas_quote に根拠引用。\n5. salary_basis_ok: 賃金が残業代・歩合に依存せず基本給で成立していれば true、依存していれば false、不明なら \"UNKNOWN\"。salary_concern に一言。\nスキーマ: {\"employer_is_direct\":\"\",\"employer_quote\":\"\",\"ssw_recruit_explicit\":false,\"ssw_quote\":\"\",\"role_is_management\":false,\"overseas_applicability\":\"\",\"overseas_quote\":\"\",\"salary_basis_ok\":\"\",\"salary_concern\":\"\",\"other_concerns\":[]}`;\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json; const co = j.co || {};\n  const user = '求人番号: ' + j.job_number + '\\nサイト表示の会社名: ' + ((j.rc && j.rc.page_company) || j.company) + '\\n登記情報(参考): ' + (co.registry_name || 'なし') + '\\n---求人票本文---\\n' + String(j.detail_text || '').slice(0, 9000);\n  out.push({ json: Object.assign({}, j, { ai_verify_req: { model: cfg.ai_model_verify, max_tokens: 1200, temperature: 0, system: SYSTEM, messages: [{ role: 'user', content: user }] } }) });\n}\nreturn out;\n"
+   },
+   "id": "f9297b2b-00c2-80d7-1ca1-090e0f9b8bb0",
+   "name": "Prepare Verify",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2912,
+    208
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpTemplatedCustomAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      },
+      {
+       "name": "content-type",
+       "value": "application/json"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.ai_verify_req) }}",
+    "options": {
+     "timeout": 90000,
+     "batching": {
+      "batch": {
+       "batchSize": 3,
+       "batchInterval": 1500
+      }
+     }
+    }
+   },
+   "id": "208577f5-1967-891b-1744-397c23afe889",
+   "name": "AI Verify",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    3136,
+    208
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 5000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpTemplatedCustomAuth": {
+     "id": "",
+     "name": "Anthropic API Key (x-api-key)"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Parse Verify: AI output is DATA. Every quote must exist verbatim in the source text; unverified claims are discarded. AI can only downgrade, never upgrade.\nconst parseJson = (t) => { let s = String(t || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); const a = s.indexOf('{'); const b = s.lastIndexOf('}'); if (a < 0 || b < a) return null; try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } };\nconst norm = (s) => String(s || '').normalize('NFKC').replace(/[\\s　]+/g, '');\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let j = {};\n  try { j = $('Prepare Verify').itemMatching(k).json; } catch (e) { j = {}; }\n  const errors = (j.errors || []).slice();\n  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);\n  const base = Object.assign({}, j, { ai_verify_req: undefined, errors });\n  if ((it.json && it.json.error) || !a) { errors.push({ stage: 'ai_verify', type: 'ai_error', msg: (it.json && it.json.error ? String(it.json.error.message || it.json.error) : 'unparseable JSON').slice(0, 200) }); out.push({ json: Object.assign(base, { ai: { ok: false } }) }); continue; }\n  const T = norm(j.detail_text);\n  const q = (s) => { const x = norm(s); return x.length >= 4 && T.indexOf(x) >= 0; };\n  const ai = { ok: true, employer: 'UNKNOWN', employer_quote_ok: q(a.employer_quote), ssw_explicit: a.ssw_recruit_explicit === true && q(a.ssw_quote), management: a.role_is_management === true, overseas: 'UNVERIFIED', overseas_quote_ok: q(a.overseas_quote), salary_basis: a.salary_basis_ok === false ? 'FALSE' : a.salary_basis_ok === true ? 'TRUE' : 'UNKNOWN', salary_concern: String(a.salary_concern || '').slice(0, 120), concerns: (Array.isArray(a.other_concerns) ? a.other_concerns : []).slice(0, 3).map((x) => String(x).slice(0, 100)) };\n  ai.employer = a.employer_is_direct === false ? 'FALSE' : a.employer_is_direct === true ? 'TRUE' : 'UNKNOWN';\n  if (a.overseas_applicability === 'DOMESTIC_ONLY' && ai.overseas_quote_ok) ai.overseas = 'DOMESTIC_ONLY';\n  else if (a.overseas_applicability === 'VERIFIED' && ai.overseas_quote_ok) ai.overseas = 'VERIFIED';\n  out.push({ json: Object.assign(base, { ai }) });\n}\nreturn out;\n"
+   },
+   "id": "fce965c5-4daf-67ab-cbc1-6851493a4000",
+   "name": "Parse Verify",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3360,
+    208
+   ],
+   "notes": "Quotes verified verbatim; AI can only downgrade.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 2
+   },
+   "id": "47cd84f4-9370-dc25-5a92-1e237ed26443",
+   "name": "QC Inputs",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3.2,
+   "position": [
+    3584,
+    272
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Final QC: the last gate. APPROVED only if EVERY check is PASS. Any REJECT -> REJECT. Anything else -> REVIEW. Builds the Notion PATCH body.\nconst cfg = $('Config').first().json;\nconst clip = (s, n) => String(s === undefined || s === null ? '' : s).slice(0, n || 1900);\nconst rt = (v) => { const t = clip(v); return t ? { rich_text: [{ type: 'text', text: { content: t } }] } : { rich_text: [] }; };\nconst jobTh = Number(cfg.job_threshold) || 80; const minDays = Number(cfg.min_days_left); const staleDays = Number(cfg.staleness_days) || 180;\nconst minM = Number(cfg.min_monthly) || 150000; const maxM = Number(cfg.max_monthly) || 1000000; const minH = Number(cfg.min_hourly) || 1000;\nconst needOverseas = String(cfg.require_overseas_verified) !== 'false';\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json; const rc = j.rc || {}; const co = j.co || { verdict: 'REVIEW', parts: {}, notes: [] }; const ai = j.ai || { ok: false }; const dup = j.dup || { state: 'Unknown' };\n  const errors = (j.errors || []).slice();\n  const C = {}; const why = [];\n  const set = (k, v, r) => { C[k] = v; if (v !== 'PASS' && r) why.push((v === 'REJECT' ? '✗' : '?') + k + ': ' + r); };\n  // 1 source validation\n  const ss = rc.source_state;\n  set('source', !rc.host_ok ? 'REVIEW' : ss === 'CLOSED_ON_SOURCE' || ss === 'GONE' ? 'REJECT' : ss !== 'OK' ? 'REVIEW' : !rc.source_job_match ? 'REVIEW' : 'PASS', !rc.host_ok ? 'source URL host not HelloWork' : ss !== 'OK' ? 'source ' + ss + ' ' + (rc.detail || '') : !rc.source_job_match ? 'job number not found on page' : '');\n  // 2 freshness\n  const dl = rc.days_left;\n  set('freshness', ss !== 'OK' ? (C.source === 'REJECT' ? 'REJECT' : 'REVIEW') : dl === null || dl === undefined ? 'REVIEW' : dl < 0 ? 'REJECT' : dl < (isFinite(minDays) ? minDays : 3) ? 'REVIEW' : (rc.posted_age_days !== null && rc.posted_age_days > staleDays) ? 'REVIEW' : 'PASS', ss !== 'OK' ? 'cannot confirm active' : dl === null || dl === undefined ? 'no expiry date on source' : dl < 0 ? 'expired ' + (-dl) + 'd ago' : dl < (isFinite(minDays) ? minDays : 3) ? 'expires in ' + dl + 'd' : 'posted ' + rc.posted_age_days + 'd ago (stale)');\n  // 3 company (registry) + 4 法人番号\n  set('company', co.verdict === 'VERIFIED' || co.verdict === 'MANUAL_VERIFIED' ? 'PASS' : co.verdict === 'CLOSED' ? 'REJECT' : 'REVIEW', 'company score ' + co.score + ' / verdict ' + co.verdict + (co.conflict ? ' / ' + co.conflict : '') + ' / ' + (co.notes || []).join('; '));\n  set('corporate_number', co.number_confirmed ? 'PASS' : co.verdict === 'MANUAL_VERIFIED' ? 'PASS' : co.verdict === 'CLOSED' ? 'REJECT' : 'REVIEW', co.number ? '法人番号 ' + co.number + ' not confirmed' : '法人番号 not confirmed by registry');\n  // 5 employer identity\n  const dispatch = (/派遣|請負/.test(rc.haken || '') && !/(ではない|でない|ではありません|なし)/.test(rc.haken || ''));\n  set('employer_identity', dispatch || (ai.ok && ai.employer === 'FALSE' && ai.employer_quote_ok) ? 'REJECT' : (!ai.ok || ai.employer !== 'TRUE' || !(co.verdict === 'VERIFIED' || co.verdict === 'MANUAL_VERIFIED') || co.conflict) ? 'REVIEW' : 'PASS', dispatch ? 'dispatch/contract field: ' + rc.haken : !ai.ok ? 'AI verify unavailable' : ai.employer === 'FALSE' ? 'AI: not a direct employer' + (ai.employer_quote_ok ? ' (quote verified)' : ' (quote not verified)') : ai.employer !== 'TRUE' ? 'AI: direct employment not confirmed' : 'registry identity not verified');\n  // 6 SSW eligibility\n  set('ssw_eligibility', ss === 'OK' && !rc.ssw_in_text ? 'REJECT' : (ai.ok && ai.management) ? 'REJECT' : (ss !== 'OK' ? 'REVIEW' : !rc.ssw_quote_ok ? 'REVIEW' : !ai.ok || !ai.ssw_explicit ? 'REVIEW' : 'PASS'), ss === 'OK' && !rc.ssw_in_text ? 'no 特定技能 on current source' : ai.ok && ai.management ? 'SSW management role' : !rc.ssw_quote_ok ? 'stored evidence quote not found on current source' : !ai.ok ? 'AI verify unavailable' : 'AI: explicit SSW recruitment not confirmed');\n  // 7 overseas applicability (explicit text only; looking suitable is NOT evidence)\n  const domestic = !!rc.domestic_hit || (ai.ok && ai.overseas === 'DOMESTIC_ONLY');\n  const overseasOK = !!rc.overseas_hit && !rc.domestic_hit && !(ai.ok && ai.overseas === 'DOMESTIC_ONLY');\n  set('overseas', domestic ? 'REJECT' : overseasOK ? 'PASS' : needOverseas ? 'REVIEW' : 'PASS', domestic ? 'domestic-only wording: ' + (rc.domestic_hit || 'AI quote') : 'overseas_applicability_unverified (no explicit overseas-applicant wording)');\n  // 8 salary validation\n  const mm = rc.wage_min; const hh = rc.hourly;\n  const bad = rc.conflicts.filter((x) => /^(salary|hourly)/.test(x));\n  set('salary', ss !== 'OK' ? 'REVIEW' : (hh ? hh < minH : (mm !== null && (mm < minM))) ? 'REVIEW' : (mm !== null && mm > maxM) ? 'REVIEW' : (mm === null && !hh) ? 'REVIEW' : bad.length ? 'REVIEW' : (ai.ok && ai.salary_basis === 'FALSE') ? 'REVIEW' : 'PASS', ss !== 'OK' ? 'cannot re-read salary' : hh && hh < minH ? 'hourly ' + hh + ' below provisional floor ' + minH + ' (min-wage reference pending)' : mm !== null && mm < minM && !hh ? 'monthly ' + mm + ' below provisional floor ' + minM + ' (min-wage reference pending)' : mm === null && !hh ? 'no wage on source' : bad.length ? bad.join('; ') : mm > maxM ? 'monthly implausibly high' : 'AI: salary depends on overtime/commission ' + (ai.salary_concern || ''));\n  // 9 duplicate / conflict\n  set('duplicate', dup.state === 'Unique' ? 'PASS' : dup.state === 'Duplicate' ? 'REJECT' : 'REVIEW', dup.state + ' ' + (dup.note || ''));\n  // 10 WF01 quality score carried over\n  set('quality', j.quality_score !== null && j.quality_score >= jobTh ? 'PASS' : 'REVIEW', 'WF01 score ' + j.quality_score + ' < ' + jobTh);\n  const vals = Object.keys(C).map((k) => C[k]);\n  const decision = vals.indexOf('REJECT') >= 0 ? 'REJECT' : vals.indexOf('REVIEW') >= 0 ? 'REVIEW' : 'APPROVED';\n  const conflicts = rc.conflicts.slice(); if (co.conflict) conflicts.push(co.conflict); if (dup.state === 'Possible Duplicate' || dup.state === 'Duplicate') conflicts.push('duplicate: ' + dup.note);\n  const reasons = why.join(' | ');\n  const checksTxt = Object.keys(C).map((k) => k + '=' + C[k]).join(' ');\n  const notes = clip('MTG#02 ' + cfg.workflow_name + ' ' + cfg.run_date + ' → ' + decision + ' | ' + checksTxt + ' | 法人番号 ' + (co.number || 'UNVERIFIED') + (co.registry_name ? ' (' + co.registry_name + ')' : '') + ' | company_score ' + co.score + ' | prev: ' + clip(j.wf01_notes, 600), 1900);\n  const P = {}; const sent = {};\n  const sel = (k, v) => { P[k] = { select: { name: v } }; sent[k] = v; };\n  const chk = (k, v) => { P[k] = { checkbox: v }; sent[k] = v; };\n  const txt = (k, v) => { P[k] = rt(v); sent[k] = clip(v); };\n  sel('Status', decision === 'APPROVED' ? 'VERIFIED' : decision === 'REVIEW' ? 'VERIFICATION_REQUIRED' : 'CLOSED');\n  sel('Audit Status', conflicts.length ? 'Conflict' : decision === 'APPROVED' ? 'Audited' : decision === 'REVIEW' ? 'Needs Review' : 'Unverified');\n  sel('Duplicate Check', ['Unique', 'Possible Duplicate', 'Duplicate', 'Unknown'].indexOf(dup.state) >= 0 ? dup.state : 'Unknown');\n  chk('Employer Verified', co.verdict === 'VERIFIED' || co.verdict === 'MANUAL_VERIFIED');\n  chk('Job Verified', decision === 'APPROVED'); chk('Source Verified', C.source === 'PASS');\n  chk('Recheck Required', false);\n  // company verification provenance: manual is never recorded as registry verification\n  const cvMethod = co.verdict === 'VERIFIED' ? 'Registry' : co.verdict === 'MANUAL_VERIFIED' ? 'Manual' : 'None';\n  sel('Company Verification Method', cvMethod);\n  sel('Registry Status', co.registry_status || co.verdict || 'REVIEW');\n  if (cvMethod !== 'None') { P['Company Verification Date'] = { date: { start: cfg.run_date } }; sent['Company Verification Date'] = cfg.run_date; }\n  else { P['Company Verification Date'] = { date: null }; sent['Company Verification Date'] = null; }\n  txt('Recheck Reason', decision === 'APPROVED' ? '' : (decision === 'REJECT' ? 'REJECT: ' : 'REVIEW: ') + reasons);\n  txt('Data Conflicts', conflicts.join(' | '));\n  txt('Audit Notes', notes);\n  P['Data Confidence'] = { number: co.score }; sent['Data Confidence'] = co.score;\n  P['Last Audit Date'] = { date: { start: cfg.run_date } }; sent['Last Audit Date'] = cfg.run_date;\n  sel('QC Decision', decision); sel('MTG QC Status', decision === 'APPROVED' ? 'QC Approved' : decision === 'REVIEW' ? 'QC Review' : 'QC Rejected (MTG internal)');\n  txt('QC Reject Reason', decision === 'REJECT' ? reasons : '');\n  P['QC Date'] = { date: { start: cfg.run_date } }; sent['QC Date'] = cfg.run_date;\n  sel('Recruitability', domestic ? 'Japan Resident' : overseasOK ? 'Overseas Confirmed' : 'Overseas Unverified');\n  const checks = C;\n  out.push({ json: Object.assign({}, j, { decision, checks, reasons, conflicts, errors, notion_patch_body: { properties: P }, notion_sent: sent, detail_text: undefined, rc: Object.assign({}, rc, { conflicts: undefined }),\n    company_upsert: decision === 'APPROVED' ? { name_jp: co.registry_name || rc.page_company || j.company, posting_name: j.company, prefecture: j.prefecture, city: j.city, number: co.number, score: co.score, sector: j.sector, source_url: j.source_url, job_number: j.job_number } : null }) });\n}\nreturn out;\n"
+   },
+   "id": "bbaf6816-f399-5f54-c16f-2221d9e15092",
+   "name": "Final QC",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3808,
+    272
+   ],
+   "notes": "LAST GATE. APPROVED only if all 10 checks PASS; any REJECT -> REJECT; otherwise REVIEW.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "PATCH",
+    "url": "={{ \"https://api.notion.com/v1/pages/\" + $json.page_id }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.notion_patch_body) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "d9e8d340-4571-a307-5b8f-e340921f127e",
+   "name": "Notion PATCH",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    4032,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.id ? \"https://api.notion.com/v1/pages/\" + $json.id : \"https://api.notion.com/v1/users/me\" }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "fac93f1d-3d75-84c1-b800-734c8de5b04a",
+   "name": "Read-back Page",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    4256,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Verify QC write: read-back every property we sent and compare (CJK corruption / silent failure check).\nconst plain = (arr) => (arr || []).map((x) => x.plain_text || '').join('');\nconst nz = (s) => String(s || '').replace(/\\r/g, '').trim();\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let job = {}; let patched = {};\n  try { job = $('Final QC').itemMatching(k).json; } catch (e) { job = {}; }\n  try { patched = $('Notion PATCH').itemMatching(k).json; } catch (e) { patched = {}; }\n  const base = Object.assign({}, job); delete base.notion_patch_body;\n  const finish = (write_status, reason, extra) => out.push({ json: Object.assign(base, { _kind: 'qc_row', write_status, write_reason: reason, company_upsert_needed: write_status === 'OK' && job.decision === 'APPROVED' ? 'true' : 'false' }, extra || {}) });\n  if (!patched || !patched.id || patched.object === 'error') { finish('NOTION_ERROR', 'PATCH failed: ' + String((patched && patched.message) || (patched && patched.error && patched.error.message) || 'no page id').slice(0, 200)); continue; }\n  const props = (it.json && it.json.properties) || {};\n  if (!it.json || it.json.id !== job.page_id) { finish('VERIFY_FAILED', 'read-back failed (page not returned)'); continue; }\n  const bad = []; const sent = job.notion_sent || {};\n  for (const key of Object.keys(sent)) {\n    const p = props[key]; const want = sent[key]; let got;\n    if (!p) { bad.push(key + ': missing'); continue; }\n    if (p.type === 'title') got = plain(p.title); else if (p.type === 'rich_text') got = plain(p.rich_text); else if (p.type === 'number') got = p.number; else if (p.type === 'select') got = p.select && p.select.name; else if (p.type === 'checkbox') got = p.checkbox; else if (p.type === 'date') got = p.date && p.date.start; else continue;\n    const ok = typeof want === 'string' ? nz(got) === nz(want) : got === want;\n    if (!ok) bad.push(key + ': sent[' + String(want).slice(0, 30) + '] got[' + String(got).slice(0, 30) + ']');\n  }\n  if (bad.length) finish('VERIFY_FAILED', 'read-back mismatch (' + bad.length + '): ' + bad.slice(0, 5).join(' ; '));\n  else finish('OK', 'read-back OK (' + Object.keys(sent).length + ' fields)');\n}\nreturn out;\n"
+   },
+   "id": "faddd09d-420d-b9b8-0613-98c1fa25b478",
+   "name": "Verify QC Write",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    4480,
+    272
+   ],
+   "notes": "CJK corruption check on every written property.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "18aea4a0-3907-7a1c-1616-c9db46a6d9ca",
+       "leftValue": "={{ String($json.company_upsert_needed) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "true"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "d38a9df7-2848-18b9-4b0b-8904995b0fc7",
+   "name": "Needs Company Write?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    4704,
+    208
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Company Query Body: look for an existing Company DB page (by posting name or registry name) before creating anything.\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json; const u = j.company_upsert || {};\n  const names = [];\n  [u.name_jp, u.posting_name].forEach((n) => { if (n && names.indexOf(n) < 0) names.push(n); });\n  const conds = [];\n  names.forEach((n) => { conds.push({ property: 'Company Name', title: { equals: n } }); conds.push({ property: 'Company Name JP', rich_text: { equals: n } }); });\n  out.push({ json: Object.assign({}, j, { company_query: { filter: { or: conds }, page_size: 3 } }) });\n}\nreturn out;\n"
+   },
+   "id": "0471aa56-0f08-480e-a055-b604c2e0fdd2",
+   "name": "Company Query Body",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    4928,
+    144
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "={{ \"https://api.notion.com/v1/data_sources/\" + $(\"Config\").first().json.notion_company_ds_id + \"/query\" }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.company_query) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "ea091923-4cd3-e882-83f2-7e3a79b2a242",
+   "name": "Company Query",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    5152,
+    144
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Company Upsert Plan: only for APPROVED jobs (company score >= threshold). Update the existing Company DB page, else create one. Never invents data.\nconst cfg = $('Config').first().json;\nconst clip = (s, n) => String(s || '').slice(0, n || 1900);\nconst rt = (v) => ({ rich_text: [{ type: 'text', text: { content: clip(v) } }] });\nconst plain = (a) => (a || []).map((x) => x.plain_text || '').join('');\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k];\n  let j = {};\n  try { j = $('Company Query Body').itemMatching(k).json; } catch (e) { j = {}; }\n  const u = j.company_upsert || {};\n  const res = it.json && Array.isArray(it.json.results) ? it.json.results : null;\n  if (!res || (it.json && it.json.error)) { out.push({ json: { _kind: 'company_write', job_number: j.job_number, company: u.name_jp, status: 'COMPANY_QUERY_ERROR', reason: String((it.json && it.json.error && it.json.error.message) || 'bad response').slice(0, 200), errors: [{ stage: 'company_query', type: 'notion_error', msg: 'query failed' }], skip: 'true' } }); continue; }\n  const line = 'WF02 ' + cfg.run_date + ': 法人番号 ' + u.number + ' registry-verified (gBizINFO) | company_score ' + u.score + ' | job ' + u.job_number;\n  if (res.length > 0) {\n    const pg = res[0]; const prev = plain(((pg.properties || {}).Notes || {}).rich_text);\n    const notes = clip(line + (prev ? ' | prev: ' + prev.slice(0, 900) : ''));\n    const P = { Notes: rt(notes), 'Last Checked': { date: { start: cfg.run_date } } };\n    out.push({ json: { _kind: 'company_plan', op: 'UPDATE', method: 'PATCH', url: 'https://api.notion.com/v1/pages/' + pg.id, body: { properties: P }, sent: { Notes: notes, 'Last Checked': cfg.run_date }, job_number: j.job_number, company: u.name_jp, page_id: pg.id } });\n  } else {\n    const P = { 'Company Name': { title: [{ type: 'text', text: { content: clip(u.name_jp, 200) } }] }, 'Company Name JP': rt(u.name_jp), Industry: rt(u.sector), Prefecture: rt(u.prefecture), City: rt(u.city), Source: rt('MTG#02 gBizINFO registry-verified + HelloWork job'), 'Source URL': { url: u.source_url }, 'First Found': { date: { start: cfg.run_date } }, 'Last Checked': { date: { start: cfg.run_date } }, Notes: rt(line), 'Partnership Status': { select: { name: 'Prospect' } }, 'Contact Status': { select: { name: 'Not Contacted' } } };\n    out.push({ json: { _kind: 'company_plan', op: 'CREATE', method: 'POST', url: 'https://api.notion.com/v1/pages', body: { parent: { type: 'data_source_id', data_source_id: cfg.notion_company_ds_id }, properties: P }, sent: { 'Company Name': clip(u.name_jp, 200), Notes: clip(line), 'Last Checked': cfg.run_date, 'Contact Status': 'Not Contacted' }, job_number: j.job_number, company: u.name_jp } });\n  }\n}\nreturn out;\n"
+   },
+   "id": "d2332b57-1429-4de6-651b-6a122be92a12",
+   "name": "Company Plan",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    5376,
+    144
+   ]
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "0c0c46e9-4c1d-2bed-cfb4-5d267028cf8b",
+       "leftValue": "={{ String($json._kind) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "company_plan"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "85afb60a-acf8-f98c-3666-2048af4ed380",
+   "name": "Company Plan Filter",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    5600,
+    144
+   ]
+  },
+  {
+   "parameters": {
+    "method": "={{ $json.method }}",
+    "url": "={{ $json.url }}",
+    "authentication": "genericCredentialType",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.body) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    },
+    "genericAuthType": "httpHeaderAuth"
+   },
+   "id": "f8ed9d84-66f3-5739-781c-16a053570784",
+   "name": "Company Write",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    5824,
+    80
+   ],
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   },
+   "notes": "Auth: Header Auth credential (Authorization: Bearer <Notion integration secret>) so our Notion-Version 2025-09-03 header is not overridden by the built-in Notion credential.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Company Verify: the Notion write response is the stored page; compare every sent value (CJK corruption check).\nconst plain = (arr) => (arr || []).map((x) => x.plain_text || '').join('');\nconst nz = (s) => String(s || '').replace(/\\r/g, '').trim();\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let plan = {};\n  try { plan = $('Company Plan Filter').itemMatching(k).json; } catch (e) { plan = {}; }\n  const r = it.json || {};\n  const row = { _kind: 'company_write', job_number: plan.job_number, company: plan.company, op: plan.op, errors: [] };\n  if (!r.id || r.object === 'error') { out.push({ json: Object.assign(row, { status: 'COMPANY_WRITE_ERROR', reason: String(r.message || (r.error && r.error.message) || 'no page id').slice(0, 200), errors: [{ stage: 'company_write', type: 'notion_error', msg: String(r.message || '').slice(0, 150) }] }) }); continue; }\n  const props = r.properties || {}; const bad = [];\n  for (const key of Object.keys(plan.sent || {})) { const p = props[key]; const want = plan.sent[key]; let got; if (!p) { bad.push(key + ': missing'); continue; } if (p.type === 'title') got = plain(p.title); else if (p.type === 'rich_text') got = plain(p.rich_text); else if (p.type === 'select') got = p.select && p.select.name; else if (p.type === 'date') got = p.date && p.date.start; else continue; if (nz(got) !== nz(want)) bad.push(key + ': sent[' + String(want).slice(0, 25) + '] got[' + String(got).slice(0, 25) + ']'); }\n  out.push({ json: Object.assign(row, bad.length ? { status: 'COMPANY_VERIFY_FAILED', reason: bad.slice(0, 4).join(' ; ') } : { status: 'COMPANY_' + plan.op + '_OK', reason: 'verified ' + Object.keys(plan.sent).length + ' fields', page_id: r.id }) });\n}\nreturn out;\n"
+   },
+   "id": "8b335d7f-3de9-a06b-9de1-578bd44a6bc2",
+   "name": "Company Verify",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    6048,
+    80
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 3
+   },
+   "id": "5ca0cf1e-fac8-bf80-79b7-5d17dafeef03",
+   "name": "All Outcomes",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3.2,
+   "position": [
+    6272,
+    336
+   ],
+   "notes": "Inputs: 0 queue meta (empty/error), 1 job QC rows, 2 company write outcomes.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Shape QC Rows: one audit row per job (decision, every check, reasons, write status).\nconst cfg = $('Config').first().json;\nconst rows = [];\nfor (const it of $input.all()) {\n  const j = it.json; if (j._kind !== 'qc_row') continue;\n  rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, job_number: String(j.job_number || ''), page_id: String(j.page_id || ''), company: String(j.company || '').slice(0, 120), decision: String(j.decision || ''), company_score: Number(j.co && j.co.score) || 0, corp_number: String((j.co && j.co.number) || ''), checks_json: JSON.stringify(j.checks || {}), reasons: String(j.reasons || '').slice(0, 1500), prev_status: String(j.status || ''), write_status: String(j.write_status || ''), write_reason: String(j.write_reason || '').slice(0, 300) } });\n}\nreturn rows;\n"
+   },
+   "id": "4bc3766b-9e21-5da9-3def-f368e8f09b11",
+   "name": "Shape QC Rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    6496,
+    240
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_qc_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "ts": "={{ $json.ts }}",
+      "job_number": "={{ $json.job_number }}",
+      "page_id": "={{ $json.page_id }}",
+      "company": "={{ $json.company }}",
+      "decision": "={{ $json.decision }}",
+      "company_score": "={{ $json.company_score }}",
+      "corp_number": "={{ $json.corp_number }}",
+      "checks_json": "={{ $json.checks_json }}",
+      "reasons": "={{ $json.reasons }}",
+      "prev_status": "={{ $json.prev_status }}",
+      "write_status": "={{ $json.write_status }}",
+      "write_reason": "={{ $json.write_reason }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ts",
+       "displayName": "ts",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "job_number",
+       "displayName": "job_number",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "page_id",
+       "displayName": "page_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "company",
+       "displayName": "company",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "decision",
+       "displayName": "decision",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "company_score",
+       "displayName": "company_score",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "corp_number",
+       "displayName": "corp_number",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "checks_json",
+       "displayName": "checks_json",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "reasons",
+       "displayName": "reasons",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "prev_status",
+       "displayName": "prev_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "write_status",
+       "displayName": "write_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "write_reason",
+       "displayName": "write_reason",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "fad42d5b-8e9d-4beb-3608-fc1cb51b5b29",
+   "name": "Insert QC Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    6720,
+    240
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Shape Error Rows (WF02): stage-level errors + write failures -> shared error log (source = wf02).\nconst cfg = $('Config').first().json;\nconst rows = [];\nfor (const it of $input.all()) {\n  const j = it.json;\n  const key = String(j.job_number || '');\n  (Array.isArray(j.errors) ? j.errors : []).forEach((e) => rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, source: 'wf02', stage: String(e.stage || ''), error_type: String(e.type || ''), error_message: String(e.msg || '').slice(0, 300), retry_status: 'next_run', job_key: key } }));\n  if (j._kind === 'qc_row' && j.write_status !== 'OK') rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, source: 'wf02', stage: 'notion_write', error_type: String(j.write_status), error_message: String(j.write_reason || '').slice(0, 300), retry_status: j.write_status === 'NOTION_ERROR' ? 'next_run' : 'manual', job_key: key } });\n  if (j._kind === 'company_write' && !/_OK$/.test(String(j.status))) rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, source: 'wf02', stage: 'company_db', error_type: String(j.status), error_message: String(j.reason || '').slice(0, 300), retry_status: 'manual', job_key: key } });\n  if (j._kind === 'meta' && j.status === 'QUEUE_ERROR') { /* already in errors[] */ }\n}\nreturn rows;\n"
+   },
+   "id": "467d3f45-2259-17a8-1822-506113d7c889",
+   "name": "Shape Error Rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    6496,
+    432
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_scout_error_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "ts": "={{ $json.ts }}",
+      "source": "={{ $json.source }}",
+      "stage": "={{ $json.stage }}",
+      "error_type": "={{ $json.error_type }}",
+      "error_message": "={{ $json.error_message }}",
+      "retry_status": "={{ $json.retry_status }}",
+      "job_key": "={{ $json.job_key }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ts",
+       "displayName": "ts",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "source",
+       "displayName": "source",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "stage",
+       "displayName": "stage",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "error_type",
+       "displayName": "error_type",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "error_message",
+       "displayName": "error_message",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "retry_status",
+       "displayName": "retry_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "job_key",
+       "displayName": "job_key",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "ea9cf86d-401a-f4b8-9736-31099195308a",
+   "name": "Insert Error Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    6720,
+    432
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Run Log (WF02): counters for the whole run (single row).\nconst cfg = $('Config').first().json;\nconst all = $input.all().map((i) => i.json);\nconst q = all.filter((j) => j._kind === 'qc_row');\nconst cnt = (f) => q.filter(f).length;\nconst errs = [].concat.apply([], all.map((j) => Array.isArray(j.errors) ? j.errors : []));\nconst ec = (st) => errs.filter((e) => e.stage === st).length;\nconst dec = {}; q.forEach((j) => { dec[j.decision] = (dec[j.decision] || 0) + 1; });\nconst why = {}; q.forEach((j) => { Object.keys(j.checks || {}).forEach((k) => { if (j.checks[k] !== 'PASS') why[k + ':' + j.checks[k]] = (why[k + ':' + j.checks[k]] || 0) + 1; }); });\nconst meta = all.filter((j) => j._kind === 'meta')[0];\nreturn [{ json: { run_id: cfg.run_id, started_at: cfg.run_started, finished_at: new Date().toISOString(), queue_status: meta ? meta.status : 'OK', queued: q.length, approved: cnt((j) => j.decision === 'APPROVED'), review: cnt((j) => j.decision === 'REVIEW'), rejected: cnt((j) => j.decision === 'REJECT'), written_ok: cnt((j) => j.write_status === 'OK'), write_errors: cnt((j) => j.write_status === 'NOTION_ERROR'), verify_failed: cnt((j) => j.write_status === 'VERIFY_FAILED'), source_errors: ec('source_fetch'), registry_errors: ec('registry'), ai_errors: ec('ai_verify'), company_written: all.filter((j) => j._kind === 'company_write' && /_OK$/.test(String(j.status))).length, company_errors: all.filter((j) => j._kind === 'company_write' && !/_OK$/.test(String(j.status))).length, summary_json: JSON.stringify({ decisions: dec, non_pass_checks: why }).slice(0, 4000) } }];\n"
+   },
+   "id": "98ad9e8d-8e9b-5dbb-5c52-9ed31a6a5271",
+   "name": "Run Log",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    6496,
+    624
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_qc_run_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "started_at": "={{ $json.started_at }}",
+      "finished_at": "={{ $json.finished_at }}",
+      "queue_status": "={{ $json.queue_status }}",
+      "summary_json": "={{ $json.summary_json }}",
+      "queued": "={{ $json.queued }}",
+      "approved": "={{ $json.approved }}",
+      "review": "={{ $json.review }}",
+      "rejected": "={{ $json.rejected }}",
+      "written_ok": "={{ $json.written_ok }}",
+      "write_errors": "={{ $json.write_errors }}",
+      "verify_failed": "={{ $json.verify_failed }}",
+      "source_errors": "={{ $json.source_errors }}",
+      "registry_errors": "={{ $json.registry_errors }}",
+      "ai_errors": "={{ $json.ai_errors }}",
+      "company_written": "={{ $json.company_written }}",
+      "company_errors": "={{ $json.company_errors }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "started_at",
+       "displayName": "started_at",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "finished_at",
+       "displayName": "finished_at",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "queue_status",
+       "displayName": "queue_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "summary_json",
+       "displayName": "summary_json",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "queued",
+       "displayName": "queued",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "approved",
+       "displayName": "approved",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "review",
+       "displayName": "review",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "rejected",
+       "displayName": "rejected",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "written_ok",
+       "displayName": "written_ok",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "write_errors",
+       "displayName": "write_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "verify_failed",
+       "displayName": "verify_failed",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "source_errors",
+       "displayName": "source_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "registry_errors",
+       "displayName": "registry_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ai_errors",
+       "displayName": "ai_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "company_written",
+       "displayName": "company_written",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "company_errors",
+       "displayName": "company_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "588cc25b-3364-97e7-72e1-d8348d367255",
+   "name": "Insert Run Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    6720,
+    624
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule 09:00 and 21:00 JST": {
+   "main": [
+    [
+     {
+      "node": "Config",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Config": {
+   "main": [
+    [
+     {
+      "node": "Query Queue",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Query Queue": {
+   "main": [
+    [
+     {
+      "node": "Flatten Queue",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Flatten Queue": {
+   "main": [
+    [
+     {
+      "node": "Is Queue Job?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fetch Source": {
+   "main": [
+    [
+     {
+      "node": "Re-check Source",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Re-check Source": {
+   "main": [
+    [
+     {
+      "node": "Dup Query",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Dup Query": {
+   "main": [
+    [
+     {
+      "node": "Duplicate Check",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Duplicate Check": {
+   "main": [
+    [
+     {
+      "node": "Build Registry Request",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Build Registry Request": {
+   "main": [
+    [
+     {
+      "node": "Registry Lookup",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Registry Lookup": {
+   "main": [
+    [
+     {
+      "node": "Company Score",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Score": {
+   "main": [
+    [
+     {
+      "node": "Needs AI?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Prepare Verify": {
+   "main": [
+    [
+     {
+      "node": "AI Verify",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "AI Verify": {
+   "main": [
+    [
+     {
+      "node": "Parse Verify",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "QC Inputs": {
+   "main": [
+    [
+     {
+      "node": "Final QC",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Final QC": {
+   "main": [
+    [
+     {
+      "node": "Notion PATCH",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Notion PATCH": {
+   "main": [
+    [
+     {
+      "node": "Read-back Page",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read-back Page": {
+   "main": [
+    [
+     {
+      "node": "Verify QC Write",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Query Body": {
+   "main": [
+    [
+     {
+      "node": "Company Query",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Query": {
+   "main": [
+    [
+     {
+      "node": "Company Plan",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Plan": {
+   "main": [
+    [
+     {
+      "node": "Company Plan Filter",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Write": {
+   "main": [
+    [
+     {
+      "node": "Company Verify",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "All Outcomes": {
+   "main": [
+    [
+     {
+      "node": "Shape QC Rows",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Shape Error Rows",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Run Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Shape QC Rows": {
+   "main": [
+    [
+     {
+      "node": "Insert QC Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Shape Error Rows": {
+   "main": [
+    [
+     {
+      "node": "Insert Error Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Run Log": {
+   "main": [
+    [
+     {
+      "node": "Insert Run Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Is Queue Job?": {
+   "main": [
+    [
+     {
+      "node": "Fetch Source",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Needs AI?": {
+   "main": [
+    [
+     {
+      "node": "Prepare Verify",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "QC Inputs",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse Verify": {
+   "main": [
+    [
+     {
+      "node": "QC Inputs",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Verify QC Write": {
+   "main": [
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 1
+     },
+     {
+      "node": "Needs Company Write?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Needs Company Write?": {
+   "main": [
+    [
+     {
+      "node": "Company Query Body",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Company Plan Filter": {
+   "main": [
+    [
+     {
+      "node": "Company Write",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  },
+  "Company Verify": {
+   "main": [
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  }
+ },
+ "pinData": {},
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Tokyo",
+  "saveDataSuccessExecution": "none",
+  "saveDataErrorExecution": "all",
+  "saveManualExecutions": true
+ },
+ "meta": {
+  "templateCredsSetupCompleted": false
+ },
+ "tags": []
+}

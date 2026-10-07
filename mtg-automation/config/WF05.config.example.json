@@ -1,0 +1,17 @@
+{
+ "run_id": "={{ \"CT-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Job Content Engine V1.0",
+ "max_per_run": 15,
+ "lookback_hours": 14,
+ "use_ai": "true",
+ "ai_model_content": "claude-sonnet-5-5",
+ "allowed_tiers": "S-TIER,A-TIER,B-TIER,C-TIER",
+ "template_version": "v1",
+ "banned_phrases": "jaminan|dijamin|garansi|pasti|100%|gratis|tanpa biaya|gaji besar|gaji tinggi|gaji fantastis|cepat berangkat|resmi MTGI|P3MI|penempatan resmi",
+ "hashtags": "#TokuteiGinou #SSW #KerjaDiJepang #InfoLowongan",
+ "disclaimer": "Informasi bersumber dari lowongan publik dan bisa berubah. Pastikan detail dan syarat resmi sebelum melamar.",
+ "brand_footer": "",
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9"
+}

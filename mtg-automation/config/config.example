@@ -1,0 +1,2 @@
+# Per-workflow Config-node defaults live in config/WFxx.config.example.json (generated from the JSONs 2026-10-07).
+# Secrets: see secrets.example.json. NEVER commit real values.

@@ -1,0 +1,14 @@
+    const F = {};
+    const put = (k, v) => { if (!unk(v)) F[k] = v; };
+    put('job_number', base.job_number); put('company', g('Canonical Company') || g('Company')); put('title_jp', g('Job Title')); put('position_jp', g('Position'));
+    const sector = g('Field'); put('sector_jp', sector); put('sector_id', SECTOR_ID[sector] || '');
+    put('prefecture', g('Prefecture')); put('location', g('Canonical Location') || [g('Prefecture'), g('City')].filter(Boolean).join(' '));
+    put('salary_monthly_yen', g('Canonical Monthly Salary')); put('salary_min_yen', g('Monthly Salary Min')); put('salary_max_yen', g('Monthly Salary Max')); put('salary_basis', g('Salary Basis') === 'UNKNOWN' ? '' : g('Salary Basis')); put('hourly_yen', g('Effective Hourly Wage'));
+    const ah = String(g('Annual Holidays') || '').replace(/[^0-9]/g, ''); put('annual_holidays', ah ? Number(ah) : '');
+    const wh = String(g('Working Hours') || '').trim(); if (wh && wh.length <= 60) put('working_hours_text', wh);
+    put('overtime_hours_avg', g('Overtime Hours Avg'));
+    put('dormitory', g('Dormitory Available')); put('jlpt', g('JLPT Required')); put('license', g('License Required')); put('license_type', g('License Type')); put('experience', g('Experience Required')); put('experience_years_min', g('Experience Years Min'));
+    put('expiry', g('Expiry Date')); put('source_url', g('Source URL'));
+    const need = ['company', 'title_jp', 'prefecture', 'salary_monthly_yen', 'job_number'];
+    const miss = need.filter((k) => !F[k] && !(k === 'title_jp' && F.position_jp));
+    const hash = fnv(JSON.stringify(Object.keys(F).sort().map((k) => [k, F[k]])) + '|' + (cfg.template_version || 'v1'));

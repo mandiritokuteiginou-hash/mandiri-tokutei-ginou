@@ -1,0 +1,10 @@
+const cfg = $('Config').first().json;
+const all = $input.all().map((i) => i.json);
+const org = all.filter((j) => j._kind === 'organized' || j._kind === 'write_row');
+const w = all.filter((j) => j._kind === 'write_row');
+const cnt = (f) => org.filter(f).length;
+const tiers = {}; const lives = {};
+org.forEach((j) => { if (j.tier) tiers[j.tier] = (tiers[j.tier] || 0) + 1; if (j.lifecycle) lives[j.lifecycle] = (lives[j.lifecycle] || 0) + 1; });
+const errs = [].concat.apply([], all.map((j) => Array.isArray(j.errors) ? j.errors : []));
+const meta = all.filter((j) => j._kind === 'meta')[0];
+return [{ json: { run_id: cfg.run_id, started_at: cfg.run_started, finished_at: new Date().toISOString(), queue_status: meta ? meta.status : 'OK', processed: org.length, unchanged: cnt((j) => j.outcome === 'NO_CHANGE'), changed: w.length, written_ok: w.filter((j) => j.write_status === 'OK').length, write_errors: w.filter((j) => j.write_status === 'NOTION_ERROR').length, verify_failed: w.filter((j) => j.write_status === 'VERIFY_FAILED').length, duplicates_archived: cnt((j) => !!j.dup_of), requeued_to_wf02: cnt((j) => j.requeue === true), expired_or_closed: cnt((j) => j.lifecycle === 'EXPIRED' || j.lifecycle === 'CLOSED'), source_errors: errs.filter((e) => e.stage === 'source_fetch').length, summary_json: JSON.stringify({ lifecycle: lives, tiers }).slice(0, 3000) } }];

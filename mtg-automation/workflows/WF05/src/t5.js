@@ -1,0 +1,34 @@
+const h=require('./harness');
+const cfg={json:{run_id:'C1',run_started:'2026-10-06T03:00:00Z',run_date:'2026-10-06',max_per_run:15,use_ai:'true',allowed_tiers:'S-TIER,A-TIER,B-TIER,C-TIER',template_version:'v1',banned_phrases:'jaminan|dijamin|garansi|pasti|100%|gratis|tanpa biaya|gaji besar|gaji tinggi|gaji fantastis|cepat berangkat|resmi MTGI|P3MI|penempatan resmi',hashtags:'#TokuteiGinou #SSW #KerjaDiJepang #InfoLowongan',ai_model_content:'claude-sonnet-5-5'}};
+const sel=n=>({type:'select',select:n?{name:n}:null});const rtx=s=>({type:'rich_text',rich_text:s?[{plain_text:s}]:[]});const num=n=>({type:'number',number:n});const dt=d=>({type:'date',date:d?{start:d}:null});
+const pg=(id,o={})=>({id,url:'u/'+id,properties:Object.assign({'Job ID':{type:'unique_id',unique_id:{prefix:'MTG',number:1}},'Job Number':rtx('01010-3534'+id),'Job Title':{type:'title',title:[{plain_text:'健康食品の製造オペレーター'}]},Company:rtx('株式会社テスト'),'Canonical Company':rtx('株式会社テスト'),'Canonical Key':rtx('HW:1'),'Canonical Of':rtx(''),'Source URL':{type:'url',url:'https://hellowork.careers/'+id},'Lifecycle Status':sel('ACTIVE'),'QC Decision':sel('APPROVED'),Recruitability:sel('Overseas Confirmed'),'Priority Tier':sel('A-TIER'),Field:sel('食品製造'),Prefecture:rtx('岐阜県'),City:rtx('池田町'),'Canonical Location':rtx('岐阜県 池田町'),'Canonical Monthly Salary':num(285000),'Salary Basis':sel('MONTHLY'),'Annual Holidays':rtx('123日'),'Dormitory Available':sel('Yes'),'JLPT Required':sel('N3'),'License Required':sel('Unknown'),'Experience Required':sel('No'),'Overtime Hours Avg':num(20),'Expiry Date':dt('2026-10-25'),'Content Status':sel(o.cs||''),'Content Hash':rtx(o.hash||'')},o.over||{})});
+const q=(a,b)=>[{json:{results:a}},{json:{results:b||[]}}];
+// 1 flatten gates
+const fl=h.run('flatten5.js',{input:q([pg('a'),pg('b',{over:{Recruitability:sel('Overseas Unverified')}}),pg('c',{over:{'Canonical Of':rtx('u/zz')}}),pg('d',{over:{'Canonical Monthly Salary':num(null)}}),pg('e',{cs:'Ready'}),pg('f',{over:{'Lifecycle Status':sel('QC_REVIEW')}})],[pg('a')]),nodes:{Config:[cfg]}});
+console.log('flatten:',fl.map(x=>x.json.page_id.slice(-1)+'='+x.json.action+(x.json.reason?'('+x.json.reason.slice(0,28)+')':'')).join(' | '));
+const a=fl.find(x=>x.json.action==='GENERATE').json; console.log('facts keys:',Object.keys(a.facts).join(','),'| License absent (Unknown dropped):',!('license' in a.facts));
+// unchanged draft is skipped
+const fl2=h.run('flatten5.js',{input:q([pg('a',{cs:'Draft',hash:a.hash})]),nodes:{Config:[cfg]}});console.log('same hash draft ->',fl2[0].json.action);
+const fl3=h.run('flatten5.js',{input:q([pg('a',{cs:'Draft',hash:'deadbeef'})]),nodes:{Config:[cfg]}});console.log('changed facts draft ->',fl3[0].json.action,fl3[0].json.reason);
+const fl4=h.run('flatten5.js',{input:q([pg('a',{cs:'Draft',hash:a.hash,over:{'Canonical Monthly Salary':num(300000)}})]),nodes:{Config:[cfg]}});console.log('salary changed after enrichment ->',fl4[0].json.action);
+// 2 compose
+const C=(ai,extra)=>h.run('compose5.js',{input:[{json:Object.assign({},a,{ai,needs_ai:'true'},extra||{})}],nodes:{Config:[cfg]}})[0].json;
+const good={poster_headline:'Lowongan Manufaktur Makanan di Gifu',poster_points:['株式会社テスト','Gaji ¥285,000/bulan','Persyaratan: JLPT N3','Pengalaman tidak disyaratkan'],whatsapp_body:'Info lowongan di 株式会社テスト, Gifu. Gaji bulanan ¥285,000, libur tahunan 123 hari. Level bahasa JLPT N3. Asrama tersedia menurut sumber.',instagram_body:'株式会社テスト membuka lowongan bidang makanan. Gaji ¥285,000 per bulan, libur 123 hari per tahun.',tiktok_body:'Lowongan 株式会社テスト — gaji ¥285,000/bulan.'};
+const r1=C(good);console.log('good AI ->',r1.method,r1.issues.length);
+console.log(r1.notion_sent['WhatsApp Copy']);
+const bad=(m)=>C(Object.assign({},good,m));
+const cases={salary_made_up:bad({whatsapp_body:'株式会社テスト gaji ¥350,000 per bulan'}),promise:bad({whatsapp_body:'株式会社テスト — pasti diterima, dijamin berangkat!'}),n2:bad({instagram_body:'株式会社テスト butuh JLPT N2'}),hours:bad({tiktok_body:'株式会社テスト kerja 8 jam sehari'}),nocompany:bad({poster_headline:'Lowongan makanan',poster_points:['Gaji ¥285,000'],whatsapp_body:'Lowongan di Gifu gaji ¥285,000'}),link:bad({instagram_body:'株式会社テスト https://evil.example gaji ¥285,000'}),abbrev:bad({tiktok_body:'株式会社テスト gaji 285 ribu'})};
+for(const k in cases){const r=cases[k];console.log(k.padEnd(16),'->',r.method,'|',r.issues.slice(0,2).join(' | '));}
+// unsupported housing/experience when facts don't have them
+const a2=Object.assign({},a,{facts:Object.assign({},a.facts,{dormitory:undefined,experience:undefined})});delete a2.facts.dormitory;delete a2.facts.experience;
+const r2=h.run('compose5.js',{input:[{json:Object.assign({},a2,{ai:Object.assign({},good,{whatsapp_body:'株式会社テスト, Gifu, ¥285,000. Asrama tersedia, tanpa pengalaman juga bisa.'}),needs_ai:'true'})}],nodes:{Config:[cfg]}})[0].json;console.log('unsupported claims ->',r2.method,'|',r2.issues.join(' | '));
+// AI down -> template; Unknown fields never become "No"
+const r3=h.run('compose5.js',{input:[{json:Object.assign({},a2,{ai:null,needs_ai:'true',errors:[{stage:'ai_content',type:'ai_error',msg:'x'}]})}],nodes:{Config:[cfg]}})[0].json;
+console.log('AI down ->',r3.method,r3.issues.join('|'),'| mentions Asrama?',/Asrama/.test(r3.notion_sent['WhatsApp Copy']),'| mentions Pengalaman?',/Pengalaman/.test(r3.notion_sent['WhatsApp Copy']),'| "tidak" claims:',(r3.notion_sent['WhatsApp Copy'].match(/tidak[^\n]*/g)||[]).join(';'));
+console.log(r3.notion_sent['Poster Copy']);console.log('props:',Object.keys(r3.notion_patch_body.properties).join(', '));
+// 3 verify w/ CJK corruption
+const rb=(body,corrupt)=>{const P={};for(const k in body.properties){const v=body.properties[k];if(v.select)P[k]={type:'select',select:{name:v.select.name}};else if(v.date)P[k]={type:'date',date:{start:v.date.start}};else if(v.rich_text)P[k]={type:'rich_text',rich_text:[{plain_text:corrupt&&k==='WhatsApp Copy'?v.rich_text[0].text.content.replace('株','抹'):v.rich_text[0].text.content}]};}return {id:a.page_id,properties:P};};
+const ver=h.run('verify5.js',{input:[{json:rb(r1.notion_patch_body)},{json:rb(r1.notion_patch_body,true)}],nodes:{Compose:[{json:r1},{json:r1}],'Notion PATCH':[{json:{id:a.page_id}},{json:{id:a.page_id}}]}});
+console.log('verify:',ver.map(x=>x.json.write_status).join(','));
+console.log(JSON.stringify(h.run('runlog5.js',{input:fl.concat(ver),nodes:{Config:[cfg]}})[0].json).slice(0,420));
+{ const wrong=h.run('compose5.js',{input:[{json:Object.assign({},a,{ai:Object.assign({},good,{instagram_body:'株式会社テスト di Tokyo, gaji ¥285,000'}),needs_ai:'true'})}],nodes:{Config:[cfg]}})[0].json; console.log('wrong prefecture ->',wrong.method,'|',wrong.issues.join(' | ')); const kyoto=h.run('compose5.js',{input:[{json:Object.assign({},a,{ai:good,needs_ai:'true'})}],nodes:{Config:[cfg]}})[0].json; console.log('right prefecture (Gifu) still passes ->',kyoto.method); }

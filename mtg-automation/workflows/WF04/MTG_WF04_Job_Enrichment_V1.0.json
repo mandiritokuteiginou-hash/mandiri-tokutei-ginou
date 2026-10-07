@@ -1,0 +1,1345 @@
+{
+ "name": "MTG #04 - Job Enrichment V1.0",
+ "nodes": [
+  {
+   "parameters": {
+    "rule": {
+     "interval": [
+      {
+       "field": "cronExpression",
+       "expression": "0 11,23 * * *"
+      }
+     ]
+    }
+   },
+   "id": "c130fe4d-2f38-2864-c398-c71afdc5cc8b",
+   "name": "Schedule 11:00 and 23:00 JST",
+   "type": "n8n-nodes-base.scheduleTrigger",
+   "typeVersion": 1.4,
+   "position": [
+    0,
+    336
+   ],
+   "notes": "1h after WF03 (10:00/22:00 JST). Keep OFF until the first live test passes.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "manual",
+    "includeOtherFields": false,
+    "assignments": {
+     "assignments": [
+      {
+       "id": "cfg-run_id",
+       "name": "run_id",
+       "value": "={{ \"EN-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-run_date",
+       "name": "run_date",
+       "value": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-run_started",
+       "name": "run_started",
+       "value": "={{ $now.toISO() }}",
+       "type": "string"
+      },
+      {
+       "id": "cfg-workflow_name",
+       "name": "workflow_name",
+       "value": "Job Enrichment V1.0",
+       "type": "string"
+      },
+      {
+       "id": "cfg-max_per_run",
+       "name": "max_per_run",
+       "value": 20,
+       "type": "number"
+      },
+      {
+       "id": "cfg-recheck_days",
+       "name": "recheck_days",
+       "value": 7,
+       "type": "number"
+      },
+      {
+       "id": "cfg-use_ai",
+       "name": "use_ai",
+       "value": "true",
+       "type": "string"
+      },
+      {
+       "id": "cfg-ai_model_enrich",
+       "name": "ai_model_enrich",
+       "value": "claude-sonnet-5-5",
+       "type": "string"
+      },
+      {
+       "id": "cfg-notion_job_ds_id",
+       "name": "notion_job_ds_id",
+       "value": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9",
+       "type": "string"
+      }
+     ]
+    }
+   },
+   "id": "f91bb763-ecd2-745d-2161-e373bec2604f",
+   "name": "Config",
+   "type": "n8n-nodes-base.set",
+   "typeVersion": 3.4,
+   "position": [
+    224,
+    336
+   ],
+   "notes": "recheck_days throttles re-fetching; use_ai=false runs deterministic extraction only.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "={{ \"https://api.notion.com/v1/data_sources/\" + $(\"Config\").first().json.notion_job_ds_id + \"/query\" }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify({ filter: { and: [ { property: 'Ingestion Source', select: { equals: 'N8N' } }, { property: 'Lifecycle Status', select: { equals: 'ACTIVE' } }, { property: 'QC Decision', select: { equals: 'APPROVED' } }, { or: [ { property: 'JLPT Required', select: { equals: 'Unknown' } }, { property: 'JLPT Required', select: { is_empty: true } }, { property: 'License Required', select: { equals: 'Unknown' } }, { property: 'License Required', select: { is_empty: true } }, { property: 'Experience Required', select: { equals: 'Unknown' } }, { property: 'Experience Required', select: { is_empty: true } }, { property: 'Salary Basis', select: { is_empty: true } } ] }, { or: [ { property: 'Enrichment Checked', date: { is_empty: true } }, { property: 'Enrichment Checked', date: { before: $now.setZone('Asia/Tokyo').minus({ days: $('Config').first().json.recheck_days }).toFormat('yyyy-MM-dd') } } ] } ] }, sorts: [ { property: 'Enrichment Checked', direction: 'ascending' } ], page_size: 25 }) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    }
+   },
+   "id": "abd04a31-94db-a03d-389d-2176e43f7c27",
+   "name": "Query Candidates",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    448,
+    336
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Flatten (WF04): Notion candidate query -> one item per job. Only ACTIVE + QC APPROVED jobs are ever enriched (re-checked here even though the query filters them).\nconst cfg = $('Config').first().json;\nconst plain = (a) => (a || []).map((x) => x.plain_text || '').join('');\nconst pv = (p) => { if (!p) return ''; switch (p.type) { case 'title': return plain(p.title); case 'rich_text': return plain(p.rich_text); case 'number': return p.number === null ? null : p.number; case 'select': return p.select ? p.select.name : ''; case 'url': return p.url || ''; case 'checkbox': return !!p.checkbox; case 'date': return p.date ? p.date.start : ''; case 'unique_id': return p.unique_id ? (p.unique_id.prefix ? p.unique_id.prefix + '-' : '') + p.unique_id.number : ''; default: return ''; } };\nconst r = $input.first().json;\nif (!r || r.error || r.object === 'error' || !Array.isArray(r.results)) return [{ json: { _kind: 'meta', status: 'QUEUE_ERROR', errors: [{ stage: 'queue', type: 'notion_error', msg: String((r && ((r.error && r.error.message) || r.message)) || 'bad response').slice(0, 200) }] } }];\nconst unk = (v) => !v || v === 'Unknown';\nconst jobs = [];\nr.results.forEach((pg) => {\n  const P = pg.properties || {};\n  const life = pv(P['Lifecycle Status']); const qc = pv(P['QC Decision']);\n  if (life !== 'ACTIVE' || qc !== 'APPROVED') return;\n  const cur = { jlpt: pv(P['JLPT Required']), lic: pv(P['License Required']), lic_type: pv(P['License Type']), exp: pv(P['Experience Required']), exp_min: pv(P['Experience Years Min']), basis: pv(P['Salary Basis']), hourly: pv(P['Effective Hourly Wage']), mmin: pv(P['Monthly Salary Min']), mmax: pv(P['Monthly Salary Max']), checked: pv(P['Enrichment Checked']), evidence: pv(P['Enrichment Evidence']) };\n  const pri = unk(cur.jlpt) ? 1 : !cur.basis ? 2 : unk(cur.lic) ? 3 : unk(cur.exp) ? 4 : 5;\n  jobs.push({ json: { _kind: 'job', page_id: pg.id, page_url: pg.url, mtg_job_id: pv(P['Job ID']), job_number: String(pv(P['Job Number']) || '').trim(), title: pv(P['Job Title']), company: String(pv(P['Company']) || '').trim(), source_url: pv(P['Source URL']), recruitability: pv(P['Recruitability']), lifecycle: life, qc, priority: pri, cur, errors: [] } });\n});\nif (!jobs.length) return [{ json: { _kind: 'meta', status: 'EMPTY_QUEUE', errors: [] } }];\njobs.sort((a, b) => a.json.priority - b.json.priority || String(a.json.cur.checked || '').localeCompare(String(b.json.cur.checked || '')));\nreturn jobs.slice(0, Number(cfg.max_per_run) || 20);\n"
+   },
+   "id": "9f344026-8207-9f68-1b92-26bb215a9a88",
+   "name": "Flatten Candidates",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    896,
+    336
+   ],
+   "notes": "Only ACTIVE + QC APPROVED. Priority: JLPT, salary basis, license, experience.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "775fc7ec-e25a-5a4b-551e-08fa7571c1c1",
+       "leftValue": "={{ String($json._kind) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "job"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "dc6f2ad1-9cc7-300f-8a7f-14bc120201d8",
+   "name": "Is Candidate?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1120,
+    336
+   ]
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.source_url }}",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "User-Agent",
+       "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+      },
+      {
+       "name": "Accept-Language",
+       "value": "ja,en;q=0.8"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 30000,
+     "response": {
+      "response": {
+       "responseFormat": "text"
+      }
+     },
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 2000
+      }
+     }
+    }
+   },
+   "id": "3bd2e8dd-5d17-2a5d-5050-6c76d2bb34f7",
+   "name": "Fetch Source",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    1344,
+    272
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 4000,
+   "onError": "continueRegularOutput"
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Extract (WF04): read the HelloWork page and extract JLPT / license / experience / salary basis DETERMINISTICALLY, each with the verbatim source line as evidence. Anything not explicitly stated stays Unknown (never No).\nconst cfg = $('Config').first().json;\nconst N = (s) => String(s || '').normalize('NFKC');\nconst toText = (h) => N(String(h || '').replace(/<script[\\s\\S]*?<\\/script>/gi, '').replace(/<style[\\s\\S]*?<\\/style>/gi, '').replace(/<br\\s*\\/?>/gi, '\\n').replace(/<\\/(p|div|tr|li|h\\d|table|dt|dd)>/gi, '\\n').replace(/<[^>]+>/g, '\\n').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\\n[ \\t　]*(?=\\n)/g, '').replace(/\\n{2,}/g, '\\n').trim());\nconst clip = (s, n) => String(s || '').slice(0, n);\nconst LABELS = ['年齢', '年齢制限範囲', '学歴', '必要な経験等', '必要な免許・資格', '賃金', '賃金形態', '就業時間', '休憩時間', '年間休日', '求人に関する特記事項', '仕事の内容', '雇用形態', '加入保険等', '通勤手当', '賞与', '昇給', '退職金', '時間外労働時間', '月平均時間外労働時間'];\nconst OVERSEAS_OK = [/海外(在住)?(の方|者)?(から|在住).{0,8}(応募|可|歓迎|OK)/, /(国外|海外)在住.{0,4}(可|OK|歓迎)/, /来日前.{0,12}(応募|面接|内定|選考)/, /(入国前|渡日前).{0,12}(応募|面接|内定|選考)/, /(海外|来日前).{0,20}オンライン面接|オンライン面接.{0,20}(海外|来日前)/];\nconst DOMESTIC = [/(海外|国外)在住.{0,4}(不可|不可能|NG)/, /国内(に)?在住(の方|者)?(のみ|限)/, /日本(国)?内に(在住|居住).{0,10}(方|者|必須)/, /在留カード.{0,12}(必須|をお持ちの方のみ)/];\nconst hit = (arr, t) => { for (const r of arr) { const m = t.match(r); if (m) return m[0].slice(0, 80); } return ''; };\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let job = {};\n  try { job = $('Is Candidate?').itemMatching(k).json; } catch (e) { job = {}; }\n  const errors = (job.errors || []).slice();\n  const err = it.json && it.json.error; const html = (it.json && it.json.data) || '';\n  const det = { state: 'OK', jlpt: 'Unknown', jlpt_ev: '', lic: 'Unknown', lic_ev: '', lic_type: '', exp: 'Unknown', exp_min: null, exp_ev: '', basis: '', hourly: null, mmin: null, mmax: null, basis_ev: '', overseas_hit: '', domestic_hit: '', notes: [] };\n  let body = '';\n  if (err) { det.state = /404|410|not found/i.test(String(err.message || err)) ? 'GONE' : 'UNREACHABLE'; errors.push({ stage: 'source_fetch', type: det.state, msg: String(err.message || err).slice(0, 200) }); }\n  else if (typeof html !== 'string' || html.length < 3000) { det.state = 'UNREACHABLE'; errors.push({ stage: 'source_fetch', type: 'UNREACHABLE', msg: 'response too short' }); }\n  else {\n    const full = toText(html); const start = full.indexOf('の募集内容、仕事概要');\n    if (/(掲載を終了|受付を終了|募集を終了|求人は終了|この求人は.{0,6}(終了|締め切)|ページが見つかりません)/.test(full.slice(0, 4000)) && start < 0) det.state = 'CLOSED_ON_SOURCE';\n    body = (start >= 0 ? full.slice(start) : full).slice(0, 12000);\n    const lines = body.split('\\n').map((s) => s.trim()).filter((s) => s.length);\n    const idx = (l) => lines.indexOf(l);\n    const section = (l, max) => { const i = idx(l); if (i < 0) return []; const res = []; for (let q = i + 1; q < lines.length && res.length < (max || 4); q++) { if (LABELS.indexOf(lines[q]) >= 0) break; res.push(lines[q]); } return res; };\n    // ---- JLPT (needs a Japanese-language context in the same line; conflicting levels -> Unknown)\n    const levels = {}; let jEv = '';\n    lines.forEach((l) => { if (!/日本語|JLPT|語学/.test(l)) return; const m = l.match(/(?:日本語能力試験|JLPT|日本語検定|日本語能力|日本語)[^\\n]{0,24}?N\\s*([1-5])/i) || l.match(/N\\s*([1-5])\\s*(以上|程度|レベル|相当|取得|合格|保持)/i); if (m) { levels['N' + m[1]] = levels['N' + m[1]] || clip(l, 120); } });\n    const lk = Object.keys(levels);\n    if (lk.length === 1) { det.jlpt = lk[0]; det.jlpt_ev = levels[lk[0]]; }\n    else if (lk.length > 1) { det.notes.push('jlpt conflict: ' + lk.join('/')); }\n    else { const nl = lines.find((l) => /日本語[^\\n]{0,12}(不問|不要|問いません|必要ありません)/.test(l)); if (nl) { det.jlpt = 'None'; det.jlpt_ev = clip(nl, 120); } }\n    // ---- License\n    const ls = section('必要な免許・資格', 4); const lt = ls.join(' ');\n    const anyNoLic = lines.find((l) => /(特別な)?(資格|免許)(や[^\\n]{0,6})?は?(不要|不問)|(資格|免許)[^\\n]{0,8}(不問|不要)/.test(l));\n    const typeRe = /(普通自動車(?:第一種)?(?:運転)?免許(?:\\([^)]{0,12}\\))?|大型自動車(?:運転)?免許|中型自動車(?:運転)?免許|フォークリフト[^\\s、。]{0,10}|介護福祉士|介護職員初任者研修|実務者研修|調理師|[^\\s、。]{2,12}(?:技能講習|免許|資格))/;\n    if (lt) {\n      const tm = lt.match(typeRe);\n      if (/(不問|不要|特になし|必要ありません)/.test(lt) && !/(必須)/.test(lt)) { det.lic = 'No'; det.lic_ev = clip(lt, 120); }\n      else if (/(尚可|歓迎|あれば|優遇|望ましい)/.test(lt)) { det.lic = 'Preferred'; det.lic_ev = clip(lt, 120); det.lic_type = tm ? clip(tm[0], 60) : ''; }\n      else if (/(必須|必要|要)/.test(lt.replace(/不要/g, '')) && tm) { det.lic = 'Yes'; det.lic_ev = clip(lt, 120); det.lic_type = clip(tm[0], 60); }\n      else { det.notes.push('license section present but no explicit required/preferred/not-required wording'); }\n    } else if (anyNoLic) { det.lic = 'No'; det.lic_ev = clip(anyNoLic, 120); }\n    // ---- Experience (labelled field first)\n    const es = section('必要な経験等', 1).join(' ');\n    const expText = es || ''; let eev = es;\n    if (expText) {\n      const ym = expText.match(/([0-9]+)\\s*年以上/);\n      if (/(経験不問|未経験(者)?(歓迎|可|OK|大歓迎)|経験(は)?(問いません|不要))/.test(expText)) { det.exp = 'No'; det.exp_ev = clip(eev, 120); }\n      else if (ym) { det.exp = 'Yes'; det.exp_min = Number(ym[1]); det.exp_ev = clip(eev, 120); }\n      else if (/(経験者|経験必須|経験が必要|実務経験)/.test(expText) && /(必須|必要|経験者)/.test(expText) && !/(歓迎|優遇|尚可)/.test(expText)) { det.exp = 'Yes'; det.exp_ev = clip(eev, 120); }\n      else det.notes.push('experience field present but not explicit: ' + clip(expText, 60));\n    } else { const l = lines.find((x) => /(未経験(者)?(歓迎|OK|可)|経験不問)/.test(x)); if (l) { det.exp = 'No'; det.exp_ev = clip(l, 120); } }\n    // ---- Salary basis\n    const sb = (lines[idx('賃金形態') + 1] || '').replace(/,/g, '');\n    if (idx('賃金形態') >= 0) {\n      det.basis = /^時給/.test(sb) ? 'HOURLY' : /^日給/.test(sb) ? 'DAILY' : /^月給/.test(sb) ? 'MONTHLY' : /^(年俸|年収)/.test(sb) ? 'ANNUAL' : ''; det.basis_ev = clip(sb, 80);\n      const hm = sb.match(/時給([0-9]{3,5})/); if (hm && det.basis === 'HOURLY') det.hourly = Number(hm[1]);\n      const wl = (lines[idx('賃金') + 1] || '').replace(/,/g, ''); const wm = wl.match(/([0-9]{5,7})円?\\s*[〜~]?\\s*([0-9]{5,7})?/);\n      if (wm && det.basis === 'MONTHLY') { det.mmin = Number(wm[1]); det.mmax = wm[2] ? Number(wm[2]) : Number(wm[1]); }\n    }\n    det.overseas_hit = hit(OVERSEAS_OK, body); det.domestic_hit = hit(DOMESTIC, body);\n  }\n  const needsAi = det.state === 'OK' && String(cfg.use_ai) !== 'false' && body.length > 300 && (det.jlpt === 'Unknown' || det.lic === 'Unknown' || det.exp === 'Unknown');\n  out.push({ json: Object.assign({}, job, { det, errors, detail_text: det.state === 'OK' ? body : '', needs_ai: needsAi ? 'true' : 'false' }) });\n}\nreturn out;\n"
+   },
+   "id": "14397433-9e96-36ab-2edc-eb369a4bf572",
+   "name": "Extract",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    1568,
+    272
+   ],
+   "notes": "Deterministic extraction with verbatim evidence. Not stated = Unknown (never No).",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "f10dfbd0-0a96-b880-93dc-5f919b1d3e47",
+       "leftValue": "={{ String($json.needs_ai) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "true"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "fd7f4237-ac62-5c90-fa03-06a119afbfbc",
+   "name": "Needs AI?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    1792,
+    272
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Prepare AI (WF04): AI may only EXTRACT the unresolved fields, with a verbatim quote. It never decides, infers or touches QC / company / overseas.\nconst cfg = $('Config').first().json;\nconst SYSTEM = `あなたは求人票の「抽出」専用エンジンです。求人票テキストに明記されている事実だけを抜き出します。推測・一般知識・補完は禁止。明記がなければ必ず \"Unknown\"。\n出力はJSONオブジェクトのみ（前後の説明・コードフェンス禁止）。各項目の quote は求人票テキストからの一字一句そのままの抜粋（60字以内）。見つからなければ \"\"。\n項目:\n1. jlpt: 日本語能力試験の必要レベルが明記されていれば \"N1\"〜\"N5\"。日本語能力が不問と明記なら \"None\"。「日常会話ができる」等レベルの明記がないものは \"Unknown\"。\n2. license: 免許・資格が必須と明記 → \"Yes\"、あれば尚可/歓迎/優遇 → \"Preferred\"、不問/不要と明記 → \"No\"、記載なし → \"Unknown\"。license_type に免許・資格の名称（原文のまま）。\n3. experience: 経験不問/未経験歓迎と明記 → \"No\"、必須または年数の明記 → \"Yes\"、記載なし → \"Unknown\"。experience_years_min は「◯年以上」の数字（なければ null）。\nスキーマ: {\"jlpt\":\"\",\"jlpt_quote\":\"\",\"license\":\"\",\"license_type\":\"\",\"license_quote\":\"\",\"experience\":\"\",\"experience_years_min\":null,\"experience_quote\":\"\"}`;\nreturn $input.all().map((it) => {\n  const j = it.json; const want = []; if (j.det.jlpt === 'Unknown') want.push('jlpt'); if (j.det.lic === 'Unknown') want.push('license'); if (j.det.exp === 'Unknown') want.push('experience');\n  const user = '求人番号: ' + j.job_number + '\\n抽出が必要な項目: ' + want.join(', ') + '\\n---求人票本文---\\n' + String(j.detail_text || '').slice(0, 9000);\n  return { json: Object.assign({}, j, { ai_req: { model: cfg.ai_model_enrich, max_tokens: 700, temperature: 0, system: SYSTEM, messages: [{ role: 'user', content: user }] } }) };\n});\n"
+   },
+   "id": "eaead6c6-5239-e89f-d1d6-7b3829e249f4",
+   "name": "Prepare AI",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2016,
+    208
+   ]
+  },
+  {
+   "parameters": {
+    "method": "POST",
+    "url": "https://api.anthropic.com/v1/messages",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpTemplatedCustomAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "anthropic-version",
+       "value": "2023-06-01"
+      },
+      {
+       "name": "content-type",
+       "value": "application/json"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.ai_req) }}",
+    "options": {
+     "timeout": 90000,
+     "batching": {
+      "batch": {
+       "batchSize": 3,
+       "batchInterval": 1500
+      }
+     }
+    }
+   },
+   "id": "b3c9105c-a3fa-bb01-6168-f7f438dcb873",
+   "name": "AI Extract",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    2240,
+    208
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 5000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpTemplatedCustomAuth": {
+     "id": "",
+     "name": "Anthropic API Key (x-api-key)"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Parse AI (WF04): AI output is DATA. A value is accepted only if its quote exists verbatim in the page AND the quote itself contains the evidence for that value. Otherwise Unknown.\nconst parseJson = (t) => { let s = String(t || '').trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim(); const a = s.indexOf('{'); const b = s.lastIndexOf('}'); if (a < 0 || b < a) return null; try { return JSON.parse(s.slice(a, b + 1)); } catch (e) { return null; } };\nconst N = (s) => String(s || '').normalize('NFKC').replace(/[\\s　]+/g, '');\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let j = {};\n  try { j = $('Prepare AI').itemMatching(k).json; } catch (e) { j = {}; }\n  const errors = (j.errors || []).slice();\n  const base = Object.assign({}, j, { ai_req: undefined, errors });\n  const a = parseJson(it.json && it.json.content && it.json.content[0] && it.json.content[0].text);\n  if ((it.json && it.json.error) || !a) { errors.push({ stage: 'ai_enrich', type: 'ai_error', msg: (it.json && it.json.error ? String(it.json.error.message || it.json.error) : 'unparseable JSON').slice(0, 200) }); out.push({ json: Object.assign(base, { ai: { ok: false, rejected: [] } }) }); continue; }\n  const T = N(j.detail_text); const inSrc = (q) => { const x = N(q); return x.length >= 4 && T.indexOf(x) >= 0; };\n  const ai = { ok: true, jlpt: 'Unknown', jlpt_ev: '', lic: 'Unknown', lic_ev: '', lic_type: '', exp: 'Unknown', exp_min: null, exp_ev: '', rejected: [] };\n  const rej = (f, why) => ai.rejected.push(f + ': ' + why);\n  const need = { jlpt: j.det.jlpt === 'Unknown', lic: j.det.lic === 'Unknown', exp: j.det.exp === 'Unknown' };\n  // JLPT\n  if (need.jlpt && a.jlpt && a.jlpt !== 'Unknown') {\n    const q = N(a.jlpt_quote);\n    if (!inSrc(a.jlpt_quote)) rej('jlpt', 'quote not in source');\n    else if (/^N[1-5]$/.test(a.jlpt) && new RegExp(a.jlpt, 'i').test(q) && /日本語|JLPT|語学|能力/.test(q)) { ai.jlpt = a.jlpt; ai.jlpt_ev = String(a.jlpt_quote).slice(0, 120); }\n    else if (a.jlpt === 'None' && /日本語/.test(q) && /(不問|不要|問いません|必要ありません)/.test(q)) { ai.jlpt = 'None'; ai.jlpt_ev = String(a.jlpt_quote).slice(0, 120); }\n    else rej('jlpt', 'quote does not support value ' + a.jlpt);\n  }\n  // License\n  if (need.lic && a.license && a.license !== 'Unknown') {\n    const q = N(a.license_quote);\n    if (!inSrc(a.license_quote)) rej('license', 'quote not in source');\n    else if (!/(免許|資格|技能講習|研修|士)/.test(q)) rej('license', 'quote has no license wording');\n    else if (a.license === 'No' && /(不問|不要|なし)/.test(q)) { ai.lic = 'No'; ai.lic_ev = String(a.license_quote).slice(0, 120); }\n    else if (a.license === 'Preferred' && /(尚可|歓迎|あれば|優遇|望ましい)/.test(q)) { ai.lic = 'Preferred'; ai.lic_ev = String(a.license_quote).slice(0, 120); }\n    else if (a.license === 'Yes' && /(必須|必要|要)/.test(q.replace(/不要/g, '')) && !/(尚可|歓迎|あれば|優遇)/.test(q)) { ai.lic = 'Yes'; ai.lic_ev = String(a.license_quote).slice(0, 120); }\n    else rej('license', 'quote does not support value ' + a.license);\n    if (ai.lic !== 'Unknown' && ai.lic !== 'No' && a.license_type && q.indexOf(N(a.license_type)) >= 0) ai.lic_type = String(a.license_type).slice(0, 60);\n  }\n  // Experience\n  if (need.exp && a.experience && a.experience !== 'Unknown') {\n    const q = N(a.experience_quote);\n    if (!inSrc(a.experience_quote)) rej('experience', 'quote not in source');\n    else if (a.experience === 'No' && /(未経験|経験不問|経験は問|経験不要)/.test(q)) { ai.exp = 'No'; ai.exp_ev = String(a.experience_quote).slice(0, 120); }\n    else if (a.experience === 'Yes' && /経験/.test(q) && /(必須|必要|[0-9]+年以上|経験者)/.test(q) && !/(歓迎|優遇|尚可)/.test(q)) { ai.exp = 'Yes'; ai.exp_ev = String(a.experience_quote).slice(0, 120); const ym = q.match(/([0-9]+)年以上/); if (ym && Number(a.experience_years_min) === Number(ym[1])) ai.exp_min = Number(ym[1]); }\n    else rej('experience', 'quote does not support value ' + a.experience);\n  }\n  out.push({ json: Object.assign(base, { ai }) });\n}\nreturn out;\n"
+   },
+   "id": "d8947ab2-d1cf-e168-d513-f16631c91f1b",
+   "name": "Parse AI",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2464,
+    208
+   ],
+   "notes": "Quote must exist verbatim in the page AND support the value; otherwise Unknown.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 2
+   },
+   "id": "aa1a6f92-0d4e-8433-186e-1d5dd1af5459",
+   "name": "Enrich Inputs",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3.2,
+   "position": [
+    2688,
+    272
+   ],
+   "notes": "Inputs: 0 = no AI needed, 1 = AI result.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Enrich Diff (WF04): merge deterministic + validated-AI results, FILL ONLY UNKNOWN fields, never overwrite a known value, never downgrade. Builds the diff-only PATCH. Owns: JLPT / License / Experience / Salary Basis (+ hourly / monthly when empty). Does NOT touch QC, company, Recruitability, lifecycle, tier or Matching Ready.\nconst cfg = $('Config').first().json;\nconst clip = (s, n) => String(s === undefined || s === null ? '' : s).slice(0, n || 1900);\nconst unk = (v) => !v || v === 'Unknown';\nconst out = [];\nfor (const it of $input.all()) {\n  const j = it.json; const det = j.det || { state: 'UNREACHABLE' }; const ai = j.ai || { ok: false, rejected: [] }; const cur = j.cur || {};\n  const errors = (j.errors || []).slice(); const rows = []; const conflicts = [];\n  const base = Object.assign({}, j); delete base.detail_text; delete base.needs_ai;\n  if (det.state !== 'OK') { out.push({ json: Object.assign(base, { _kind: 'enriched', outcome: 'SOURCE_' + det.state, changed: [], rows, errors, needs_write: 'false', notion_patch_body: { properties: {} }, notion_sent: {} }) }); continue; }\n  const pick = (f, dv, dev, av, aev) => { // returns {value, source, evidence}\n    if (!unk(dv)) return { value: dv, source: 'DET', evidence: dev, conf: 'HIGH' };\n    if (!unk(av)) return { value: av, source: 'AI', evidence: aev, conf: 'MEDIUM' };\n    return { value: 'Unknown', source: '', evidence: '', conf: '' };\n  };\n  const F = { 'JLPT Required': pick('jlpt', det.jlpt, det.jlpt_ev, ai.jlpt, ai.jlpt_ev), 'License Required': pick('lic', det.lic, det.lic_ev, ai.lic, ai.lic_ev), 'Experience Required': pick('exp', det.exp, det.exp_ev, ai.exp, ai.exp_ev) };\n  const have = { 'JLPT Required': cur.jlpt, 'License Required': cur.lic, 'Experience Required': cur.exp };\n  const P = {}; const sent = {}; const changed = []; const newEv = {};\n  const setSel = (k, v) => { P[k] = { select: { name: v } }; sent[k] = v; changed.push(k); };\n  Object.keys(F).forEach((k) => {\n    const c = F[k]; const h = have[k];\n    if (c.value === 'Unknown') { rows.push({ field: k, old_value: h || '', new_value: 'Unknown', evidence: '', confidence: '', source: '', changed: 'false' }); return; }\n    if (!unk(h) && h !== c.value) { conflicts.push(k + ': stored ' + h + ' vs source ' + c.value); rows.push({ field: k, old_value: h, new_value: c.value, evidence: clip(c.evidence, 200), confidence: c.conf, source: c.source, changed: 'false' }); return; }\n    if (!unk(h) && h === c.value) { rows.push({ field: k, old_value: h, new_value: c.value, evidence: clip(c.evidence, 200), confidence: c.conf, source: c.source, changed: 'false' }); return; }\n    setSel(k, c.value); newEv[k] = c.source + ' 「' + clip(c.evidence, 100) + '」';\n    rows.push({ field: k, old_value: h || '', new_value: c.value, evidence: clip(c.evidence, 200), confidence: c.conf, source: c.source, changed: 'true' });\n  });\n  // License type / experience years: fill when empty and the matching field is (now) known\n  const licVal = !unk(have['License Required']) ? have['License Required'] : F['License Required'].value;\n  const ltype = det.lic_type || ai.lic_type || '';\n  if (ltype && !cur.lic_type && (licVal === 'Yes' || licVal === 'Preferred') && F['License Required'].value !== 'Unknown') { P['License Type'] = { rich_text: [{ type: 'text', text: { content: clip(ltype, 60) } }] }; sent['License Type'] = clip(ltype, 60); changed.push('License Type'); rows.push({ field: 'License Type', old_value: '', new_value: clip(ltype, 60), evidence: clip(F['License Required'].evidence, 200), confidence: F['License Required'].conf, source: F['License Required'].source, changed: 'true' }); }\n  const expMin = det.exp_min !== null && det.exp_min !== undefined ? det.exp_min : (ai.exp_min !== null && ai.exp_min !== undefined ? ai.exp_min : null);\n  const expVal = !unk(have['Experience Required']) ? have['Experience Required'] : F['Experience Required'].value;\n  if (expMin !== null && (cur.exp_min === null || cur.exp_min === '' || cur.exp_min === undefined) && expVal === 'Yes') { P['Experience Years Min'] = { number: expMin }; sent['Experience Years Min'] = expMin; changed.push('Experience Years Min'); rows.push({ field: 'Experience Years Min', old_value: '', new_value: String(expMin), evidence: clip(F['Experience Required'].evidence, 200), confidence: F['Experience Required'].conf, source: F['Experience Required'].source, changed: 'true' }); }\n  // Salary basis (stated on the page) + stated hourly / monthly only when empty. No assumed hours, no estimates.\n  if (det.basis && !cur.basis) { setSel('Salary Basis', det.basis); newEv['Salary Basis'] = 'DET 「' + clip(det.basis_ev, 60) + '」'; rows.push({ field: 'Salary Basis', old_value: '', new_value: det.basis, evidence: clip(det.basis_ev, 200), confidence: 'HIGH', source: 'DET', changed: 'true' }); }\n  const isEmpty = (v) => v === null || v === undefined || v === '';\n  if (det.hourly && det.basis === 'HOURLY' && isEmpty(cur.hourly)) { P['Effective Hourly Wage'] = { number: det.hourly }; sent['Effective Hourly Wage'] = det.hourly; changed.push('Effective Hourly Wage'); rows.push({ field: 'Effective Hourly Wage', old_value: '', new_value: String(det.hourly), evidence: clip(det.basis_ev, 200), confidence: 'HIGH', source: 'DET', changed: 'true' }); }\n  if (det.mmin && det.basis === 'MONTHLY' && isEmpty(cur.mmin)) { P['Monthly Salary Min'] = { number: det.mmin }; sent['Monthly Salary Min'] = det.mmin; changed.push('Monthly Salary Min'); P['Monthly Salary Max'] = { number: det.mmax || det.mmin }; sent['Monthly Salary Max'] = det.mmax || det.mmin; changed.push('Monthly Salary Max'); rows.push({ field: 'Monthly Salary Min', old_value: '', new_value: String(det.mmin), evidence: clip(det.basis_ev, 200), confidence: 'HIGH', source: 'DET', changed: 'true' }); }\n  // Evidence text: keep earlier lines for fields not rewritten now\n  const keep = {}; String(cur.evidence || '').split('\\n').forEach((l) => { const m = l.match(/^([^:]+): /); if (m) keep[m[1]] = l; });\n  Object.keys(newEv).forEach((k) => { keep[k] = k + ': ' + newEv[k] + ' @' + cfg.run_date; });\n  const evTxt = Object.keys(keep).map((k) => clip(keep[k], 300)).join('\\n');\n  if (Object.keys(newEv).length && clip(evTxt) !== String(cur.evidence || '')) { P['Enrichment Evidence'] = { rich_text: [{ type: 'text', text: { content: clip(evTxt) } }] }; sent['Enrichment Evidence'] = clip(evTxt); changed.push('Enrichment Evidence'); }\n  // Overseas: WF04 never changes Recruitability. An explicit hint is only logged for WF02.\n  if (j.recruitability !== 'Overseas Confirmed' && det.overseas_hit && !det.domestic_hit) rows.push({ field: 'overseas_hint', old_value: j.recruitability || '', new_value: 'explicit wording seen (WF02 decides)', evidence: clip(det.overseas_hit, 200), confidence: 'HINT', source: 'DET', changed: 'false' });\n  if (det.domestic_hit) rows.push({ field: 'overseas_hint', old_value: j.recruitability || '', new_value: 'domestic-only wording seen (WF02 decides)', evidence: clip(det.domestic_hit, 200), confidence: 'HINT', source: 'DET', changed: 'false' });\n  (ai.rejected || []).forEach((r) => rows.push({ field: 'ai_rejected', old_value: '', new_value: '', evidence: clip(r, 200), confidence: '', source: 'AI', changed: 'false' }));\n  // Throttle stamp: written whenever it differs, so the job leaves the queue until recheck_days passes\n  if (cur.checked !== cfg.run_date) { P['Enrichment Checked'] = { date: { start: cfg.run_date } }; sent['Enrichment Checked'] = cfg.run_date; changed.push('Enrichment Checked'); }\n  const real = changed.filter((x) => x !== 'Enrichment Checked');\n  const needs = changed.length > 0;\n  out.push({ json: Object.assign(base, { _kind: 'enriched', outcome: real.length ? 'ENRICHED' : needs ? 'CHECKED_NO_NEW_DATA' : 'NO_CHANGE', filled: real.filter((x) => x !== 'Enrichment Evidence'), conflicts, changed, rows, errors, ai_used: j.ai ? 'true' : 'false', needs_write: needs ? 'true' : 'false', notion_patch_body: { properties: P }, notion_sent: sent }) });\n}\nreturn out;\n"
+   },
+   "id": "2bea553b-c7a1-691f-0071-218c54767b3b",
+   "name": "Enrich Diff",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    2912,
+    272
+   ],
+   "notes": "Fills ONLY Unknown fields; never overwrites a known value; never writes Unknown; diff-only PATCH.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "conditions": {
+     "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 2
+     },
+     "conditions": [
+      {
+       "id": "9942cff0-31c6-7e4f-726f-73915f8c1edc",
+       "leftValue": "={{ String($json.needs_write) }}",
+       "operator": {
+        "type": "string",
+        "operation": "equals"
+       },
+       "rightValue": "true"
+      }
+     ],
+     "combinator": "and"
+    }
+   },
+   "id": "cc3deae1-42a7-1455-fadd-58411df9eb78",
+   "name": "Needs Write?",
+   "type": "n8n-nodes-base.if",
+   "typeVersion": 2.2,
+   "position": [
+    3136,
+    272
+   ]
+  },
+  {
+   "parameters": {
+    "method": "PATCH",
+    "url": "={{ \"https://api.notion.com/v1/pages/\" + $json.page_id }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "sendBody": true,
+    "contentType": "json",
+    "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify($json.notion_patch_body) }}",
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    }
+   },
+   "id": "4f98e805-be04-4634-3057-68cdea0b7a62",
+   "name": "Notion PATCH",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    3360,
+    208
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "method": "GET",
+    "url": "={{ $json.id ? \"https://api.notion.com/v1/pages/\" + $json.id : \"https://api.notion.com/v1/users/me\" }}",
+    "authentication": "genericCredentialType",
+    "genericAuthType": "httpHeaderAuth",
+    "sendHeaders": true,
+    "headerParameters": {
+     "parameters": [
+      {
+       "name": "Notion-Version",
+       "value": "2025-09-03"
+      }
+     ]
+    },
+    "options": {
+     "timeout": 30000,
+     "batching": {
+      "batch": {
+       "batchSize": 1,
+       "batchInterval": 400
+      }
+     }
+    }
+   },
+   "id": "7f8cd277-6441-a073-97b2-bdcec7c68c70",
+   "name": "Read-back Page",
+   "type": "n8n-nodes-base.httpRequest",
+   "typeVersion": 4.3,
+   "position": [
+    3584,
+    208
+   ],
+   "retryOnFail": true,
+   "maxTries": 3,
+   "waitBetweenTries": 2000,
+   "onError": "continueRegularOutput",
+   "credentials": {
+    "httpHeaderAuth": {
+     "id": "",
+     "name": "Notion Bearer (Header Auth)"
+    }
+   }
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Verify (WF04): read back every property we changed and compare (CJK corruption / silent failure check).\nconst plain = (arr) => (arr || []).map((x) => x.plain_text || '').join('');\nconst nz = (s) => String(s === null || s === undefined ? '' : s).replace(/\\r/g, '').trim();\nconst out = [];\nconst inputs = $input.all();\nfor (let k = 0; k < inputs.length; k++) {\n  const it = inputs[k]; let job = {}; let patched = {};\n  try { job = $('Enrich Diff').itemMatching(k).json; } catch (e) { job = {}; }\n  try { patched = $('Notion PATCH').itemMatching(k).json; } catch (e) { patched = {}; }\n  const base = Object.assign({}, job); delete base.notion_patch_body;\n  const fin = (ws, why) => out.push({ json: Object.assign(base, { _kind: 'write_row', write_status: ws, write_reason: why }) });\n  if (!patched || !patched.id || patched.object === 'error') { fin('NOTION_ERROR', 'PATCH failed: ' + String((patched && patched.message) || (patched && patched.error && patched.error.message) || 'no page id').slice(0, 200)); continue; }\n  const props = (it.json && it.json.properties) || {};\n  if (!it.json || it.json.id !== job.page_id) { fin('VERIFY_FAILED', 'read-back failed (page not returned)'); continue; }\n  const bad = []; const sent = job.notion_sent || {};\n  Object.keys(sent).forEach((key) => {\n    const p = props[key]; const want = sent[key]; let got;\n    if (!p) { bad.push(key + ': missing'); return; }\n    if (p.type === 'rich_text') got = plain(p.rich_text); else if (p.type === 'number') got = p.number; else if (p.type === 'select') got = p.select ? p.select.name : null; else if (p.type === 'url') got = p.url; else if (p.type === 'checkbox') got = p.checkbox; else if (p.type === 'date') got = p.date ? p.date.start : null; else return;\n    const ok = typeof want === 'string' ? nz(got) === nz(want) : (want === null ? (got === null || got === undefined) : got === want);\n    if (!ok) bad.push(key + ': sent[' + String(want).slice(0, 30) + '] got[' + String(got).slice(0, 30) + ']');\n  });\n  if (bad.length) fin('VERIFY_FAILED', 'read-back mismatch (' + bad.length + '): ' + bad.slice(0, 5).join(' ; ')); else fin('OK', 'read-back OK (' + Object.keys(sent).length + ' fields)');\n}\nreturn out;\n"
+   },
+   "id": "f7dd4330-5e73-3917-a724-1126a830c1d6",
+   "name": "Verify Write",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    3808,
+    208
+   ],
+   "notes": "CJK corruption / silent failure check on every changed property.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "append",
+    "numberInputs": 3
+   },
+   "id": "ce399b65-24db-7ceb-4bdd-55e4017d7aaf",
+   "name": "All Outcomes",
+   "type": "n8n-nodes-base.merge",
+   "typeVersion": 3.2,
+   "position": [
+    4032,
+    304
+   ],
+   "notes": "Inputs: 0 queue meta, 1 unchanged, 2 written rows.",
+   "notesInFlow": false
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "// Shape rows (WF04): one enrichment log row per field decision for jobs that were processed (incl. unchanged, so the audit trail shows why a value stayed Unknown).\nconst cfg = $('Config').first().json;\nconst rows = [];\nfor (const it of $input.all()) {\n  const j = it.json; if (j._kind !== 'write_row' && j._kind !== 'enriched') continue;\n  (j.rows || []).forEach((r) => rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, job_number: String(j.job_number || ''), page_id: String(j.page_id || ''), mtg_job_id: String(j.mtg_job_id || ''), field: String(r.field || ''), old_value: String(r.old_value || '').slice(0, 200), new_value: String(r.new_value || '').slice(0, 200), source_url: String(j.source_url || '').slice(0, 300), evidence: String(r.evidence || '').slice(0, 300), confidence: String(r.confidence || r.source || ''), changed: String(r.changed || 'false'), write_status: String(j.write_status || (j._kind === 'enriched' ? j.outcome : '')) } }));\n}\nreturn rows;\n"
+   },
+   "id": "5c19abf9-4925-ffc2-6007-f3f51c1c6061",
+   "name": "Shape Enrichment Rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    4256,
+    208
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_enrichment_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "ts": "={{ $json.ts }}",
+      "job_number": "={{ $json.job_number }}",
+      "page_id": "={{ $json.page_id }}",
+      "mtg_job_id": "={{ $json.mtg_job_id }}",
+      "field": "={{ $json.field }}",
+      "old_value": "={{ $json.old_value }}",
+      "new_value": "={{ $json.new_value }}",
+      "source_url": "={{ $json.source_url }}",
+      "evidence": "={{ $json.evidence }}",
+      "confidence": "={{ $json.confidence }}",
+      "changed": "={{ $json.changed }}",
+      "write_status": "={{ $json.write_status }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ts",
+       "displayName": "ts",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "job_number",
+       "displayName": "job_number",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "page_id",
+       "displayName": "page_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "mtg_job_id",
+       "displayName": "mtg_job_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "field",
+       "displayName": "field",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "old_value",
+       "displayName": "old_value",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "new_value",
+       "displayName": "new_value",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "source_url",
+       "displayName": "source_url",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "evidence",
+       "displayName": "evidence",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "confidence",
+       "displayName": "confidence",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "changed",
+       "displayName": "changed",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "write_status",
+       "displayName": "write_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "09f35fd9-dc93-c4eb-1a79-c65ee7421231",
+   "name": "Insert Enrichment Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    4480,
+    208
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "const cfg = $('Config').first().json;\nconst rows = [];\nfor (const it of $input.all()) {\n  const j = it.json; const key = String(j.job_number || '');\n  (Array.isArray(j.errors) ? j.errors : []).forEach((e) => rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, source: 'wf04', stage: String(e.stage || ''), error_type: String(e.type || ''), error_message: String(e.msg || '').slice(0, 300), retry_status: 'next_run', job_key: key } }));\n  if (j._kind === 'write_row' && j.write_status !== 'OK') rows.push({ json: { run_id: cfg.run_id, ts: cfg.run_started, source: 'wf04', stage: 'notion_write', error_type: String(j.write_status), error_message: String(j.write_reason || '').slice(0, 300), retry_status: j.write_status === 'NOTION_ERROR' ? 'next_run' : 'manual', job_key: key } });\n}\nreturn rows;\n"
+   },
+   "id": "7e13f552-59f5-e6d9-95dd-6c0636b890f1",
+   "name": "Shape Error Rows",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    4256,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_scout_error_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "ts": "={{ $json.ts }}",
+      "source": "={{ $json.source }}",
+      "stage": "={{ $json.stage }}",
+      "error_type": "={{ $json.error_type }}",
+      "error_message": "={{ $json.error_message }}",
+      "retry_status": "={{ $json.retry_status }}",
+      "job_key": "={{ $json.job_key }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ts",
+       "displayName": "ts",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "source",
+       "displayName": "source",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "stage",
+       "displayName": "stage",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "error_type",
+       "displayName": "error_type",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "error_message",
+       "displayName": "error_message",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "retry_status",
+       "displayName": "retry_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "job_key",
+       "displayName": "job_key",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "95cc99fc-c5a4-b1eb-71a6-f38bb610d3f7",
+   "name": "Insert Error Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    4480,
+    400
+   ]
+  },
+  {
+   "parameters": {
+    "mode": "runOnceForAllItems",
+    "language": "javaScript",
+    "jsCode": "const cfg = $('Config').first().json;\nconst all = $input.all().map((i) => i.json);\nconst jobs = all.filter((j) => j._kind === 'enriched' || j._kind === 'write_row');\nconst w = all.filter((j) => j._kind === 'write_row');\nconst meta = all.filter((j) => j._kind === 'meta')[0];\nconst errs = [].concat.apply([], all.map((j) => Array.isArray(j.errors) ? j.errors : []));\nconst filled = jobs.reduce((n, j) => n + (Array.isArray(j.filled) ? j.filled.length : 0), 0);\nconst rejected = jobs.reduce((n, j) => n + (j.rows || []).filter((r) => r.field === 'ai_rejected').length, 0);\nconst conflicts = jobs.reduce((n, j) => n + (Array.isArray(j.conflicts) ? j.conflicts.length : 0), 0);\nreturn [{ json: { run_id: cfg.run_id, started_at: cfg.run_started, finished_at: new Date().toISOString(), queue_status: meta ? meta.status : 'OK', processed: jobs.length, unchanged: jobs.filter((j) => j.outcome === 'NO_CHANGE').length, checked_no_new_data: jobs.filter((j) => j.outcome === 'CHECKED_NO_NEW_DATA').length, enriched: jobs.filter((j) => j.outcome === 'ENRICHED').length, fields_filled: filled, ai_calls: jobs.filter((j) => j.ai_used === 'true').length, ai_rejected: rejected, conflicts, written_ok: w.filter((j) => j.write_status === 'OK').length, write_errors: w.filter((j) => j.write_status === 'NOTION_ERROR').length, verify_failed: w.filter((j) => j.write_status === 'VERIFY_FAILED').length, source_errors: errs.filter((e) => e.stage === 'source_fetch').length, summary_json: JSON.stringify({ outcomes: jobs.reduce((o, j) => { o[j.outcome] = (o[j.outcome] || 0) + 1; return o; }, {}) }).slice(0, 3000) } }];\n"
+   },
+   "id": "e75e40c0-2949-db94-f6ad-199f968435ea",
+   "name": "Run Log",
+   "type": "n8n-nodes-base.code",
+   "typeVersion": 2,
+   "position": [
+    4256,
+    592
+   ]
+  },
+  {
+   "parameters": {
+    "resource": "row",
+    "operation": "insert",
+    "dataTableId": {
+     "__rl": true,
+     "mode": "name",
+     "value": "mtg_job_enrichment_run_log"
+    },
+    "columns": {
+     "mappingMode": "defineBelow",
+     "value": {
+      "run_id": "={{ $json.run_id }}",
+      "started_at": "={{ $json.started_at }}",
+      "finished_at": "={{ $json.finished_at }}",
+      "queue_status": "={{ $json.queue_status }}",
+      "summary_json": "={{ $json.summary_json }}",
+      "processed": "={{ $json.processed }}",
+      "unchanged": "={{ $json.unchanged }}",
+      "checked_no_new_data": "={{ $json.checked_no_new_data }}",
+      "enriched": "={{ $json.enriched }}",
+      "fields_filled": "={{ $json.fields_filled }}",
+      "ai_calls": "={{ $json.ai_calls }}",
+      "ai_rejected": "={{ $json.ai_rejected }}",
+      "conflicts": "={{ $json.conflicts }}",
+      "written_ok": "={{ $json.written_ok }}",
+      "write_errors": "={{ $json.write_errors }}",
+      "verify_failed": "={{ $json.verify_failed }}",
+      "source_errors": "={{ $json.source_errors }}"
+     },
+     "schema": [
+      {
+       "id": "run_id",
+       "displayName": "run_id",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "started_at",
+       "displayName": "started_at",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "finished_at",
+       "displayName": "finished_at",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "queue_status",
+       "displayName": "queue_status",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "summary_json",
+       "displayName": "summary_json",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "string",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "processed",
+       "displayName": "processed",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "unchanged",
+       "displayName": "unchanged",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "checked_no_new_data",
+       "displayName": "checked_no_new_data",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "enriched",
+       "displayName": "enriched",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "fields_filled",
+       "displayName": "fields_filled",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ai_calls",
+       "displayName": "ai_calls",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "ai_rejected",
+       "displayName": "ai_rejected",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "conflicts",
+       "displayName": "conflicts",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "written_ok",
+       "displayName": "written_ok",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "write_errors",
+       "displayName": "write_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "verify_failed",
+       "displayName": "verify_failed",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      },
+      {
+       "id": "source_errors",
+       "displayName": "source_errors",
+       "required": false,
+       "defaultMatch": false,
+       "display": true,
+       "type": "number",
+       "canBeUsedToMatch": false
+      }
+     ]
+    }
+   },
+   "id": "98ddbf2f-a027-6d42-5058-687e1f38ac25",
+   "name": "Insert Run Log",
+   "type": "n8n-nodes-base.dataTable",
+   "typeVersion": 1.1,
+   "position": [
+    4480,
+    592
+   ]
+  }
+ ],
+ "connections": {
+  "Schedule 11:00 and 23:00 JST": {
+   "main": [
+    [
+     {
+      "node": "Config",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Config": {
+   "main": [
+    [
+     {
+      "node": "Query Candidates",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Query Candidates": {
+   "main": [
+    [
+     {
+      "node": "Flatten Candidates",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Flatten Candidates": {
+   "main": [
+    [
+     {
+      "node": "Is Candidate?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Fetch Source": {
+   "main": [
+    [
+     {
+      "node": "Extract",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Extract": {
+   "main": [
+    [
+     {
+      "node": "Needs AI?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Prepare AI": {
+   "main": [
+    [
+     {
+      "node": "AI Extract",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "AI Extract": {
+   "main": [
+    [
+     {
+      "node": "Parse AI",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enrich Inputs": {
+   "main": [
+    [
+     {
+      "node": "Enrich Diff",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Enrich Diff": {
+   "main": [
+    [
+     {
+      "node": "Needs Write?",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Notion PATCH": {
+   "main": [
+    [
+     {
+      "node": "Read-back Page",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Read-back Page": {
+   "main": [
+    [
+     {
+      "node": "Verify Write",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "All Outcomes": {
+   "main": [
+    [
+     {
+      "node": "Shape Enrichment Rows",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Shape Error Rows",
+      "type": "main",
+      "index": 0
+     },
+     {
+      "node": "Run Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Shape Enrichment Rows": {
+   "main": [
+    [
+     {
+      "node": "Insert Enrichment Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Shape Error Rows": {
+   "main": [
+    [
+     {
+      "node": "Insert Error Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Run Log": {
+   "main": [
+    [
+     {
+      "node": "Insert Run Log",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Is Candidate?": {
+   "main": [
+    [
+     {
+      "node": "Fetch Source",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Needs AI?": {
+   "main": [
+    [
+     {
+      "node": "Prepare AI",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "Enrich Inputs",
+      "type": "main",
+      "index": 0
+     }
+    ]
+   ]
+  },
+  "Parse AI": {
+   "main": [
+    [
+     {
+      "node": "Enrich Inputs",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Needs Write?": {
+   "main": [
+    [
+     {
+      "node": "Notion PATCH",
+      "type": "main",
+      "index": 0
+     }
+    ],
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 1
+     }
+    ]
+   ]
+  },
+  "Verify Write": {
+   "main": [
+    [
+     {
+      "node": "All Outcomes",
+      "type": "main",
+      "index": 2
+     }
+    ]
+   ]
+  }
+ },
+ "pinData": {},
+ "settings": {
+  "executionOrder": "v1",
+  "timezone": "Asia/Tokyo",
+  "saveDataSuccessExecution": "none",
+  "saveDataErrorExecution": "all",
+  "saveManualExecutions": true
+ },
+ "meta": {
+  "templateCredsSetupCompleted": false
+ },
+ "tags": []
+}

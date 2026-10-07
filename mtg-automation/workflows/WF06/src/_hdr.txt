@@ -1,0 +1,10 @@
+const cfg = $('Config').first().json;
+const plain = (a) => (a || []).map((x) => x.plain_text || '').join('');
+const pv = (p) => { if (!p) return ''; switch (p.type) { case 'title': return plain(p.title); case 'rich_text': return plain(p.rich_text); case 'number': return p.number === null ? null : p.number; case 'select': return p.select ? p.select.name : ''; case 'url': return p.url || ''; case 'checkbox': return !!p.checkbox; case 'date': return p.date ? p.date.start : ''; case 'unique_id': return p.unique_id ? (p.unique_id.prefix ? p.unique_id.prefix + '-' : '') + p.unique_id.number : ''; default: return ''; } };
+const SECTOR_ID = { '介護': 'Perawatan lansia (Kaigo)', '外食': 'Restoran / jasa makanan (外食業)', '食品製造': 'Manufaktur makanan & minuman', '製造': 'Manufaktur industri', '建設': 'Konstruksi', '農業': 'Pertanian', '宿泊': 'Perhotelan', 'ビルクリーニング': 'Kebersihan gedung', '造船・舶用工業': 'Galangan kapal & industri maritim', '自動車整備': 'Perawatan & perbaikan mobil', '航空': 'Penerbangan', 'その他': '' };
+const unk = (v) => v === null || v === undefined || v === '' || v === 'Unknown';
+const fnv = (s) => { let h1 = 0x811c9dc5, h2 = 0x01000193; for (let i = 0; i < s.length; i++) { const c = s.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = (Math.imul(h2 + c, 2246822519) ^ (h2 >>> 13)) >>> 0; } return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0'); };
+const allowedTiers = String(cfg.allowed_tiers || 'S-TIER,A-TIER,B-TIER,C-TIER').split(',').map((s) => s.trim());
+const seen = {}; const items = []; const errors = [];
+$input.all().map((i) => i.json).forEach((r, idx) => {
+  if (!r || r.error || r.object === 'error' || !Array.isArray(r.results)) { errors.push({ stage: 'queue_' + (idx === 0 ? 'new' : 'drafts'), type: 'notion_error', msg: String((r && ((r.error && r.error.message) || r.message)) || 'bad response').slice(0, 200) }); return; }

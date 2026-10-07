@@ -1,0 +1,11 @@
+{
+ "run_id": "={{ \"EN-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Job Enrichment V1.0",
+ "max_per_run": 20,
+ "recheck_days": 7,
+ "use_ai": "true",
+ "ai_model_enrich": "claude-sonnet-5-5",
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9"
+}

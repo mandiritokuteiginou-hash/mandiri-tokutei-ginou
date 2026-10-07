@@ -1,0 +1,17 @@
+{
+ "run_id": "={{ \"RUN-\" + $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyyLLdd-HHmm\") }}",
+ "run_date": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"yyyy-MM-dd\") }}",
+ "run_time": "={{ $now.setZone(\"Asia/Tokyo\").toFormat(\"HH:mm\") }}",
+ "run_started": "={{ $now.toISO() }}",
+ "workflow_name": "Daily Job Scout V1.0",
+ "job_threshold": 80,
+ "company_threshold": 90,
+ "pages_per_query": 2,
+ "max_ai_jobs": 40,
+ "staleness_days": 180,
+ "allow_hourly_sectors": "農業,漁業",
+ "ai_model_extract": "claude-haiku-4-5-20251001",
+ "ai_model_score": "claude-sonnet-5-5",
+ "notion_job_ds_id": "a5cfe2a2-de3f-426c-8449-77f0de1c24c9",
+ "notion_company_ds_id": "a72e12ca-f829-407f-945e-4b87e9195cd2"
+}
