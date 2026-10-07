@@ -1,0 +1,69 @@
+# ===== Sumber =====
+sources:
+  jooble:
+    queries: ["特定技能", "特定技能 外国人 歓迎", "Tokutei Ginou", "特定技能1号"]
+    locations: []            # kosong = seluruh Jepang
+    pages: 2
+  rss_feeds: []              # tambahkan URL RSS bila ada
+
+# ===== Filter ketat =====
+filters:
+  max_age_days: 14           # buang lowongan lebih lama dari ini (bila tanggal diketahui)
+  require_posted_date: false # true = buang lowongan tanpa tanggal
+
+  # Wajib: teks harus memuat salah satu
+  must_include: ["特定技能", "tokutei ginou", "specified skilled worker", "ssw"]
+
+  # Langsung ditolak bila memuat salah satu
+  exclude: ["特定技能不可", "特定技能は不可", "外国人不可", "外国籍不可", "日本人のみ",
+            "日本国籍", "留学生限定", "技能実習のみ", "技能実習生のみ", "永住者のみ",
+            "N1必須", "N2必須", "日本語能力試験N1", "日本語能力試験N2"]
+  exclude_company_keywords: ["紹介予定派遣"]   # contoh; sesuaikan
+
+  # Sektor 特定技能 yang diizinkan (kosong = semua 16 sektor)
+  # nama sektor: lihat SECTORS di agent/filters.py
+  allowed_sectors: []
+
+  # Prefektur yang diizinkan (kosong = semua). Contoh: ["東京", "大阪", "愛知"]
+  allowed_prefectures: []
+
+  # Gaji bulanan minimum (yen). Bila gaji terbaca & di bawah ini -> ditolak.
+  min_monthly_salary_yen: 180000
+  require_salary: false      # true = buang yang gajinya tidak terbaca
+
+  # Level bahasa Jepang maksimum yang diminta (5=N5 ... 1=N1). Minta lebih tinggi -> ditolak.
+  max_required_jlpt: 3       # N3 ke bawah OK; N2/N1 ditolak
+
+  # Skor positif (dukungan untuk pekerja asing)
+  positive:
+    "ビザ": 2
+    "在留資格": 2
+    "サポート": 1
+    "寮": 2
+    "社宅": 2
+    "住宅手当": 1
+    "日本語不問": 3
+    "未経験": 1
+    "外国人歓迎": 3
+    "外国人活躍": 2
+    "賞与": 1
+    "昇給": 1
+    "社会保険": 1
+    "交通費": 1
+  # Skor negatif (tanda bahaya)
+  negative:
+    "派遣": -2
+    "短期": -2
+    "アルバイト": -2
+    "パート": -1
+    "日払い": -1
+  min_score: 4               # lowongan harus >= skor ini
+
+# ===== Tahap-2 opsional dengan Claude (butuh ANTHROPIC_API_KEY) =====
+llm:
+  enabled: true              # otomatis nonaktif bila API key kosong
+  model: claude-haiku-4-5-20251001
+  max_jobs: 40               # batas per run untuk menjaga biaya
+
+notion:
+  max_per_run: 100
