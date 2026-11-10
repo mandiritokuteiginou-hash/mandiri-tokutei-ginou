@@ -7,3 +7,4 @@
 5. `next lint` is deprecated in Next 16; migrate to ESLint CLI.
 6. DB tests run on a stub `auth` schema, not real Supabase GoTrue; re-verify on a Supabase dev project.
 7. No PWA icons/service worker yet (manifest only).
+8. Vercel project `mandiri-tokutei-ginou` had no framework preset (build failed with STATIC_BUILD_NO_OUT_DIR). Mitigated in-repo via root `vercel.json`. The project also has the production domain attached; **merging to main will deploy this app there** — owner must confirm before merge, and may prefer Root Directory = `apps/web` in project settings (not changed by us).
