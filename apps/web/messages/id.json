@@ -1,0 +1,74 @@
+{
+  "brand": "Mandiri Tokutei Ginou",
+  "nav": {
+    "home": "Beranda",
+    "jobs": "Lowongan",
+    "matching": "Pencocokan",
+    "learning": "Belajar",
+    "profile": "Profil",
+    "login": "Masuk",
+    "register": "Daftar",
+    "logout": "Keluar"
+  },
+  "home": {
+    "title": "Perjalanan karier Anda ke Jepang, dalam satu aplikasi",
+    "subtitle": "Lowongan terverifikasi, pembelajaran bahasa Jepang, dan pendampingan karier untuk pekerja Indonesia.",
+    "cta": "Mulai sekarang",
+    "notice": "Layanan saat ini bersifat informasi. MTG tidak menjamin penempatan kerja."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Kata sandi",
+    "fullName": "Nama lengkap",
+    "role": "Saya adalah",
+    "terms": "Saya menyetujui syarat dan kebijakan privasi",
+    "loginTitle": "Masuk ke akun",
+    "registerTitle": "Buat akun",
+    "forgot": "Lupa kata sandi?",
+    "submitLogin": "Masuk",
+    "submitRegister": "Daftar",
+    "checkEmail": "Periksa email Anda untuk memverifikasi akun.",
+    "invalidCredentials": "Email atau kata sandi salah.",
+    "notConfigured": "Layanan autentikasi belum dikonfigurasi di lingkungan ini.",
+    "tooMany": "Terlalu banyak percobaan. Coba lagi nanti.",
+    "genericError": "Terjadi kesalahan. Coba lagi.",
+    "roles": {
+      "job_seeker": "Pencari kerja",
+      "student": "Pelajar",
+      "employer": "Perusahaan / Pemberi kerja"
+    }
+  },
+  "validation": {
+    "invalid_email": "Format email tidak valid.",
+    "password_too_short": "Kata sandi minimal 10 karakter.",
+    "password_needs_lowercase": "Kata sandi perlu huruf kecil.",
+    "password_needs_uppercase": "Kata sandi perlu huruf besar.",
+    "password_needs_digit": "Kata sandi perlu angka.",
+    "name_too_short": "Nama terlalu pendek.",
+    "terms_required": "Anda harus menyetujui syarat.",
+    "password_required": "Kata sandi wajib diisi."
+  },
+  "admin": {
+    "title": "Pusat Kontrol",
+    "overview": "Ikhtisar",
+    "candidates": "Kandidat",
+    "jobs": "Lowongan",
+    "companies": "Perusahaan",
+    "recruitment": "Rekrutmen",
+    "education": "Pendidikan",
+    "community": "Komunitas",
+    "ai": "Operasi AI",
+    "reports": "Laporan",
+    "settings": "Pengaturan",
+    "emptyTitle": "Belum ada data",
+    "emptyBody": "Modul ini akan aktif pada fase berikutnya.",
+    "forbidden": "Anda tidak memiliki akses ke area ini."
+  },
+  "common": {
+    "loading": "Memuat…",
+    "error": "Terjadi kesalahan",
+    "retry": "Coba lagi",
+    "notFound": "Halaman tidak ditemukan",
+    "language": "Bahasa"
+  }
+}

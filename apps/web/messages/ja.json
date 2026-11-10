@@ -1,0 +1,70 @@
+{
+  "brand": "Mandiri Tokutei Ginou",
+  "nav": {
+    "home": "ホーム",
+    "jobs": "求人",
+    "matching": "マッチング",
+    "learning": "学習",
+    "profile": "プロフィール",
+    "login": "ログイン",
+    "register": "新規登録",
+    "logout": "ログアウト"
+  },
+  "home": {
+    "title": "日本でのキャリアを、ひとつのアプリで",
+    "subtitle": "確認済みの求人、日本語学習、キャリア支援をインドネシアの人材に提供します。",
+    "cta": "はじめる",
+    "notice": "現在の提供内容は情報提供のみです。就職・配置を保証するものではありません。"
+  },
+  "auth": {
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "fullName": "氏名",
+    "role": "あなたは",
+    "terms": "利用規約とプライバシーポリシーに同意します",
+    "loginTitle": "ログイン",
+    "registerTitle": "アカウント作成",
+    "forgot": "パスワードをお忘れですか？",
+    "submitLogin": "ログイン",
+    "submitRegister": "登録する",
+    "checkEmail": "確認メールをご確認ください。",
+    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません。",
+    "notConfigured": "この環境では認証サービスが未設定です。",
+    "tooMany": "試行回数が多すぎます。しばらくしてからお試しください。",
+    "genericError": "エラーが発生しました。もう一度お試しください。",
+    "roles": { "job_seeker": "求職者", "student": "学生", "employer": "企業・雇用主" }
+  },
+  "validation": {
+    "invalid_email": "メールアドレスの形式が正しくありません。",
+    "password_too_short": "パスワードは10文字以上にしてください。",
+    "password_needs_lowercase": "小文字を含めてください。",
+    "password_needs_uppercase": "大文字を含めてください。",
+    "password_needs_digit": "数字を含めてください。",
+    "name_too_short": "氏名が短すぎます。",
+    "terms_required": "規約への同意が必要です。",
+    "password_required": "パスワードを入力してください。"
+  },
+  "admin": {
+    "title": "コントロールセンター",
+    "overview": "概要",
+    "candidates": "候補者",
+    "jobs": "求人",
+    "companies": "企業",
+    "recruitment": "採用",
+    "education": "教育",
+    "community": "コミュニティ",
+    "ai": "AI運用",
+    "reports": "レポート",
+    "settings": "設定",
+    "emptyTitle": "データがありません",
+    "emptyBody": "このモジュールは次のフェーズで有効になります。",
+    "forbidden": "この領域へのアクセス権がありません。"
+  },
+  "common": {
+    "loading": "読み込み中…",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "notFound": "ページが見つかりません",
+    "language": "言語"
+  }
+}
