@@ -1,14 +1,20 @@
 'use client';
 import { useActionState } from 'react';
 import { useTranslations } from 'next-intl';
-import { loginAction, registerAction, type FormState } from '@/app/actions';
+import {
+  forgotPasswordAction,
+  loginAction,
+  registerAction,
+  resetPasswordAction,
+  type FormState,
+} from '@/app/actions';
 import { Alert, Button, Field } from './ui';
 
 const init: FormState = { status: 'idle' };
 
 function Status({ s }: { s: FormState }) {
   const t = useTranslations('auth');
-  if (s.status === 'ok') return <Alert kind="ok">{t(s.code as 'checkEmail')}</Alert>;
+  if (s.status === 'ok' && s.code) return <Alert kind="ok">{t(s.code as 'checkEmail')}</Alert>;
   if (s.status === 'error' && s.code && s.code !== 'validation')
     return <Alert>{t(s.code as 'genericError')}</Alert>;
   return null;
@@ -106,6 +112,60 @@ export function RegisterForm() {
       )}
       <Button type="submit" disabled={pending} className="w-full">
         {t('submitRegister')}
+      </Button>
+    </form>
+  );
+}
+
+export function ForgotPasswordForm() {
+  const t = useTranslations('auth');
+  const v = useTranslations('validation');
+  const [s, action, pending] = useActionState(forgotPasswordAction, init);
+  return (
+    <form action={action} className="space-y-4" noValidate>
+      <Status s={s} />
+      <Field
+        name="email"
+        type="email"
+        autoComplete="email"
+        label={t('email')}
+        error={s.fieldErrors?.email ? v(s.fieldErrors.email as 'invalid_email') : undefined}
+        required
+      />
+      <Button type="submit" disabled={pending} className="w-full">
+        {t('submitReset')}
+      </Button>
+    </form>
+  );
+}
+
+export function ResetPasswordForm() {
+  const t = useTranslations('auth');
+  const v = useTranslations('validation');
+  const [s, action, pending] = useActionState(resetPasswordAction, init);
+  const fe = (k: string) =>
+    s.fieldErrors?.[k] ? v(s.fieldErrors[k] as 'invalid_email') : undefined;
+  return (
+    <form action={action} className="space-y-4" noValidate>
+      <Status s={s} />
+      <Field
+        name="password"
+        type="password"
+        autoComplete="new-password"
+        label={t('newPassword')}
+        error={fe('password')}
+        required
+      />
+      <Field
+        name="confirm"
+        type="password"
+        autoComplete="new-password"
+        label={t('confirmPassword')}
+        error={fe('confirm')}
+        required
+      />
+      <Button type="submit" disabled={pending} className="w-full">
+        {t('submitNewPassword')}
       </Button>
     </form>
   );

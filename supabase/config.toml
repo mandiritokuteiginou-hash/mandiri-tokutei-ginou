@@ -1,0 +1,34 @@
+# Supabase CLI config for LOCAL / DEVELOPMENT use only. This file is never applied to mtg-production.
+# Local stack (needs Docker + Supabase CLI):  supabase start  &&  supabase db reset
+project_id = "mtg-dev"
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/callback"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+enable_signup = true
+enable_anonymous_sign_ins = false
+minimum_password_length = 10
+password_requirements = "lower_upper_letters_digits"
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true      # users must verify their email before login
+secure_password_change = true
+
+[auth.rate_limit]
+email_sent = 4
+sign_in_sign_ups = 30
+
+[db]
+major_version = 15

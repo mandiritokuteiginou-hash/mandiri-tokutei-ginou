@@ -31,14 +31,14 @@ PostgreSQL (Supabase). UUID PKs, `created_at/updated_at`, soft delete (`deleted_
 
 **Job lifecycle** (PRD → existing Notion):
 
-| PRD                                                                                                                       | Notion `Status` / `MTG QC Status`                                  |
-| ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Draft                                                                                                                     | NEW, EXTRACTED                                                     |
-| QC Review                                                                                                                 | VERIFICATION_REQUIRED, or `MTG QC Status = QC Review`              |
-| Approved                                                                                                                  | VERIFIED/CONTENT_READY/IMAGE_READY with `QC Approved`, or APPROVED |
-| Published                                                                                                                 | PUBLISHED, UPDATED                                                 |
-| Expired                                                                                                                   | `Expiry Date` passed                                               |
-| Archived                                                                                                                  | CLOSED                                                             |
+| PRD       | Notion `Status` / `MTG QC Status`                                  |
+| --------- | ------------------------------------------------------------------ |
+| Draft     | NEW, EXTRACTED                                                     |
+| QC Review | VERIFICATION_REQUIRED, or `MTG QC Status = QC Review`              |
+| Approved  | VERIFIED/CONTENT_READY/IMAGE_READY with `QC Approved`, or APPROVED |
+| Published | PUBLISHED, UPDATED                                                 |
+| Expired   | `Expiry Date` passed                                               |
+| Archived  | CLOSED                                                             |
 
 Publication rule: only `QC Approved` + `Job Verified` + `Source Verified` may become Published (human approval recorded).
 

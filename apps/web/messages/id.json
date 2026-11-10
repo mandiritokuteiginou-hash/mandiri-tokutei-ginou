@@ -36,7 +36,16 @@
       "job_seeker": "Pencari kerja",
       "student": "Pelajar",
       "employer": "Perusahaan / Pemberi kerja"
-    }
+    },
+    "forgotTitle": "Atur ulang kata sandi",
+    "submitReset": "Kirim tautan",
+    "resetSent": "Jika email terdaftar, tautan pengaturan ulang telah dikirim.",
+    "resetTitle": "Kata sandi baru",
+    "newPassword": "Kata sandi baru",
+    "confirmPassword": "Ulangi kata sandi",
+    "submitNewPassword": "Simpan kata sandi",
+    "passwordUpdated": "Kata sandi diperbarui.",
+    "sessionExpired": "Tautan kedaluwarsa. Minta tautan baru."
   },
   "validation": {
     "invalid_email": "Format email tidak valid.",
@@ -46,7 +55,8 @@
     "password_needs_digit": "Kata sandi perlu angka.",
     "name_too_short": "Nama terlalu pendek.",
     "terms_required": "Anda harus menyetujui syarat.",
-    "password_required": "Kata sandi wajib diisi."
+    "password_required": "Kata sandi wajib diisi.",
+    "password_mismatch": "Kata sandi tidak sama."
   },
   "admin": {
     "title": "Pusat Kontrol",

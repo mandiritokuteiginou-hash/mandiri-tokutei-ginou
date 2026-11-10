@@ -32,7 +32,20 @@
     "notConfigured": "この環境では認証サービスが未設定です。",
     "tooMany": "試行回数が多すぎます。しばらくしてからお試しください。",
     "genericError": "エラーが発生しました。もう一度お試しください。",
-    "roles": { "job_seeker": "求職者", "student": "学生", "employer": "企業・雇用主" }
+    "roles": {
+      "job_seeker": "求職者",
+      "student": "学生",
+      "employer": "企業・雇用主"
+    },
+    "forgotTitle": "パスワードの再設定",
+    "submitReset": "リンクを送信",
+    "resetSent": "登録済みの場合、再設定リンクを送信しました。",
+    "resetTitle": "新しいパスワード",
+    "newPassword": "新しいパスワード",
+    "confirmPassword": "パスワード（確認）",
+    "submitNewPassword": "パスワードを保存",
+    "passwordUpdated": "パスワードを更新しました。",
+    "sessionExpired": "リンクの有効期限が切れました。再度お申し込みください。"
   },
   "validation": {
     "invalid_email": "メールアドレスの形式が正しくありません。",
@@ -42,7 +55,8 @@
     "password_needs_digit": "数字を含めてください。",
     "name_too_short": "氏名が短すぎます。",
     "terms_required": "規約への同意が必要です。",
-    "password_required": "パスワードを入力してください。"
+    "password_required": "パスワードを入力してください。",
+    "password_mismatch": "パスワードが一致しません。"
   },
   "admin": {
     "title": "コントロールセンター",

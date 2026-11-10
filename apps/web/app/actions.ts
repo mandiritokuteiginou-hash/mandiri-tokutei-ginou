@@ -1,79 +1,51 @@
 'use server';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { loginSchema, registerSchema } from '@mtg/validation';
-import { log } from '@/lib/logger';
+import * as svc from '@/lib/auth-service';
+import type { AuthClient, Deps, FormState } from '@/lib/auth-service';
 import { rateLimit } from '@/lib/rate-limit';
 import { safeNext } from '@/lib/safe-redirect';
 import { createClient } from '@/lib/supabase/server';
 
-export type FormState = {
-  status: 'idle' | 'error' | 'ok';
-  code?: string;
-  fieldErrors?: Record<string, string>;
-};
+export type { FormState };
 
-async function clientIp(): Promise<string> {
+async function deps(): Promise<Deps> {
   const h = await headers();
-  return h.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-}
-function fieldErrors(issues: { path: (string | number)[]; message: string }[]) {
-  const out: Record<string, string> = {};
-  for (const i of issues) out[String(i.path[0])] ??= i.message;
-  return out;
+  return {
+    sb: (await createClient()) as unknown as AuthClient | null,
+    ip: h.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown',
+    limit: rateLimit,
+    siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? null,
+  };
 }
 
 export async function loginAction(_: FormState, fd: FormData): Promise<FormState> {
-  const parsed = loginSchema.safeParse(Object.fromEntries(fd));
-  if (!parsed.success)
-    return { status: 'error', code: 'validation', fieldErrors: fieldErrors(parsed.error.issues) };
-  const ip = await clientIp();
-  if (
-    !rateLimit(`login:${ip}`, 20, 15 * 60_000) ||
-    !rateLimit(`login:${parsed.data.email}`, 8, 15 * 60_000)
-  ) {
-    log('warn', 'login rate limited', { ip });
-    return { status: 'error', code: 'tooMany' };
-  }
-  const sb = await createClient();
-  if (!sb) return { status: 'error', code: 'notConfigured' };
-  const { error } = await sb.auth.signInWithPassword(parsed.data);
-  if (error) {
-    log('info', 'login failed', { ip });
-    return { status: 'error', code: 'invalidCredentials' }; // same message for unknown user / wrong password
-  }
-  redirect(safeNext(fd.get('next'), '/'));
+  const r = await svc.login(await deps(), Object.fromEntries(fd));
+  if (r.status === 'ok') redirect(safeNext(fd.get('next'), '/'));
+  return r;
 }
-
 export async function registerAction(_: FormState, fd: FormData): Promise<FormState> {
-  const raw = { ...Object.fromEntries(fd), acceptTerms: fd.get('acceptTerms') === 'on' };
-  const parsed = registerSchema.safeParse(raw);
-  if (!parsed.success)
-    return { status: 'error', code: 'validation', fieldErrors: fieldErrors(parsed.error.issues) };
-  const ip = await clientIp();
-  if (!rateLimit(`register:${ip}`, 5, 60 * 60_000)) return { status: 'error', code: 'tooMany' };
-  const sb = await createClient();
-  if (!sb) return { status: 'error', code: 'notConfigured' };
-  const { email, password, fullName, role, locale } = parsed.data;
-  const { error } = await sb.auth.signUp({
-    email,
-    password,
-    options: { data: { full_name: fullName, role, locale } },
+  return svc.register(await deps(), {
+    ...Object.fromEntries(fd),
+    acceptTerms: fd.get('acceptTerms') === 'on',
   });
-  if (error && !/already/i.test(error.message)) {
-    log('error', 'signup failed', { status: error.status });
-    return { status: 'error', code: 'genericError' };
-  }
-  // Identical response whether or not the email already exists (no account enumeration).
-  return { status: 'ok', code: 'checkEmail' };
 }
-
+export async function forgotPasswordAction(_: FormState, fd: FormData): Promise<FormState> {
+  return svc.requestPasswordReset(await deps(), Object.fromEntries(fd));
+}
+export async function resetPasswordAction(_: FormState, fd: FormData): Promise<FormState> {
+  const r = await svc.updatePassword(await deps(), {
+    password: fd.get('password'),
+    confirm: fd.get('confirm'),
+  });
+  if (r.status === 'ok') redirect('/login');
+  return r;
+}
 export async function logoutAction(): Promise<void> {
   const sb = await createClient();
   await sb?.auth.signOut();
   redirect('/');
 }
-
 export async function setLocaleAction(fd: FormData): Promise<void> {
   const l = fd.get('locale') === 'ja' ? 'ja' : 'id';
   (await cookies()).set('mtg_locale', l, { path: '/', maxAge: 31_536_000, sameSite: 'lax' });

@@ -17,7 +17,7 @@ Status legend: ☐ not started · ◐ in progress · ☑ done (implemented **and
 - ◐ Public layout + Admin layout; error/loading/empty states
 - ◐ Auth pages (login/register done; reset/verify pending) + Supabase client wiring (needs credentials to run end-to-end)
 - ☑ Security headers, basic rate limiter, structured logger
-- ◐ CI workflow (written, not yet run) (lint, typecheck, test, build)
+- ☑ CI workflow (lint, typecheck, test, build, DB integration) - passed on PR #6 before this milestone
 - Acceptance: registration/login/roles working **against a real Supabase project** — blocked on B-2/B-4 for the live part; local checks are unit tests + build.
 
 ## Phase 2 — Candidates & Jobs
