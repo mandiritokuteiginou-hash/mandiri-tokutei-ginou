@@ -65,22 +65,30 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
     <h1>LMS MTGI — Semua Materi</h1>
     <p>Satu pintu untuk seluruh materi belajar MTGI: Bahasa Jepang N5 &amp; N4, latihan JLPT, modul SSW lima bidang, dan persiapan mensetsu. Mari kita belajar tertib, satu modul demi satu modul.</p>
   </div>
-  <div class="login-card">
+  <div class="login-card" id="login-form-box">
     <h2>Masuk</h2>
-    <p class="note">Masukkan nama lengkap. Progres belajar tersimpan otomatis pada perangkat ini.</p>
+    <p class="note">LMS ini khusus untuk siswa terdaftar. Masukkan nama lengkap dan email yang sama dengan yang kita pakai saat mengisi Form Pendaftaran Kelas — kami kirimkan tautan masuk ke email itu, tanpa kata sandi. Progres belajar tersimpan otomatis pada perangkat ini.</p>
     <label for="nama">Nama lengkap</label>
     <input type="text" id="nama" autocomplete="name" placeholder="mis. Siti Rahma">
-    <div id="sb-box" class="hidden">
-      <label for="email">Email (mode daring)</label>
-      <input type="email" id="email" autocomplete="email" placeholder="nama@email.com">
-      <label for="sandi">Kata sandi</label>
-      <input type="password" id="sandi" autocomplete="current-password" placeholder="Kata sandi akun">
-    </div>
-    <button class="primary" id="btn-login" style="width:100%">Masuk ke LMS</button>
+    <label for="email">Email terdaftar</label>
+    <input type="email" id="email" autocomplete="email" placeholder="nama@email.com">
+    <button class="primary" id="btn-login" style="width:100%">Kirim Tautan Masuk ke Email</button>
     <p class="note" id="login-msg"></p>
   </div>
+  <div class="login-card hidden" id="login-sent-box">
+    <h2>Tautan Terkirim</h2>
+    <p>Kami sudah mengirim tautan masuk ke email terdaftar kita. Silakan buka email itu lalu ketuk tautannya — kita akan langsung masuk ke LMS di perangkat ini. Tautan berlaku terbatas, jadi mari segera dibuka ya. Bila email belum tiba dalam beberapa menit, periksa juga folder spam atau promosi.</p>
+    <button id="btn-sent-back" style="width:100%">Kembali</button>
+  </div>
+  <div class="login-card hidden" id="login-reject-box">
+    <h2>Email Belum Terdaftar</h2>
+    <p>Mohon maaf, email yang dimasukkan belum ada di daftar siswa kami, jadi tautan masuk belum bisa kami kirim. Bila kita belum pernah mengisi Form Pendaftaran Kelas, silakan isi dulu ya — gratis dan singkat. Bila merasa sudah mendaftar memakai email lain, mari coba email itu. Bila masih terkendala, hubungi admin kami — kami siap membantu.</p>
+    <p><a href="https://docs.google.com/forms/d/e/1FAIpQLSePqIBlWT_y5BMZ802ksCIXH6iW2Xu12MUIvQESArgYk7P8sw/viewform" target="_blank" rel="noopener"><button class="primary" type="button" style="width:100%">Isi Form Pendaftaran Kelas</button></a></p>
+    <p><a href="https://wa.me/818074181493" target="_blank" rel="noopener"><button type="button" style="width:100%">Hubungi Admin via WhatsApp</button></a></p>
+    <button id="btn-reject-back" style="width:100%">Coba Email Lain</button>
+  </div>
   <footer>
-    <p>LMS ini memuat materi suplemen belajar Mandiri Tokutei Ginou. Materi Bahasa Jepang bersumber acuan pada Minna no Nihongo Edisi 2 (3A Corporation) dengan redaksi orisinal MTGI; materi SSW mengikuti teks resmi SSW tiap bidang. Progres per modul tersimpan pada perangkat ini; mode daring (Supabase) aktif setelah konfigurasi proyek diisi sesuai panduan produksi.</p>
+    <p>LMS ini memuat materi suplemen belajar Mandiri Tokutei Ginou. Materi Bahasa Jepang bersumber acuan pada Minna no Nihongo Edisi 2 (3A Corporation) dengan redaksi orisinal MTGI; materi SSW mengikuti teks resmi SSW tiap bidang. Progres per modul tersimpan pada perangkat ini dan tersinkron ke akun email terdaftar kita pada mode daring.</p>
   </footer>
 </div>
 
@@ -143,13 +151,57 @@ async function sbSync(){
       body: JSON.stringify({ user_name: user, data: store, updated_at: new Date().toISOString() }) });
   }catch(e){}
 }
-async function sbSignIn(email, password){
-  const r = await fetch(SUPABASE_CFG.url + '/auth/v1/token?grant_type=password', { method:'POST',
+async function sbCheckRegistered(email){
+  try{
+    const r = await fetch(SUPABASE_CFG.url + '/rest/v1/rpc/is_registered_email', { method:'POST',
+      headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + SUPABASE_CFG.anonKey, 'Content-Type':'application/json' },
+      body: JSON.stringify({ check_email: email }) });
+    if(!r.ok) return null;
+    return (await r.json()) === true;
+  }catch(e){ return null; }
+}
+async function sbSendMagicLink(email){
+  try{
+    const redirect = location.protocol + '//' + location.host + location.pathname;
+    const r = await fetch(SUPABASE_CFG.url + '/auth/v1/otp', { method:'POST',
+      headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Content-Type':'application/json' },
+      body: JSON.stringify({ email: email, options:{ emailRedirectTo: redirect } }) });
+    return r.ok;
+  }catch(e){ return false; }
+}
+function sbSaveSession(s){ try{ localStorage.setItem('mtgiLMSv3:session', JSON.stringify(s)); }catch(e){} }
+function sbLoadSession(){
+  try{ const r = localStorage.getItem('mtgiLMSv3:session'); if(!r) return null; const s = JSON.parse(r); return (s && s.access_token && s.email) ? s : null; }catch(e){ return null; }
+}
+function sbClearSession(){ try{ localStorage.removeItem('mtgiLMSv3:session'); localStorage.removeItem('mtgiLMSv3:pending'); }catch(e){} window.__sbToken = null; }
+async function sbFetchUser(token){
+  try{ const r = await fetch(SUPABASE_CFG.url + '/auth/v1/user', { headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token } });
+    if(!r.ok) return null; return await r.json(); }catch(e){ return null; }
+}
+async function sbRefresh(refreshToken){
+  try{ const r = await fetch(SUPABASE_CFG.url + '/auth/v1/token?grant_type=refresh_token', { method:'POST',
     headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Content-Type':'application/json' },
-    body: JSON.stringify({ email: email, password: password }) });
-  const j = await r.json();
-  if(j && j.access_token){ window.__sbToken = j.access_token; return true; }
-  return false;
+    body: JSON.stringify({ refresh_token: refreshToken }) });
+    if(!r.ok) return null; const j = await r.json(); return (j && j.access_token) ? j : null; }catch(e){ return null; }
+}
+async function sbMyName(token){
+  try{ const r = await fetch(SUPABASE_CFG.url + '/rest/v1/rpc/my_registered_name', { method:'POST',
+    headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: '{}' });
+    if(!r.ok) return null; const j = await r.json(); return (typeof j === 'string' && j) ? j : null; }catch(e){ return null; }
+}
+function enterApp(nama){
+  user = nama; loadStore(user);
+  document.getElementById('view-login').classList.add('hidden');
+  document.getElementById('view-app').classList.remove('hidden');
+  render();
+}
+async function sbStartSession(sess){
+  window.__sbToken = sess.access_token;
+  let nama = sess.nama || null;
+  if(!nama) nama = await sbMyName(sess.access_token);
+  if(!nama) nama = sess.email;
+  sess.nama = nama; sbSaveSession(sess);
+  enterApp(nama);
 }
 
 function render(){
@@ -282,26 +334,42 @@ document.querySelectorAll('.tabs button[data-tab]').forEach(b=>{
     ['dash','lib','prog','sim'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
   });
 });
-document.getElementById('btn-logout').addEventListener('click', ()=>{
-  try{ localStorage.removeItem('mtgiLMSv3:session'); }catch(e){}
+document.getElementById('btn-logout').addEventListener('click', async ()=>{
+  const s = sbLoadSession();
+  if(s && s.access_token){ try{ await fetch(SUPABASE_CFG.url + '/auth/v1/logout', { method:'POST', headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + s.access_token } }); }catch(e){} }
+  sbClearSession();
   location.reload();
 });
 document.getElementById('btn-login').addEventListener('click', async ()=>{
   const nama = document.getElementById('nama').value.trim();
+  const email = document.getElementById('email').value.trim().toLowerCase();
   const msg = document.getElementById('login-msg');
   if(!nama){ msg.textContent = 'Mohon isi nama lengkap terlebih dahulu.'; return; }
-  if(SUPABASE_CFG.url && SUPABASE_CFG.anonKey){
-    const email = document.getElementById('email').value.trim();
-    const sandi = document.getElementById('sandi').value;
-    if(!email || !sandi){ msg.textContent = 'Mode daring aktif: mohon isi email dan kata sandi.'; return; }
-    const ok = await sbSignIn(email, sandi);
-    if(!ok){ msg.textContent = 'Masuk daring belum berhasil. Periksa email dan kata sandi, lalu coba lagi.'; return; }
+  if(!email || email.indexOf('@') < 1){ msg.textContent = 'Mohon isi email terdaftar dengan benar.'; return; }
+  const btn = document.getElementById('btn-login');
+  btn.disabled = true; msg.textContent = 'Memeriksa pendaftaran kita...';
+  const reg = await sbCheckRegistered(email);
+  if(reg === null){ btn.disabled = false; msg.textContent = 'Pemeriksaan belum berhasil. Periksa koneksi internet kita, lalu coba lagi ya.'; return; }
+  if(!reg){
+    btn.disabled = false;
+    document.getElementById('login-form-box').classList.add('hidden');
+    document.getElementById('login-reject-box').classList.remove('hidden');
+    return;
   }
-  user = nama; loadStore(user);
-  try{ localStorage.setItem('mtgiLMSv3:session', user); }catch(e){}
-  document.getElementById('view-login').classList.add('hidden');
-  document.getElementById('view-app').classList.remove('hidden');
-  render();
+  try{ localStorage.setItem('mtgiLMSv3:pending', JSON.stringify({ nama: nama, email: email })); }catch(e){}
+  const ok = await sbSendMagicLink(email);
+  btn.disabled = false;
+  if(!ok){ msg.textContent = 'Tautan masuk belum berhasil dikirim. Mari kita coba lagi sebentar lagi.'; return; }
+  document.getElementById('login-form-box').classList.add('hidden');
+  document.getElementById('login-sent-box').classList.remove('hidden');
+});
+document.getElementById('btn-reject-back').addEventListener('click', ()=>{
+  document.getElementById('login-reject-box').classList.add('hidden');
+  document.getElementById('login-form-box').classList.remove('hidden');
+});
+document.getElementById('btn-sent-back').addEventListener('click', ()=>{
+  document.getElementById('login-sent-box').classList.add('hidden');
+  document.getElementById('login-form-box').classList.remove('hidden');
 });
 
 // ===== SIMULASI JLPT =====
@@ -377,16 +445,38 @@ function printRaport(){
   setTimeout(()=>{ try{ fr.contentWindow.focus(); fr.contentWindow.print(); }catch(e){} }, 600);
 }
 
-(function init(){
-  if(SUPABASE_CFG.url && SUPABASE_CFG.anonKey) document.getElementById('sb-box').classList.remove('hidden');
-  try{
-    const s = localStorage.getItem('mtgiLMSv3:session');
-    if(s){ user = s; loadStore(user);
-      document.getElementById('view-login').classList.add('hidden');
-      document.getElementById('view-app').classList.remove('hidden');
-      render();
+(async function init(){
+  // 1) Tangkap sesi dari tautan masuk (token pada hash URL)
+  if(location.hash && location.hash.indexOf('access_token=') >= 0){
+    const p = new URLSearchParams(location.hash.slice(1));
+    const at = p.get('access_token'), rt = p.get('refresh_token');
+    if(at){
+      let pending = null; try{ pending = JSON.parse(localStorage.getItem('mtgiLMSv3:pending') || 'null'); }catch(e){}
+      const usr = await sbFetchUser(at);
+      const email = (usr && usr.email) ? String(usr.email).toLowerCase() : ((pending && pending.email) || '');
+      try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+      if(email){ await sbStartSession({ access_token: at, refresh_token: rt, email: email, nama: (pending && pending.email === email) ? pending.nama : null }); return; }
     }
-  }catch(e){}
+  }
+  // 2) Pulihkan sesi tersimpan di perangkat ini
+  const s = sbLoadSession();
+  if(s){
+    const usr = await sbFetchUser(s.access_token);
+    if(usr){ window.__sbToken = s.access_token; enterApp(s.nama || s.email); return; }
+    if(s.refresh_token){
+      const j = await sbRefresh(s.refresh_token);
+      if(j){ await sbStartSession({ access_token: j.access_token, refresh_token: j.refresh_token || s.refresh_token, email: s.email, nama: s.nama }); return; }
+    }
+    sbClearSession();
+    const msg = document.getElementById('login-msg');
+    if(msg) msg.textContent = 'Sesi masuk kita sudah berakhir. Silakan minta tautan masuk baru ya.';
+  } else {
+    // Sesi lama format nama saja (sebelum login email terdaftar) tidak lagi berlaku
+    try{
+      const legacy = localStorage.getItem('mtgiLMSv3:session');
+      if(legacy){ localStorage.removeItem('mtgiLMSv3:session'); const msg = document.getElementById('login-msg'); if(msg) msg.textContent = 'Mulai sekarang kita masuk memakai tautan email terdaftar ya.'; }
+    }catch(e){}
+  }
 })();
 </script>
 </body>
