@@ -10,6 +10,10 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<script>
+/* Teruskan sesi masuk LMS: tautan verifikasi email Supabase dapat mendarat di beranda dengan token pada hash URL — kirim ke /lms/ agar sesi dikenali aplikasi LMS. */
+if (location.hash && location.hash.indexOf('access_token=') >= 0) { location.replace('/lms/' + location.hash); }
+</script>
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="id_ID">
