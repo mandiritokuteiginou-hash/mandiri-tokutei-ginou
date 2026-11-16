@@ -51,6 +51,11 @@ h2.cat{color:var(--navy);font-size:1.25rem;margin:26px 0 10px;padding-left:10px;
 #overlay .bar-top .ttl{font-weight:800;margin-right:auto;font-size:.98rem}
 #overlay iframe{flex:1;border:0;width:100%}
 #ov-status{background:#fff7dd;color:#5c4a00;padding:10px 14px;font-size:.95rem;border-bottom:1px solid var(--line)}
+.lb-table{width:100%;border-collapse:collapse}
+.lb-table th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;font-size:.9rem}
+.lb-table td{border-bottom:1px solid var(--line);padding:8px 10px;font-size:.95rem}
+.lb-table tr.me td{background:#fff7dd;font-weight:700}
+.lb-rank{font-weight:800;color:var(--navy);white-space:nowrap}
 .hidden{display:none}
 footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);font-size:.9rem}
 @media (max-width:560px){.hero h1{font-size:1.55rem}}
@@ -101,6 +106,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
       <button data-tab="lib">Perpustakaan</button>
       <button data-tab="prog">Progres</button>
       <button data-tab="sim">Simulasi</button>
+      <button data-tab="lb">Peringkat</button>
       <button id="btn-logout">Keluar</button>
     </div>
   </div>
@@ -109,6 +115,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
     <section id="tab-lib" class="hidden"></section>
     <section id="tab-prog" class="hidden"></section>
     <section id="tab-sim" class="hidden"></section>
+    <section id="tab-lb" class="hidden"></section>
   </main>
   <footer><p>Progres tersimpan otomatis pada perangkat ini. Mari kita unduh cadangan progres secara berkala agar catatan belajar tetap aman.</p></footer>
 </div>
@@ -133,11 +140,11 @@ const SIMN4 = {"soal": [{"soal": "すみません、今日は早く帰ります�
 const LATIHAN_SETS = [ {id:'ln5-1', nama:'Set Latihan N5 — Bab 1–5'}, {id:'ln5-2', nama:'Set Latihan N5 — Bab 6–10'}, {id:'ln5-3', nama:'Set Latihan N5 — Bab 11–15'}, {id:'ln5-4', nama:'Set Latihan N5 — Bab 16–20'}, {id:'ln5-5', nama:'Set Latihan N5 — Bab 21–25'}, {id:'ln4-1', nama:'Set Latihan N4 — Bab 26–30'}, {id:'ln4-2', nama:'Set Latihan N4 — Bab 31–35'}, {id:'ln4-3', nama:'Set Latihan N4 — Bab 36–40'}, {id:'ln4-4', nama:'Set Latihan N4 — Bab 41–45'}, {id:'ln4-5', nama:'Set Latihan N4 — Bab 46–50'} ];
 function latihanStat(id){ try{ const r = localStorage.getItem('mtgiLatihan:' + id); return r ? JSON.parse(r) : null; }catch(e){ return null; } }
 const CATS = ['Level N5 — Bab 1–25','Level N4 — Bab 26–50','SSW — Bidang Kerja','Karier & Wawancara'];
-let user = null, store = { doneModules: {}, simHistory: [] }, currentModule = null, blobUrl = null;
+let user = null, store = { doneModules: {}, simHistory: [], doneAt: {} }, currentModule = null, blobUrl = null;
 
 function key(n){ return 'mtgiLMSv3:' + n; }
 function loadStore(n){
-  try{ const r = localStorage.getItem(key(n)); if(r) store = Object.assign({doneModules:{}, simHistory:[]}, JSON.parse(r)); }catch(e){}
+  try{ const r = localStorage.getItem(key(n)); if(r) store = Object.assign({doneModules:{}, simHistory:[], doneAt:{}}, JSON.parse(r)); }catch(e){}
 }
 function save(){ try{ localStorage.setItem(key(user), JSON.stringify(store)); }catch(e){} sbSync(); }
 function ebookDone(k){
@@ -166,6 +173,100 @@ async function sbSync(){
       headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + window.__sbToken, 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
       body: JSON.stringify({ user_name: syncName, data: store, updated_at: new Date().toISOString() }) });
   }catch(e){}
+}
+/* ===== R-3 LEADERBOARD MINGGUAN =====
+   Poin pekan berjalan (Senin 00.00 Asia/Jakarta): jawaban tepat set latihan
+   (mtgiLatihan:*, cap waktu ts di pekan ini) x1 + jawaban tepat simulasi
+   (simHistory ts di pekan ini) x1 + modul baru selesai (doneAt di pekan
+   ini) x10. Sinkron ke tabel Supabase leaderboard (baris milik sendiri,
+   nama terdaftar otoritatif — pola R-5) dan peringkat dibaca untuk semua
+   siswa yang masuk. Nama tampil = nama terdaftar; tanpa data pribadi lain. */
+function lbJakartaDate(ts){
+  try{
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone:'Asia/Jakarta', year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date(ts));
+    const g = k => (parts.find(p=>p.type===k) || {}).value;
+    return g('year') + '-' + g('month') + '-' + g('day');
+  }catch(e){ return null; }
+}
+function lbWeekStart(ts){
+  const ds = lbJakartaDate(ts == null ? Date.now() : ts); if(!ds) return null;
+  const d = new Date(ds + 'T00:00:00Z');
+  const dow = d.getUTCDay(); // 0 Minggu .. 6 Sabtu
+  d.setUTCDate(d.getUTCDate() - ((dow + 6) % 7)); // mundur ke Senin
+  return d.toISOString().slice(0, 10);
+}
+function lbInWeek(ts, weekStart){
+  if(!ts || !weekStart) return false;
+  const ds = lbJakartaDate(ts); if(!ds) return false;
+  const end = new Date(weekStart + 'T00:00:00Z'); end.setUTCDate(end.getUTCDate() + 7);
+  return ds >= weekStart && ds < end.toISOString().slice(0, 10);
+}
+function lbCompute(){
+  const ws = lbWeekStart(Date.now());
+  let latihan = 0, simBenar = 0, modul = 0;
+  LATIHAN_SETS.forEach(x=>{ const st = latihanStat(x.id); if(st && lbInWeek(st.ts, ws)) latihan += (st.benar || 0); });
+  (store.simHistory || []).forEach(s=>{ if(lbInWeek(s.ts, ws)) simBenar += (s.benar || 0); });
+  const da = store.doneAt || {};
+  Object.keys(store.doneModules || {}).forEach(id=>{ if(lbInWeek(da[id], ws)) modul++; });
+  return { week_start: ws, latihan_benar: latihan, sim_benar: simBenar, modul_baru: modul, points: latihan + simBenar + modul * 10 };
+}
+async function lbSyncName(){
+  if(window.__sbRegName) return window.__sbRegName;
+  if(window.__sbToken){ const rn = await sbMyName(window.__sbToken); if(rn){ window.__sbRegName = rn; return rn; } }
+  const sess = sbLoadSession();
+  if(sess && sess.email) return String(sess.email).toLowerCase();
+  return user;
+}
+async function lbSync(){
+  if(!SUPABASE_CFG.url || !SUPABASE_CFG.anonKey || !window.__sbToken) return;
+  try{
+    const c = lbCompute(); if(!c.week_start) return;
+    const sig = c.week_start + '|' + c.points + '|' + c.latihan_benar + '|' + c.modul_baru + '|' + c.sim_benar;
+    if(window.__lbSig === sig) return;
+    const name = await lbSyncName(); if(!name) return;
+    if(c.points <= 0 && !window.__lbHadRow) { window.__lbSig = sig; return; } // belum ada aktivitas pekan ini: jangan buat baris 0
+    const r = await fetch(SUPABASE_CFG.url + '/rest/v1/leaderboard', { method:'POST',
+      headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + window.__sbToken, 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
+      body: JSON.stringify({ user_name: name, week_start: c.week_start, points: c.points, latihan_benar: c.latihan_benar, modul_baru: c.modul_baru, sim_benar: c.sim_benar, updated_at: new Date().toISOString() }) });
+    if(r.ok){ window.__lbSig = sig; window.__lbHadRow = true; }
+  }catch(e){}
+}
+let __lbRows = null, __lbWeek = null, __lbFetching = false;
+async function lbFetch(){
+  if(!window.__sbToken || __lbFetching) return;
+  const ws = lbWeekStart(Date.now()); if(!ws) return;
+  __lbFetching = true;
+  try{
+    const r = await fetch(SUPABASE_CFG.url + '/rest/v1/leaderboard?week_start=eq.' + ws + '&order=points.desc,updated_at.asc&limit=20&select=user_name,points,latihan_benar,modul_baru,sim_benar',
+      { headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + window.__sbToken } });
+    if(r.ok){ __lbRows = await r.json(); __lbWeek = ws; }
+  }catch(e){}
+  __lbFetching = false;
+  renderLb(true);
+}
+function lbEsc(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function renderLb(fromFetch){
+  const el = document.getElementById('tab-lb'); if(!el || !user) return;
+  const c = lbCompute();
+  lbSync();
+  if(!fromFetch && __lbWeek !== c.week_start && !__lbFetching) lbFetch();
+  let h = '<h2 class="cat">Peringkat Mingguan</h2>';
+  h += '<div class="prog-row"><div class="t">Poin kita pekan ini: ' + c.points + '</div>'
+    + '<p>Latihan tepat ' + c.latihan_benar + ' soal · Simulasi tepat ' + c.sim_benar + ' soal · Modul baru selesai ' + c.modul_baru + ' (tiap modul 10 poin). Peringkat dihitung untuk pekan berjalan (Senin–Minggu, WIB) dan berganti tiap Senin — mari kita kumpulkan poin dari latihan, simulasi, dan penyelesaian modul pekan ini.</p></div>';
+  if(__lbRows === null){
+    h += '<div class="prog-row"><p>Memuat peringkat pekan ini… mari kita tunggu sebentar.</p></div>';
+  } else if(!__lbRows.length){
+    h += '<div class="prog-row"><div class="t">Belum ada peringkat pekan ini</div><p>Belum ada teman kita yang mengumpulkan poin pekan ini. Mari kita jadi yang pertama — kerjakan satu set latihan atau selesaikan satu modul, poin kita langsung tercatat di sini.</p></div>';
+  } else {
+    const myName = window.__sbRegName || user;
+    h += '<div class="prog-row"><table class="lb-table"><thead><tr><th>Peringkat</th><th>Nama</th><th>Poin</th><th>Rincian pekan ini</th></tr></thead><tbody>'
+      + __lbRows.map((r, i)=>{
+          const me = (r.user_name === myName || r.user_name === user);
+          return '<tr' + (me ? ' class="me"' : '') + '><td class="lb-rank">' + (i + 1) + '</td><td>' + lbEsc(r.user_name) + (me ? ' (kita)' : '') + '</td><td><strong>' + r.points + '</strong></td><td>Latihan ' + r.latihan_benar + ' · Modul ' + r.modul_baru + ' · Simulasi ' + r.sim_benar + '</td></tr>';
+        }).join('')
+      + '</tbody></table><p class="note">Menampilkan 20 teratas pekan ini. Nama yang tampil adalah nama terdaftar kita; tidak ada data pribadi lain yang ditampilkan.</p></div>';
+  }
+  el.innerHTML = h;
 }
 async function sbCheckRegistered(email){
   try{
@@ -226,7 +327,7 @@ async function sbStartSession(sess){
 
 function render(){
   document.getElementById('who-name').textContent = user;
-  renderDash(); renderLib(); renderProg(); renderSimHome();
+  renderDash(); renderLib(); renderProg(); renderSimHome(); renderLb();
 }
 function statsHTML(){
   const total = META.length;
@@ -245,6 +346,8 @@ function renderDash(){
   else h += '<div class="prog-row"><div class="t">Semua modul sudah ditandai selesai. Mari kita ulang modul yang terasa sulit agar semakin mantap.</div></div>';
   const lat = LATIHAN_SETS.map(x=>{ const st = latihanStat(x.id); return st ? x.nama + ': ' + st.benar + '/' + st.total + ' tepat' : x.nama + ': belum dikerjakan'; });
   h += '<div class="prog-row"><div class="t">Hasil Set Latihan terakhir</div><p>' + lat.join('<br>') + '</p></div>';
+  const lbc = lbCompute();
+  h += '<div class="prog-row"><div class="t">Peringkat Mingguan</div><p>Poin kita pekan ini: <strong>' + lbc.points + '</strong> (latihan tepat ' + lbc.latihan_benar + ' · modul baru ' + lbc.modul_baru + ' · simulasi tepat ' + lbc.sim_benar + '). Mari kita lihat posisi kita di tab Peringkat.</p></div>';
   h += '<div class="prog-row"><div class="t">Cara memakai LMS ini</div><p>Buka modul dari Perpustakaan, pelajari sampai tuntas, lalu tandai selesai. Progres di dalam Ebook N5 &amp; N4 (kartu selesai, kartu sulit, skor latihan &amp; kuis) tersimpan oleh masing-masing Ebook dan terbaca di Dashboard ini.</p></div>';
   document.getElementById('tab-dash').innerHTML = h;
 }
@@ -296,7 +399,7 @@ function renderProg(){
   imp.addEventListener('change', ()=>{
     const f = imp.files[0]; if(!f) return;
     const rd = new FileReader();
-    rd.onload = ()=>{ try{ store = Object.assign({doneModules:{}, simHistory:[]}, JSON.parse(rd.result)); save(); render(); alert('Cadangan berhasil dipulihkan.'); }catch(e){ alert('Berkas cadangan tidak dapat dibaca.'); } };
+    rd.onload = ()=>{ try{ store = Object.assign({doneModules:{}, simHistory:[], doneAt:{}}, JSON.parse(rd.result)); save(); render(); alert('Cadangan berhasil dipulihkan.'); }catch(e){ alert('Berkas cadangan tidak dapat dibaca.'); } };
     rd.readAsText(f);
   });
 }
@@ -306,8 +409,8 @@ function exportStore(){
   a.download = 'cadangan-lms-mtgi-' + user.replace(/\s+/g,'-').toLowerCase() + '.json'; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
 }
-function resetStore(){ if(confirm('Atur ulang status modul LMS pada perangkat ini?')){ store = {doneModules:{}, simHistory:[]}; save(); render(); } }
-function toggleDone(id){ store.doneModules[id] = !store.doneModules[id]; if(!store.doneModules[id]) delete store.doneModules[id]; save(); render(); syncOvBtn(); }
+function resetStore(){ if(confirm('Atur ulang status modul LMS pada perangkat ini?')){ store = {doneModules:{}, simHistory:[], doneAt:{}}; save(); render(); } }
+function toggleDone(id){ store.doneAt = store.doneAt || {}; if(store.doneModules[id]){ delete store.doneModules[id]; delete store.doneAt[id]; } else { store.doneModules[id] = true; store.doneAt[id] = Date.now(); } save(); render(); syncOvBtn(); }
 async function openModule(id){
   const m = META.find(x=>x.id===id); if(!m) return;
   currentModule = id;
@@ -351,7 +454,7 @@ document.querySelectorAll('.tabs button[data-tab]').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('.tabs button[data-tab]').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
-    ['dash','lib','prog','sim'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
+    ['dash','lib','prog','sim','lb'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
   });
 });
 document.getElementById('btn-logout').addEventListener('click', async ()=>{
