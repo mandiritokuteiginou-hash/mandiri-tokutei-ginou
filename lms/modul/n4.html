@@ -78,6 +78,11 @@ body.hide-romaji .romaji,body.hide-romaji .romaji-line{display:none}
 footer{max-width:880px;margin:0 auto;padding:24px 18px 56px;color:var(--muted);font-size:.92rem}
 .hidden-card{display:none}
 @media (max-width:560px){header.cover h1{font-size:1.6rem}section.bab{padding:16px 13px 20px}.kana{font-size:1.6rem}.kaiwa .bubble{max-width:100%}}
+
+/* R-2: toolbar & tombol lambat kaiwa */
+.kaiwa-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.kaiwa-tools button,.speak-slow,.audio-btn-slow{cursor:pointer;border:1px solid #c7d2e4;background:#eef3fd;color:#14284b;border-radius:999px;padding:6px 12px;font-weight:700;font-size:13px}
+.kaiwa-tools button:hover,.speak-slow:hover,.audio-btn-slow:hover{background:#dbe7fd}
 </style>
 </head>
 <body>
@@ -8453,8 +8458,18 @@ function updateProgress(){
   const el=document.getElementById('progress-text');
   if(el) el.textContent='Progres tersimpan otomatis pada perangkat ini — kartu selesai: '+done+' / 500 · kartu sulit: '+sulit+' · soal latihan terjawab benar tersimpan: '+Object.keys(store.latihan).length;
 }
-function speak(text){ try{ const u=new SpeechSynthesisUtterance(text); u.lang='ja-JP'; speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
-document.querySelectorAll('.audio-btn').forEach(b=>b.addEventListener('click',()=>speak(b.dataset.say)));
+/* ===== R-2 AUDIO UPGRADE KAIWA (Web Speech API, dua suara ja-JP per peran + putar lambat) =====
+   Cadangan gTTS jalur server tetap dipertahankan apa adanya; edge-tts tidak dipakai. */
+let __voicesJa=[];
+function __loadVoices(){ try{ const vs=(speechSynthesis.getVoices()||[]).filter(function(v){ return /^ja([-_]|$)/i.test(v.lang||''); }); if(vs.length) __voicesJa=vs; }catch(e){} }
+try{ __loadVoices(); if(window.speechSynthesis) speechSynthesis.onvoiceschanged=__loadVoices; }catch(e){}
+function __roleIndex(btn){ const box=btn.closest('.kaiwa'); if(!box) return -1; const bubble=btn.closest('.bubble'); const nameEl=bubble?bubble.querySelector('.siapa'):null; const name=nameEl?(nameEl.textContent||'').trim():''; const names=[]; box.querySelectorAll('.bubble').forEach(function(b){ const n=b.querySelector('.siapa'); const t=n?(n.textContent||'').trim():''; if(t&&names.indexOf(t)<0) names.push(t); }); const i=names.indexOf(name); return i<0?0:(i%2); }
+function __applyVoice(u, role){ if(role>=0){ if(__voicesJa.length>1){ u.voice=__voicesJa[role%__voicesJa.length]; } else if(__voicesJa.length===1){ u.voice=__voicesJa[0]; } u.pitch=(role===0?1.05:0.85); } else if(__voicesJa.length){ u.voice=__voicesJa[0]; } }
+function speak(t, opts){ opts=opts||{}; try{ const u=new SpeechSynthesisUtterance(t); u.lang='ja-JP'; u.rate=opts.slow?0.55:1; __applyVoice(u,(typeof opts.role==='number'?opts.role:-1)); if(!opts.queue) speechSynthesis.cancel(); speechSynthesis.speak(u); return u; }catch(err){ return null; } }
+function __playDialog(box, slow){ try{ speechSynthesis.cancel(); }catch(e){} const lines=[]; box.querySelectorAll('.bubble').forEach(function(b){ const btn=b.querySelector('[data-say]'); if(btn&&btn.dataset.say) lines.push({text:btn.dataset.say, role:__roleIndex(btn)}); }); lines.forEach(function(l){ speak(l.text,{slow:!!slow, role:l.role, queue:true}); }); }
+function __enhanceKaiwa(){ document.querySelectorAll('.kaiwa').forEach(function(box){ if(box.dataset.r2) return; box.dataset.r2='1'; const bar=document.createElement('div'); bar.className='kaiwa-tools'; const b1=document.createElement('button'); b1.type='button'; b1.textContent='▶ Putar Dialog (Dua Suara)'; const b2=document.createElement('button'); b2.type='button'; b2.textContent='🐢 Putar Dialog Lambat'; const b3=document.createElement('button'); b3.type='button'; b3.textContent='⏹ Berhenti'; b1.addEventListener('click',function(){ __playDialog(box,false); }); b2.addEventListener('click',function(){ __playDialog(box,true); }); b3.addEventListener('click',function(){ try{ speechSynthesis.cancel(); }catch(e){} }); bar.appendChild(b1); bar.appendChild(b2); bar.appendChild(b3); box.insertBefore(bar, box.firstChild); box.querySelectorAll('.audio-btn').forEach(function(btn){ if(btn.classList.contains('audio-btn-slow')) return; const slow=document.createElement('button'); slow.type='button'; slow.className='audio-btn-slow'; slow.textContent='🐢 Lambat'; slow.title='Putar lambat dengan suara peran yang sama'; slow.dataset.say=btn.dataset.say; slow.addEventListener('click',function(){ speak(btn.dataset.say,{slow:true, role:__roleIndex(btn)}); }); btn.parentNode.insertBefore(slow, btn.nextSibling); }); }); }
+document.querySelectorAll('.audio-btn').forEach(b=>b.addEventListener('click',()=>speak(b.dataset.say,{role:__roleIndex(b)})));
+__enhanceKaiwa();
 document.querySelectorAll('.done-check').forEach(c=>{ if(store.done[c.dataset.id]) c.checked=true; c.addEventListener('change',()=>{store.done[c.dataset.id]=c.checked; save();}); });
 document.querySelectorAll('.sulit-btn').forEach(b=>{ const id=b.dataset.id; const sync=()=>{b.classList.toggle('aktif', !!store.sulit[id]); b.textContent=store.sulit[id]?'★ Sulit':'☆ Sulit';}; sync(); b.addEventListener('click',()=>{store.sulit[id]=!store.sulit[id]; sync(); save();}); });
 document.querySelectorAll('.opt-btn').forEach(b=>b.addEventListener('click',()=>{
