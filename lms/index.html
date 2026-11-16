@@ -194,6 +194,10 @@ function enterApp(nama){
   document.getElementById('view-login').classList.add('hidden');
   document.getElementById('view-app').classList.remove('hidden');
   render();
+  // R-5: sesudah masuk akun, dorong progres lokal yang sudah ada ke Supabase
+  // (hanya bila store lokal tidak kosong, agar perangkat baru tidak menimpa
+  // catatan server dengan data kosong). Perubahan berikutnya tetap lewat save().
+  if(window.__sbToken && store && ((store.doneModules && Object.keys(store.doneModules).length) || (store.simHistory && store.simHistory.length))){ sbSync(); }
 }
 async function sbStartSession(sess){
   window.__sbToken = sess.access_token;
