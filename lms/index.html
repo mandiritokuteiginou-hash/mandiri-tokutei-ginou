@@ -146,9 +146,25 @@ function ebookDone(k){
 async function sbSync(){
   if(!SUPABASE_CFG.url || !SUPABASE_CFG.anonKey || !window.__sbToken) return;
   try{
+    // R-5 perbaikan: policy RLS tabel progress hanya menerima user_name yang
+    // persis sama dengan nama terdaftar pemilik token (my_registered_name),
+    // atau email akun (huruf kecil) bila nama terdaftar kosong. Nama tampil
+    // yang diketik siswa di form masuk boleh berbeda dari nama terdaftar,
+    // jadi user_name untuk sinkron WAJIB nama otoritatif dari server,
+    // bukan nama tampil lokal. Nama otoritatif di-cache per sesi.
+    if(!window.__sbRegName){
+      const rn = await sbMyName(window.__sbToken);
+      if(rn) window.__sbRegName = rn;
+    }
+    let syncName = window.__sbRegName || null;
+    if(!syncName){
+      const sess = sbLoadSession();
+      if(sess && sess.email) syncName = String(sess.email).toLowerCase();
+    }
+    if(!syncName) syncName = user;
     await fetch(SUPABASE_CFG.url + '/rest/v1/progress', { method:'POST',
       headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + window.__sbToken, 'Content-Type':'application/json', 'Prefer':'resolution=merge-duplicates' },
-      body: JSON.stringify({ user_name: user, data: store, updated_at: new Date().toISOString() }) });
+      body: JSON.stringify({ user_name: syncName, data: store, updated_at: new Date().toISOString() }) });
   }catch(e){}
 }
 async function sbCheckRegistered(email){
