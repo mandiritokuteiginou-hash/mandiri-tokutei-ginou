@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- SENSEI-01: tab Sensei khusus akun staf (sumber staf-sensei/staf) -->
 <!-- NAMA-LMS-01: nama tampilan LMS = Mandiri Tokutei Ginou Indonesia -->
 <title>Mandiri Tokutei Ginou Indonesia — Semua Materi</title>
 <style>
@@ -117,6 +118,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
       <button data-tab="prog">Progres</button>
       <button data-tab="sim">Simulasi</button>
       <button data-tab="lb">Peringkat</button>
+      <button data-tab="sensei" id="tab-btn-sensei" class="hidden">Sensei</button>
       <button id="btn-logout">Keluar</button>
     </div>
   </div>
@@ -126,6 +128,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
     <section id="tab-prog" class="hidden"></section>
     <section id="tab-sim" class="hidden"></section>
     <section id="tab-lb" class="hidden"></section>
+    <section id="tab-sensei" class="hidden"></section>
   </main>
   <footer><p>Progres tersimpan otomatis pada perangkat ini. Mari kita unduh cadangan progres secara berkala agar catatan belajar tetap aman.</p></footer>
 </div>
@@ -316,6 +319,58 @@ async function sbMyName(token){
     headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: '{}' });
     if(!r.ok) return null; const j = await r.json(); return (typeof j === 'string' && j) ? j : null; }catch(e){ return null; }
 }
+/* ===== SENSEI-01 TAMPILAN SENSEI =====
+   Tab "Sensei" hanya tampil untuk akun staf: sumber pendaftaran pemanggil
+   (RPC my_registered_source, SECURITY DEFINER) adalah 'staf-sensei'/'staf'.
+   Daftar siswa + ringkasan progres/raport dibaca lewat RPC sensei_students
+   yang di server juga menolak pemanggil non-staf (mengembalikan himpunan
+   kosong). Yang tampil hanya nama terdaftar + angka ringkasan; tanpa
+   alamat email / nomor WhatsApp siswa. */
+let __senseiRows = null, __senseiFetching = false, __senseiKind = null;
+async function sbMySource(token){
+  try{ const r = await fetch(SUPABASE_CFG.url + '/rest/v1/rpc/my_registered_source', { method:'POST',
+    headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: '{}' });
+    if(!r.ok) return null; const j = await r.json(); return (typeof j === 'string' && j) ? j : null; }catch(e){ return null; }
+}
+async function senseiInit(){
+  const btn = document.getElementById('tab-btn-sensei'); if(!btn) return;
+  if(!window.__sbToken){ btn.classList.add('hidden'); __senseiKind = null; return; }
+  const src = await sbMySource(window.__sbToken);
+  __senseiKind = (src === 'staf-sensei' || src === 'staf') ? 'sensei' : 'siswa';
+  btn.classList.toggle('hidden', __senseiKind !== 'sensei');
+  if(__senseiKind === 'sensei') renderSensei();
+}
+async function senseiFetch(){
+  if(!window.__sbToken || __senseiFetching) return;
+  __senseiFetching = true;
+  try{
+    const r = await fetch(SUPABASE_CFG.url + '/rest/v1/rpc/sensei_students', { method:'POST',
+      headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + window.__sbToken, 'Content-Type':'application/json' }, body: '{}' });
+    if(r.ok){ __senseiRows = await r.json(); }
+  }catch(e){}
+  __senseiFetching = false;
+  renderSensei(true);
+}
+function renderSensei(fromFetch){
+  const el = document.getElementById('tab-sensei'); if(!el || __senseiKind !== 'sensei') return;
+  if(!fromFetch && __senseiRows === null && !__senseiFetching) senseiFetch();
+  let h = '<h2 class="cat">Ruang Sensei — Daftar Siswa &amp; Progres</h2>';
+  h += '<div class="prog-row"><div class="t">Selamat datang, Sensei</div><p>Di sini kita dapat melihat daftar siswa terdaftar beserta ringkasan progres belajar dan raport simulasi mereka. Data yang tampil hanya nama terdaftar dan angka ringkasan — tanpa alamat email atau nomor WhatsApp siswa.</p></div>';
+  if(__senseiRows === null){
+    h += '<div class="prog-row"><p>Memuat daftar siswa… mari kita tunggu sebentar.</p></div>';
+  } else if(!__senseiRows.length){
+    h += '<div class="prog-row"><div class="t">Belum ada siswa terdaftar</div><p>Daftar siswa akan tampil di sini sesudah ada pendaftar Form Kelas yang terdaftar di LMS kita.</p></div>';
+  } else {
+    h += '<div class="prog-row"><table class="lb-table"><thead><tr><th>Nama Siswa</th><th>Modul Selesai</th><th>Simulasi Terakhir</th><th>Poin Pekan Ini</th><th>Terakhir Aktif</th></tr></thead><tbody>'
+      + __senseiRows.map(r=>{
+          const sim = r.skor_sim_terakhir ? lbEsc(r.skor_sim_terakhir) + ' · ' + r.jumlah_simulasi + ' kali' : 'belum ada';
+          const aktif = r.terakhir_aktif ? new Date(r.terakhir_aktif).toLocaleDateString('id-ID') : '—';
+          return '<tr><td>' + lbEsc(r.nama) + '</td><td>' + r.modul_selesai + ' / ' + r.total_modul + '</td><td>' + sim + '</td><td>' + r.poin_pekan_ini + '</td><td>' + aktif + '</td></tr>';
+        }).join('')
+      + '</tbody></table><p class="note">Menampilkan ' + __senseiRows.length + ' siswa terdaftar. Progres berasal dari catatan belajar yang tersinkron ke akun siswa; siswa yang belum pernah masuk LMS tampil dengan angka 0 — mari kita dampingi mereka bersama.</p></div>';
+  }
+  el.innerHTML = h;
+}
 function enterApp(nama){
   user = nama; loadStore(user);
   document.getElementById('view-login').classList.add('hidden');
@@ -325,6 +380,7 @@ function enterApp(nama){
   // (hanya bila store lokal tidak kosong, agar perangkat baru tidak menimpa
   // catatan server dengan data kosong). Perubahan berikutnya tetap lewat save().
   if(window.__sbToken && store && ((store.doneModules && Object.keys(store.doneModules).length) || (store.simHistory && store.simHistory.length))){ sbSync(); }
+  senseiInit();
 }
 async function sbStartSession(sess){
   window.__sbToken = sess.access_token;
@@ -557,7 +613,7 @@ document.querySelectorAll('.tabs button[data-tab]').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('.tabs button[data-tab]').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
-    ['dash','lib','prog','sim','lb'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
+    ['dash','lib','prog','sim','lb','sensei'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
   });
 });
 document.getElementById('btn-logout').addEventListener('click', async ()=>{
