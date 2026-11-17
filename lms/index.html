@@ -396,13 +396,71 @@ function videoSlotHTML(cat){
 }
 function moduleCard(m){
   const done = !!store.doneModules[m.id];
-  return '<article class="mod">' + coverHTML(m) + '<h3>' + m.title + '</h3><p>' + m.desc + '</p><div class="row">'
+  return '<article class="mod" data-mid="' + m.id + '">' + coverHTML(m) + '<h3>' + m.title + '</h3><p>' + m.desc + '</p><div class="row">'
     + '<button class="primary" onclick="openModule(\'' + m.id + '\')">Buka</button>'
     + (done ? '<span class="done-badge">✓ Selesai</span>' : '<button onclick="toggleDone(\'' + m.id + '\')">Tandai Selesai</button>')
     + '</div></article>';
 }
+/* CARI-ISI-01 PENCARIAN ISI PENUH */
+const SEARCH_INDEX = {};
+let searchIndexState = 'idle';
+const LIB_MSG_IDLE = 'Mari kita cari di judul, kategori, deskripsi, dan isi lengkap semua modul.';
+const LIB_MSG_BUILDING = 'Sedang menyiapkan indeks isi modul… mari kita tunggu sebentar, pencarian isi lengkap segera aktif.';
+const LIB_MSG_READY = 'Indeks isi siap — mari kita cari: pencarian kini mencakup judul, kategori, deskripsi, dan isi lengkap semua modul.';
+function libStripText(html){
+  let s = String(html || '');
+  s = s.replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ');
+  s = s.replace(/<[^>]+>/g, ' ');
+  s = s.replace(/&nbsp;/gi, ' ').replace(/&lt;/gi, '<').replace(/&gt;/gi, '>').replace(/&quot;/gi, '"').replace(/&#0?39;|&apos;/gi, "'")
+       .replace(/&#(\d+);/g, (m, n)=>{ try{ return String.fromCharCode(parseInt(n, 10)); }catch(e){ return ' '; } })
+       .replace(/&#x([0-9a-f]+);/gi, (m, n)=>{ try{ return String.fromCharCode(parseInt(n, 16)); }catch(e){ return ' '; } })
+       .replace(/&amp;/gi, '&');
+  return s.replace(/\s+/g, ' ').toLowerCase();
+}
+function libBaseText(m){ return (m.title + ' ' + m.cat + ' ' + m.desc).toLowerCase(); }
+function libSetStatus(msg){ const st = document.getElementById('lib-search-status'); if(st) st.textContent = msg; }
+async function buildSearchIndex(){
+  if(searchIndexState === 'building' || searchIndexState === 'ready') return;
+  searchIndexState = 'building';
+  libSetStatus(LIB_MSG_BUILDING);
+  let failed = 0;
+  await Promise.all(META.map(async m=>{
+    let body = '';
+    try{
+      if(CONTENTS[m.id]) body = CONTENTS[m.id];
+      else{
+        const res = await fetch('modul/' + encodeURIComponent(m.id) + '.html');
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        body = await res.text();
+        CONTENTS[m.id] = body;
+      }
+    }catch(e){ failed++; }
+    SEARCH_INDEX[m.id] = libBaseText(m) + ' ' + libStripText(body);
+  }));
+  searchIndexState = failed ? 'partial' : 'ready';
+  libSetStatus(failed ? ('Indeks isi siap sebagian (' + failed + ' modul belum termuat) — pencarian tetap mencakup judul, kategori, dan deskripsi semua modul.') : LIB_MSG_READY);
+  applyLibFilter();
+}
+function applyLibFilter(){
+  const inp = document.getElementById('lib-search'); if(!inp) return;
+  const q = inp.value.trim().toLowerCase();
+  document.querySelectorAll('#tab-lib .mod').forEach(card=>{
+    const id = card.getAttribute('data-mid');
+    const hay = (id && SEARCH_INDEX[id]) ? SEARCH_INDEX[id] : card.textContent.toLowerCase();
+    card.style.display = (!q || hay.includes(q)) ? '' : 'none';
+  });
+  document.querySelectorAll('#tab-lib h2.cat').forEach(hd=>{
+    let grid = hd.nextElementSibling; let slot = null;
+    if(grid && grid.classList && grid.classList.contains('video-slot')){ slot = grid; grid = grid.nextElementSibling; }
+    let vis = false;
+    if(grid) grid.querySelectorAll('.mod').forEach(c=>{ if(c.style.display !== 'none') vis = true; });
+    hd.style.display = vis ? '' : 'none';
+    if(grid) grid.style.display = vis ? '' : 'none';
+    if(slot) slot.style.display = (vis && !q) ? '' : 'none';
+  });
+}
 function renderLib(){
-  let h = '<div class="prog-row"><div class="t">Cari modul</div><input type="text" id="lib-search" placeholder="Cari judul atau deskripsi modul…" style="margin-bottom:2px"></div>';
+  let h = '<div class="prog-row"><div class="t">Cari modul</div><input type="text" id="lib-search" placeholder="Ketik judul, kategori, atau kata kunci…" style="margin-bottom:2px"><p class="note" id="lib-search-status">' + LIB_MSG_IDLE + '</p></div>';
   CATS.forEach(c=>{
     const items = META.filter(m=>m.cat===c);
     if(!items.length) return;
@@ -410,12 +468,12 @@ function renderLib(){
   });
   document.getElementById('tab-lib').innerHTML = h;
   const inp = document.getElementById('lib-search');
-  if(inp) inp.addEventListener('input', ()=>{
-    const q = inp.value.toLowerCase();
-    document.querySelectorAll('#tab-lib .mod').forEach(c=>{ c.style.display = c.textContent.toLowerCase().includes(q) ? '' : 'none'; });
-    document.querySelectorAll('#tab-lib .video-slot').forEach(v=>{ v.style.display = q ? 'none' : ''; });
-    document.querySelectorAll('#tab-lib h2.cat').forEach(hd=>{ let n = hd.nextElementSibling; let vis = false; if(n) n.querySelectorAll('.mod').forEach(c=>{ if(c.style.display !== 'none') vis = true; }); hd.style.display = vis ? '' : 'none'; if(n) n.style.display = vis ? '' : 'none'; });
-  });
+  if(inp){
+    inp.addEventListener('focus', ()=>{ buildSearchIndex(); });
+    inp.addEventListener('input', ()=>{ buildSearchIndex(); applyLibFilter(); });
+  }
+  if(searchIndexState === 'ready') libSetStatus(LIB_MSG_READY);
+  else if(searchIndexState === 'building') libSetStatus(LIB_MSG_BUILDING);
 }
 function renderProg(){
   let h = '<h2 class="cat">Progres Belajar</h2>' + statsHTML();
