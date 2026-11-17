@@ -1,0 +1,675 @@
+{
+ "snapshot": "2026-11-18",
+ "snapshotLabel": "18 November 2026",
+ "jobs": [
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Operator Crane (Konstruksi)",
+   "lokasi": "Tokyo — Arakawa-ku",
+   "gaji": 300000,
+   "gajiLabel": "¥300.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 2",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–35",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB kualifikasi pelatihan keterampilan/operator mesin konstruksi (pekerjaan pondasi) & SIM kendaraan berat",
+    "KHUSUS Tokutei Ginou 2",
+    "Preferensi tertulis (bukan syarat): operator mesin pancang berpengalaman disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Tobi)",
+   "lokasi": "Tokyo — Nakano-ku",
+   "gaji": 280000,
+   "gajiLabel": "¥280.000/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 2",
+   "bahasa": "JLPT N2",
+   "ssw": "Konstruksi",
+   "usia": "21–40",
+   "syarat": [
+    "SIM mobil disambut",
+    "WAJIB pemegang Tokutei Ginou 2"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Perancah (Tobi) & Konstruksi",
+   "lokasi": "Saitama — Saitama-shi, Nishi-ku",
+   "gaji": 280000,
+   "gajiLabel": "¥280.000/bln",
+   "kuota": "4",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "20–40",
+   "syarat": [
+    "Laki-laki",
+    "SIM reguler & sertifikasi sabuk pengaman seluruh tubuh (full harness) tertulis sebagai kualifikasi pendamping"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Perancah (Tobi) — Pengiriman & Pemasangan Peralatan AC",
+   "lokasi": "Chiba — Sanmu-shi",
+   "gaji": 280000,
+   "gajiLabel": "¥280.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "20–40",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB berpengalaman & berkualifikasi perancah (tobi)",
+    "Mampu berkomunikasi bahasa Jepang"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Saluran Udara/Duct)",
+   "lokasi": "Fukuoka — Kitakyushu-shi, Kokurakita-ku",
+   "gaji": 265000,
+   "gajiLabel": "¥265.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Konstruksi",
+   "usia": "21–40",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "とび／土工 — Konstruksi (Perancah & Pekerjaan Tanah)",
+   "lokasi": "Saitama — Saitama-shi, Minuma-ku",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "10",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Konstruksi",
+   "usia": "",
+   "syarat": [
+    "Laki-laki disukai (preferensi tertulis, bukan syarat)",
+    "Usia disukai 20–32 (preferensi tertulis, bukan syarat)"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Pipa (Haikan) & Konstruksi",
+   "lokasi": "Hokkaido — Hakodate-shi",
+   "gaji": 248000,
+   "gajiLabel": "¥248.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Konstruksi",
+   "usia": "",
+   "syarat": [
+    "Laki-laki disukai (preferensi tertulis)",
+    "Usia s.d. ±35 tahun disukai (preferensi tertulis)",
+    "Belum berpengalaman disambut (未経験歓迎)"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Perancah (Tobi) — Hiroshima",
+   "lokasi": "Hiroshima — Hiroshima-shi, Asaminami-ku",
+   "gaji": 243800,
+   "gajiLabel": "¥243.800/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "",
+   "syarat": [
+    "Laki-laki",
+    "Wajib SIM (tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Doboku)",
+   "lokasi": "Kagoshima — Kagoshima-shi",
+   "gaji": 225900,
+   "gajiLabel": "¥225.900/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "20–35",
+   "syarat": [
+    "Laki-laki",
+    "Pekerja berpengalaman disambut (SIM reguler & pengalaman plester/konstruksi nilai plus)",
+    "Preferensi tertulis (bukan syarat): pekerja berpengalaman disambut (SIM reguler & pengalaman plester/konstruksi nilai plus)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi",
+   "lokasi": "Saitama — Yashio-shi",
+   "gaji": 222000,
+   "gajiLabel": "¥222.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Konstruksi",
+   "usia": "20–35",
+   "syarat": [],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Staf Perakitan Mesin & Pengecatan (Pabrik)",
+   "lokasi": "Okayama — Kasaoka-shi",
+   "gaji": 220000,
+   "gajiLabel": "¥220.000/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–40",
+   "syarat": [
+    "Wajib menganggap pekerjaan dengan serius (tertulis)",
+    "Kualifikasi tali-temali (玉掛け)/derek disambut (preferensi tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Perbaikan Lahan (Teknik Sipil — Doboku)",
+   "lokasi": "Tokyo — Ota-ku",
+   "gaji": 216000,
+   "gajiLabel": "¥216.000/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–40",
+   "syarat": [
+    "Laki-laki",
+    "Wajib pekerja konstruksi berpengalaman",
+    "Tokutei Ginou 2 disambut",
+    "Kualifikasi setara N3 / sertifikat operator kendaraan konstruksi disambut (preferensi tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Manajer Restoran",
+   "lokasi": "Okinawa — Naha-shi",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "6",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Restoran",
+   "usia": "21–45",
+   "syarat": [],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Asisten Manajer Restoran",
+   "lokasi": "Okinawa — Naha-shi",
+   "gaji": 230000,
+   "gajiLabel": "¥230.000/bln",
+   "kuota": "6",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Restoran",
+   "usia": "21–45",
+   "syarat": [
+    "Preferensi tertulis (bukan syarat): pengalaman manajemen restoran disambut (posisi kandidat asisten manajer)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Dapur & Hall Restoran",
+   "lokasi": "Chiba — Kashiwa-shi / Kamagaya-shi",
+   "gaji": 224148,
+   "gajiLabel": "¥224.148/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "WAJIB mencicipi daging babi & alkohol",
+    "Hijab perlu konsultasi",
+    "Pengalaman restoran diutamakan (preferensi)",
+    "Kriteria: ceria, pekerja keras, energik, mampu pekerjaan fisik"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran Sukiyaki",
+   "lokasi": "Hokkaido — Furano-shi",
+   "gaji": 220000,
+   "gajiLabel": "¥220.000/bln",
+   "kuota": "7",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "WN Indonesia",
+    "Bahasa Inggris untuk komunikasi pelanggan = syarat penting tertulis",
+    "SSW Restoran No.1",
+    "Hijab diperbolehkan",
+    "Tanpa pengalaman boleh"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Dapur & Hall",
+   "lokasi": "Niigata — Yuzawa-machi",
+   "gaji": 220000,
+   "gajiLabel": "¥220.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "Diprioritaskan: sisa masa TG Restoran ±4 tahun",
+    "Half-Japanese tinggal di Jepang (keduanya preferensi tertulis)",
+    "Level bahasa tidak tertulis"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran — Shinjuku, Tokyo",
+   "lokasi": "Tokyo — Shinjuku-ku",
+   "gaji": 213100,
+   "gajiLabel": "¥213.100/bln",
+   "kuota": "5",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Restoran",
+   "usia": "21–30",
+   "syarat": [
+    "WAJIB bahasa Inggris percakapan harian (tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran Italia — Futako-Tamagawa, Tokyo",
+   "lokasi": "Tokyo — Setagaya-ku",
+   "gaji": 213100,
+   "gajiLabel": "¥213.100/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Restoran",
+   "usia": "21–30",
+   "syarat": [
+    "WAJIB bahasa Inggris percakapan harian (tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran Jepang — Tachikawa, Tokyo",
+   "lokasi": "Tokyo — Tachikawa-shi",
+   "gaji": 213100,
+   "gajiLabel": "¥213.100/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Restoran",
+   "usia": "21–30",
+   "syarat": [
+    "WAJIB bahasa Inggris percakapan harian (tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran",
+   "lokasi": "Hokkaido — Sapporo-shi",
+   "gaji": 210000,
+   "gajiLabel": "¥210.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "Dokumen: CV + sertifikat JFT + sertifikat SSW"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Restoran",
+   "posisi": "Nakai & Staf Cuci Piring",
+   "lokasi": "Fukushima — Aizuwakamatsu-shi",
+   "gaji": 200000,
+   "gajiLabel": "¥200.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "PEREMPUAN (syarat tertulis, menggugurkan)",
+    "Nakai menyajikan sake & hidangan babi ke tamu",
+    "Hijab TIDAK boleh SAAT BEKERJA (kimono)",
+    "Boleh saat berangkat/pulang",
+    "Berpengalaman diutamakan (preferensi)",
+    "Tanpa batas usia"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Kaigo",
+   "posisi": "Staf Kaigo",
+   "lokasi": "Osaka — Higashiosaka-shi",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Kaigo",
+   "usia": "",
+   "syarat": [
+    "WAJIB: SSW Kaigo + lulus Shoninsha Kenshuu + pengalaman praktik Kaigo ≥1 tahun di Jepang",
+    "Prioritas domisili Jepang (Indonesia tetap boleh)",
+    "Hijab tidak boleh saat bekerja"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Kaigo",
+   "posisi": "Staf Kaigo (Perawatan di Rumah untuk Lansia)",
+   "lokasi": "Hyogo — Himeji-shi",
+   "gaji": 180000,
+   "gajiLabel": "¥180.000/bln",
+   "kuota": "10",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Kaigo",
+   "usia": "21+",
+   "syarat": [
+    "Wajib mengikuti Shoninsha Kenshuu (pelatihan awal) sebelum masuk"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Kaigo",
+   "posisi": "Staf Kaigo (Perawatan Lansia) — Kobe",
+   "lokasi": "Hyogo — Kobe-shi, Nishi-ku",
+   "gaji": 180000,
+   "gajiLabel": "¥180.000/bln",
+   "kuota": "20",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Kaigo",
+   "usia": "21+",
+   "syarat": [
+    "Wajib menyelesaikan Shoninsha Kenshuu (pelatihan awal) sebelum masuk"
+   ],
+   "domisili": "keduanya",
+   "domLabel": "Bisa dari Indonesia & domisili Jepang",
+   "free": false
+  },
+  {
+   "bidang": "Perhotelan",
+   "posisi": "Staf Perhotelan",
+   "lokasi": "Tokyo — Chuo-ku",
+   "gaji": 220000,
+   "gajiLabel": "¥220.000/bln",
+   "kuota": "10",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Perhotelan",
+   "usia": "20–35",
+   "syarat": [],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Pertanian",
+   "posisi": "Pekerja Peternakan Sapi Perah (Chikusan Nougyou)",
+   "lokasi": "Shizuoka — Fujinomiya-shi",
+   "gaji": 211560,
+   "gajiLabel": "¥211.560/bln",
+   "kuota": "3",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Pertanian",
+   "usia": "",
+   "syarat": [
+    "WAJIB berkomunikasi bahasa Jepang dengan lancar & memahami instruksi kerja, berniat bekerja jangka panjang, kerja sama tim & tekun",
+    "Preferensi tertulis (bukan syarat): pemegang SIM Jepang, berpengalaman peternakan sapi perah"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Pertanian",
+   "posisi": "Pekerja Pertanian Sayuran Daun (Budidaya & Panen)",
+   "lokasi": "Nagano — Minamisaku-gun, Nanmoku-mura",
+   "gaji": 202533,
+   "gajiLabel": "¥202.533/bln",
+   "kuota": "1",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Pertanian",
+   "usia": "",
+   "syarat": [
+    "Laki-laki",
+    "Wajib berpengalaman pertanian di negara asal",
+    "Dapat pulang sementara 1x/tahun (Des–Mar) disambut (preferensi tertulis)"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Manufaktur Produk Industri",
+   "posisi": "Operator 板金 (Lembaran Logam — Laser & Press Brake)",
+   "lokasi": "Hokkaido — Sapporo-shi, Nishi-ku",
+   "gaji": 210000,
+   "gajiLabel": "¥210.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Manufaktur Produk Industri",
+   "usia": "20–32",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Manufaktur Produk Industri",
+   "posisi": "Welder / Tukang Las （溶接）",
+   "lokasi": "Hokkaido — Sapporo-shi, Nishi-ku",
+   "gaji": 210000,
+   "gajiLabel": "¥210.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Manufaktur Produk Industri",
+   "usia": "20–32",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Manufaktur Produk Industri",
+   "posisi": "Teknisi Machining — NC Lathe/Machining Center",
+   "lokasi": "Yamagata — Yonezawa-shi",
+   "gaji": 180000,
+   "gajiLabel": "¥180.000/bln",
+   "kuota": "4",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Manufaktur Produk Industri",
+   "usia": "20–35",
+   "syarat": [
+    "Berpengalaman diutamakan (preferensi)",
+    "Gaji berpengalaman ¥250.000–¥350.000 sesuai CV",
+    "Pendidikan min. lulusan SMA (tertulis)",
+    "Jalur berpengalaman (BUKAN gerbang semua pelamar — jalur pemula tanpa pengalaman tetap terbuka): min. 3 tahun NC lathe/machining center, mampu baca gambar kerja, setup & pengukuran (caliper/mikrometer)",
+    "Nilai plus: FANUC, program NC, pengalaman perusahaan Jepang"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Manufaktur Makanan & Minuman",
+   "posisi": "Teknisi Pemeliharaan Listrik & Mekanik (Pabrik Makanan & Minuman)",
+   "lokasi": "Aichi — Chita-gun, Mihama-cho",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N2",
+   "ssw": "Manufaktur Makanan & Minuman",
+   "usia": "20–40",
+   "syarat": [
+    "Laki-laki",
+    "Wajib lulusan universitas latar sains/teknik",
+    "Wajib berpengalaman pemeliharaan listrik/mekanik"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Transportasi Darat",
+   "posisi": "Staf Transportasi",
+   "lokasi": "Osaka — Sakai-shi",
+   "gaji": 243000,
+   "gajiLabel": "¥243.000/bln",
+   "kuota": "5",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Transportasi Darat",
+   "usia": "",
+   "syarat": [
+    "Pemegang SIM Kelas 2 disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true
+  },
+  {
+   "bidang": "Transportasi Darat",
+   "posisi": "Sopir Truk Besar (Long-Haul)",
+   "lokasi": "Nara — Yamatokoriyama-shi",
+   "gaji": 238333,
+   "gajiLabel": "¥238.333/bln",
+   "kuota": "1",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Transportasi Darat",
+   "usia": "21–40",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB memiliki SIM truk Jepang kelas menengah atau besar （中型・大型）"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  },
+  {
+   "bidang": "Perawatan Mobil",
+   "posisi": "Mekanik / Perawatan Mobil",
+   "lokasi": "Nara — Yamatokoriyama-shi",
+   "gaji": 300000,
+   "gajiLabel": "¥300.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Perawatan Mobil",
+   "usia": "21–40",
+   "syarat": [
+    "Laki-laki",
+    "Yang belum memiliki SIM wajib mengikuti pelatihan setelah bergabung, pekerjaan dimulai setelah memperoleh SIM kendaraan sedang",
+    "Biaya pelatihan SIM dapat ditanggung perusahaan (dipotong dari gaji)"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false
+  }
+ ]
+}
