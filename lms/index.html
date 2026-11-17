@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- JOBBOARD-01: tab Lowongan = papan lowongan publik (potret statis lowongan.json, hasil pindai kerahasiaan) -->
 <!-- SENSEI-01: tab Sensei khusus akun staf (sumber staf-sensei/staf) -->
 <!-- NAMA-LMS-01: nama tampilan LMS = Mandiri Tokutei Ginou Indonesia -->
 <title>Mandiri Tokutei Ginou Indonesia — Semua Materi</title>
@@ -118,6 +119,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
       <button data-tab="prog">Progres</button>
       <button data-tab="sim">Simulasi</button>
       <button data-tab="lb">Peringkat</button>
+      <button data-tab="jobs">Lowongan</button>
       <button data-tab="sensei" id="tab-btn-sensei" class="hidden">Sensei</button>
       <button id="btn-logout">Keluar</button>
     </div>
@@ -128,6 +130,7 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
     <section id="tab-prog" class="hidden"></section>
     <section id="tab-sim" class="hidden"></section>
     <section id="tab-lb" class="hidden"></section>
+    <section id="tab-jobs" class="hidden"></section>
     <section id="tab-sensei" class="hidden"></section>
   </main>
   <footer><p>Progres tersimpan otomatis pada perangkat ini. Mari kita unduh cadangan progres secara berkala agar catatan belajar tetap aman.</p></footer>
@@ -371,6 +374,55 @@ function renderSensei(fromFetch){
   }
   el.innerHTML = h;
 }
+/* ===== JOBBOARD-01 PAPAN LOWONGAN PUBLIK =====
+   Tab "Lowongan" menampilkan potret statis lowongan.json (berkas yang sama
+   di folder LMS ini): hanya isian publik — bidang, posisi, lokasi romaji,
+   gaji pokok sesuai sumber, kuota, visa, syarat tertulis publik, domisili.
+   Potret sudah melewati pindai kerahasiaan saat dibuat: tanpa kode internal,
+   tanpa nama/portal/kontak perekrut, tanpa angka biaya apa pun. */
+let __jobsData = null, __jobsFetching = false, __jobsBidang = '', __jobsDom = '';
+async function jobsFetch(){
+  if(__jobsFetching || __jobsData) return;
+  __jobsFetching = true;
+  try{ const r = await fetch('lowongan.json', { cache: 'no-cache' }); if(r.ok){ __jobsData = await r.json(); } }catch(e){}
+  __jobsFetching = false; renderJobs(true);
+}
+function renderJobs(fromFetch){
+  const el = document.getElementById('tab-jobs'); if(!el) return;
+  if(!__jobsData && !fromFetch) jobsFetch();
+  let h = '<h2 class="cat">Lowongan Kerja di Jepang</h2>';
+  h += '<div class="prog-row"><div class="t">Mari kita lihat lowongan yang sedang terbuka</div><p>Di bawah ini daftar lowongan publik yang tersedia saat ini. Gaji yang tampil adalah gaji pokok per bulan sesuai sumber lowongan. Syarat yang tertulis adalah syarat resmi lowongan — mari kita periksa dengan teliti bidang, bahasa, dan domisili kita sebelum berminat.</p></div>';
+  if(!__jobsData){
+    h += '<div class="prog-row"><p>' + (__jobsFetching ? 'Memuat daftar lowongan… mari kita tunggu sebentar.' : 'Daftar lowongan belum dapat dimuat. Mari kita coba lagi nanti.') + '</p></div>';
+    el.innerHTML = h; return;
+  }
+  const jobs = __jobsData.jobs || [];
+  const bidangs = []; jobs.forEach(j=>{ if(bidangs.indexOf(j.bidang) < 0) bidangs.push(j.bidang); });
+  h += '<div class="prog-row"><div class="t">Saring lowongan</div><p><label>Bidang&nbsp;<select id="jobs-f-bidang"><option value="">Semua bidang</option>'
+    + bidangs.map(b=>'<option value="' + lbEsc(b) + '"' + (b === __jobsBidang ? ' selected' : '') + '>' + lbEsc(b) + '</option>').join('')
+    + '</select></label> &nbsp; <label>Domisili&nbsp;<select id="jobs-f-dom"><option value="">Semua domisili</option>'
+    + '<option value="kokugai"' + (__jobsDom === 'kokugai' ? ' selected' : '') + '>Bisa dilamar dari Indonesia</option>'
+    + '<option value="kokunai"' + (__jobsDom === 'kokunai' ? ' selected' : '') + '>Khusus domisili Jepang</option>'
+    + '<option value="keduanya"' + (__jobsDom === 'keduanya' ? ' selected' : '') + '>Indonesia &amp; Jepang</option></select></label></p></div>';
+  const shown = jobs.filter(j => (!__jobsBidang || j.bidang === __jobsBidang) && (!__jobsDom || j.domisili === __jobsDom || (__jobsDom === 'kokugai' && j.domisili === 'keduanya')));
+  if(!shown.length){
+    h += '<div class="prog-row"><p>Belum ada lowongan yang cocok dengan saringan ini. Mari kita longgarkan saringannya atau periksa lagi nanti — daftar ini diperbarui berkala.</p></div>';
+  }
+  let lastBidang = '';
+  shown.forEach(j=>{
+    if(j.bidang !== lastBidang){ lastBidang = j.bidang; h += '<h2 class="cat">' + lbEsc(j.bidang) + '</h2>'; }
+    h += '<div class="prog-row"><div class="t">' + lbEsc(j.posisi) + '</div>'
+      + '<p>📍 ' + lbEsc(j.lokasi) + ' · 💴 Gaji pokok ' + lbEsc(j.gajiLabel) + (j.kuota ? ' · 👥 Kuota ' + lbEsc(j.kuota) + ' orang' : '') + '<br>'
+      + '🛂 ' + lbEsc(j.visa) + ' · 🗣️ Bahasa: ' + lbEsc(j.bahasa) + ' · 🛠️ SSW: ' + lbEsc(j.ssw) + (j.usia ? ' · 🎂 Usia: ' + lbEsc(j.usia) : '') + '<br>'
+      + '🏠 ' + lbEsc(j.domLabel) + (j.free ? ' · <strong>Shoukai Free</strong>' : '') + '</p>'
+      + (j.syarat && j.syarat.length ? '<p>Syarat tertulis: ' + j.syarat.map(s=>lbEsc(s)).join('; ') + '.</p>' : '')
+      + '</div>';
+  });
+  h += '<div class="prog-row"><p class="note">Potret data per ' + lbEsc(__jobsData.snapshotLabel || '') + ' — ' + jobs.length + ' lowongan tampil. Lowongan dapat terisi atau berubah sewaktu-waktu; rincian resmi dibaca dari dokumen lowongan saat proses lamaran. Bila ada lowongan yang cocok dengan syarat kita, mari sampaikan minat kita lewat bimbingan di kelas dan grup bidang kita.</p></div>';
+  el.innerHTML = h;
+  const fb = document.getElementById('jobs-f-bidang'); if(fb) fb.addEventListener('change', ()=>{ __jobsBidang = fb.value; renderJobs(true); });
+  const fd = document.getElementById('jobs-f-dom'); if(fd) fd.addEventListener('change', ()=>{ __jobsDom = fd.value; renderJobs(true); });
+}
 function enterApp(nama){
   user = nama; loadStore(user);
   document.getElementById('view-login').classList.add('hidden');
@@ -393,7 +445,7 @@ async function sbStartSession(sess){
 
 function render(){
   document.getElementById('who-name').textContent = user;
-  renderDash(); renderLib(); renderProg(); renderSimHome(); renderLb();
+  renderDash(); renderLib(); renderProg(); renderSimHome(); renderLb(); renderJobs();
 }
 function statsHTML(){
   const total = META.length;
@@ -613,7 +665,7 @@ document.querySelectorAll('.tabs button[data-tab]').forEach(b=>{
   b.addEventListener('click', ()=>{
     document.querySelectorAll('.tabs button[data-tab]').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
-    ['dash','lib','prog','sim','lb','sensei'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
+    ['dash','lib','prog','sim','lb','sensei','jobs'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden', t!==b.dataset.tab));
   });
 });
 document.getElementById('btn-logout').addEventListener('click', async ()=>{
