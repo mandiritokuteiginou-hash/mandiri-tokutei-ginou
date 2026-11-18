@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- JOBBOARD-01: tab Lowongan = papan lowongan publik (potret statis lowongan.json, hasil pindai kerahasiaan) -->
+<!-- JOBBOARD-02 + FORMCV-01: tombol Lihat Kyujinhyou (penampil layar penuh) & Isi Form CV pada kartu lowongan -->
 <!-- SENSEI-01: tab Sensei khusus akun staf (sumber staf-sensei/staf) -->
 <!-- NAMA-LMS-01: nama tampilan LMS = Mandiri Tokutei Ginou Indonesia -->
 <title>Mandiri Tokutei Ginou Indonesia — Semua Materi</title>
@@ -71,6 +72,19 @@ h2.cat{color:var(--navy);font-size:1.25rem;margin:26px 0 10px;padding-left:10px;
 .hidden{display:none}
 footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);font-size:.9rem}
 @media (max-width:560px){.hero h1{font-size:1.55rem}}
+</style>
+<style>
+/* JOBBOARD-02 + FORMCV-01 */
+.job-btns{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
+.job-btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid #b98a1c;background:#fdf6e0;color:#6b4e00;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
+.job-btn:hover{background:#f7e8bd}
+#kyujin-viewer{position:fixed;inset:0;background:rgba(10,14,24,.94);z-index:9999;display:flex;flex-direction:column}
+#kyujin-viewer.hidden{display:none}
+#kyujin-viewer .kv-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#fff;flex-wrap:wrap}
+#kyujin-viewer .kv-bar .kv-title{font-weight:700;margin-right:auto;font-size:15px}
+#kyujin-viewer .kv-bar button{padding:8px 12px;border-radius:8px;border:1px solid #8892a6;background:#1c2536;color:#fff;cursor:pointer;font-size:14px}
+#kyujin-viewer .kv-scroll{flex:1;overflow:auto;text-align:center;padding:0 8px 16px}
+#kyujin-viewer img{background:#fff;border-radius:6px;max-width:none}
 </style>
 </head>
 <body>
@@ -405,23 +419,50 @@ function renderJobs(fromFetch){
     + '<option value="kokunai"' + (__jobsDom === 'kokunai' ? ' selected' : '') + '>Khusus domisili Jepang</option>'
     + '<option value="keduanya"' + (__jobsDom === 'keduanya' ? ' selected' : '') + '>Indonesia &amp; Jepang</option></select></label></p></div>';
   const shown = jobs.filter(j => (!__jobsBidang || j.bidang === __jobsBidang) && (!__jobsDom || j.domisili === __jobsDom || (__jobsDom === 'kokugai' && j.domisili === 'keduanya')));
+  window.__jobsShown = shown;
   if(!shown.length){
     h += '<div class="prog-row"><p>Belum ada lowongan yang cocok dengan saringan ini. Mari kita longgarkan saringannya atau periksa lagi nanti — daftar ini diperbarui berkala.</p></div>';
   }
   let lastBidang = '';
-  shown.forEach(j=>{
+  shown.forEach((j,ji)=>{
     if(j.bidang !== lastBidang){ lastBidang = j.bidang; h += '<h2 class="cat">' + lbEsc(j.bidang) + '</h2>'; }
     h += '<div class="prog-row"><div class="t">' + lbEsc(j.posisi) + '</div>'
       + '<p>📍 ' + lbEsc(j.lokasi) + ' · 💴 Gaji pokok ' + lbEsc(j.gajiLabel) + (j.kuota ? ' · 👥 Kuota ' + lbEsc(j.kuota) + ' orang' : '') + '<br>'
       + '🛂 ' + lbEsc(j.visa) + ' · 🗣️ Bahasa: ' + lbEsc(j.bahasa) + ' · 🛠️ SSW: ' + lbEsc(j.ssw) + (j.usia ? ' · 🎂 Usia: ' + lbEsc(j.usia) : '') + '<br>'
       + '🏠 ' + lbEsc(j.domLabel) + (j.free ? ' · <strong>Shoukai Free</strong>' : '') + '</p>'
       + (j.syarat && j.syarat.length ? '<p>Syarat tertulis: ' + j.syarat.map(s=>lbEsc(s)).join('; ') + '.</p>' : '')
+      + '<p class="job-btns">'
+      + (j.kyujin ? '<button type="button" class="job-btn" onclick="openKyujin(' + ji + ')">📄 Lihat Kyujinhyou</button> ' : '')
+      + '<a class="job-btn" href="https://docs.google.com/forms/d/e/1FAIpQLScxpi8ws3AzKGrhDA5rZr8yM99fNSess0r89_6Dw2wW_AKzCQ/viewform" target="_blank" rel="noopener">📝 Isi Form CV</a>'
+      + '</p>'
       + '</div>';
   });
   h += '<div class="prog-row"><p class="note">Potret data per ' + lbEsc(__jobsData.snapshotLabel || '') + ' — ' + jobs.length + ' lowongan tampil. Lowongan dapat terisi atau berubah sewaktu-waktu; rincian resmi dibaca dari dokumen lowongan saat proses lamaran. Bila ada lowongan yang cocok dengan syarat kita, mari sampaikan minat kita lewat bimbingan di kelas dan grup bidang kita.</p></div>';
   el.innerHTML = h;
   const fb = document.getElementById('jobs-f-bidang'); if(fb) fb.addEventListener('change', ()=>{ __jobsBidang = fb.value; renderJobs(true); });
   const fd = document.getElementById('jobs-f-dom'); if(fd) fd.addEventListener('change', ()=>{ __jobsDom = fd.value; renderJobs(true); });
+}
+/* ===== JOBBOARD-02 PENAMPIL KYUJINHYOU + FORMCV-01 =====
+   Tombol "Lihat Kyujinhyou" hanya dirender bila job punya field kyujin di
+   lowongan.json (pasangan gambar<->job terverifikasi satu per satu; job
+   tanpa pasangan terverifikasi tidak mendapat tombol). Penampil layar
+   penuh dengan zoom bertingkat. FORMCV-01: tombol "Isi Form CV" pada
+   setiap kartu menuju Form Data Tambahan CV generik MTGI (tab baru). */
+let __kvZoom = 100;
+function openKyujin(i){
+  const j = (window.__jobsShown || [])[i]; if(!j || !j.kyujin) return;
+  __kvZoom = 100;
+  const img = document.getElementById('kv-img'); img.src = j.kyujin; img.style.width = '100%';
+  document.getElementById('kv-title').textContent = 'Kyujinhyou — ' + j.posisi;
+  document.getElementById('kyujin-viewer').classList.remove('hidden');
+}
+function kvZoom(d){
+  __kvZoom = Math.min(300, Math.max(50, __kvZoom + d * 25));
+  document.getElementById('kv-img').style.width = __kvZoom + '%';
+}
+function closeKyujin(){
+  document.getElementById('kyujin-viewer').classList.add('hidden');
+  document.getElementById('kv-img').removeAttribute('src');
 }
 function enterApp(nama){
   user = nama; loadStore(user);
@@ -813,5 +854,12 @@ function printRaport(){
   }
 })();
 </script>
+<div id="kyujin-viewer" class="hidden" role="dialog" aria-label="Kyujinhyou">
+  <div class="kv-bar"><span class="kv-title" id="kv-title">Kyujinhyou</span>
+    <button type="button" onclick="kvZoom(-1)">− Perkecil</button>
+    <button type="button" onclick="kvZoom(1)">+ Perbesar</button>
+    <button type="button" onclick="closeKyujin()">✕ Tutup</button></div>
+  <div class="kv-scroll"><img id="kv-img" alt="Dokumen kyujinhyou lowongan"></div>
+</div>
 </body>
 </html>

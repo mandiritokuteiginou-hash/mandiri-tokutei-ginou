@@ -21,7 +21,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k01.png"
   },
   {
    "bidang": "Konstruksi",
@@ -40,7 +41,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k02.png"
   },
   {
    "bidang": "Konstruksi",
@@ -79,7 +81,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k04.png"
   },
   {
    "bidang": "Konstruksi",
@@ -97,7 +100,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k05.png"
   },
   {
    "bidang": "Konstruksi",
@@ -116,7 +120,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k06.png"
   },
   {
    "bidang": "Konstruksi",
@@ -136,7 +141,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k07.png"
   },
   {
    "bidang": "Konstruksi",
@@ -155,7 +161,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k08.png"
   },
   {
    "bidang": "Konstruksi",
@@ -175,7 +182,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k09.png"
   },
   {
    "bidang": "Konstruksi",
@@ -191,7 +199,8 @@
    "syarat": [],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k10.png"
   },
   {
    "bidang": "Konstruksi",
@@ -247,7 +256,8 @@
    "syarat": [],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k13.png"
   },
   {
    "bidang": "Restoran",
@@ -265,7 +275,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k14.png"
   },
   {
    "bidang": "Restoran",
@@ -286,7 +297,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k15.png"
   },
   {
    "bidang": "Restoran",
@@ -308,7 +320,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k16.png"
   },
   {
    "bidang": "Restoran",
@@ -328,7 +341,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k17.png"
   },
   {
    "bidang": "Restoran",
@@ -400,7 +414,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k21.png"
   },
   {
    "bidang": "Restoran",
@@ -423,7 +438,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k22.png"
   },
   {
    "bidang": "Kaigo",
@@ -443,7 +459,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k23.png"
   },
   {
    "bidang": "Kaigo",
@@ -479,7 +496,8 @@
    ],
    "domisili": "keduanya",
    "domLabel": "Bisa dari Indonesia & domisili Jepang",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k25.png"
   },
   {
    "bidang": "Perhotelan",
@@ -552,7 +570,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k29.png"
   },
   {
    "bidang": "Manufaktur Produk Industri",
@@ -570,7 +589,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k30.png"
   },
   {
    "bidang": "Manufaktur Produk Industri",
@@ -592,7 +612,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k31.png"
   },
   {
    "bidang": "Manufaktur Makanan & Minuman",
@@ -630,7 +651,8 @@
    ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true
+   "free": true,
+   "kyujin": "kyujin/k33.png"
   },
   {
    "bidang": "Transportasi Darat",
@@ -669,7 +691,8 @@
    ],
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false
+   "free": false,
+   "kyujin": "kyujin/k35.png"
   }
  ]
 }
