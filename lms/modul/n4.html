@@ -26,6 +26,7 @@ header.cover .sub strong{color:var(--gold2)}
 .progress-box button,.progress-box .toggle{border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12);color:#fff}
 .progress-box button:hover,.progress-box .toggle:hover{background:var(--gold);border-color:var(--gold);color:var(--navy)}
 .controls{position:sticky;top:0;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);box-shadow:0 4px 18px rgba(20,40,75,.08);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px;z-index:50;align-items:center}
+/* FIX-MOBILE-01 */@media(max-width:640px){.controls{position:static;padding:8px 10px}}
 .controls input[type=search]{flex:1;min-width:180px;padding:10px 16px;border:2px solid var(--line);border-radius:999px;font-size:.95rem;outline:none;transition:border-color .15s}
 .controls input[type=search]:focus{border-color:var(--gold)}
 button,.toggle{border:1.5px solid #c6cede;background:#fff;border-radius:999px;padding:7px 14px;cursor:pointer;font-size:.92rem;font-weight:600;color:var(--navy);transition:all .15s;display:inline-block}
