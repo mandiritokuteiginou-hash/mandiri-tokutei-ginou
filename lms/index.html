@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- SESI-01: sesi login persisten — token disegarkan otomatis sebelum kedaluwarsa; sesi hanya berakhir saat Keluar / ditolak server -->
 <!-- JOBBOARD-01: tab Lowongan = papan lowongan publik (potret statis lowongan.json, hasil pindai kerahasiaan) -->
 <!-- JOBBOARD-02 + FORMCV-01: tombol Lihat Kyujinhyou (penampil layar penuh) & Isi Form CV pada kartu lowongan -->
 <!-- SENSEI-01: tab Sensei khusus akun staf (sumber staf-sensei/staf) -->
@@ -316,21 +317,69 @@ async function sbSendMagicLink(email){
     return r.ok;
   }catch(e){ return false; }
 }
+/* ===== SESI-01 SESI LOGIN PERSISTEN =====
+   Sesi (token akses + token penyegar + waktu kedaluwarsa akses) tersimpan
+   persisten di localStorage perangkat ini dan token akses disegarkan
+   OTOMATIS sebelum kedaluwarsa: saat aplikasi dibuka (pemulihan sesi di
+   init), berkala selama aplikasi terbuka (sbScheduleRefresh), dan saat
+   tab kembali aktif. Sesi hanya dihapus bila server MENOLAK token
+   penyegar secara definitif (HTTP 400/401/403) atau saat siswa menekan
+   Keluar — gangguan jaringan sesaat TIDAK menghapus sesi. Gerbang email
+   terdaftar tidak berubah: sesi persisten hanya melanjutkan sesi email
+   terdaftar yang pernah masuk sah lewat tautan email. */
+const SB_REFRESH_SKEW_MS = 5 * 60 * 1000;
+let __sbRefreshTimer = null, __sbRefreshing = null;
+function sbExpiresAt(j, prev){
+  if(j && j.expires_at){ const ea = Number(j.expires_at); if(ea) return ea < 1e12 ? ea * 1000 : ea; }
+  if(j && j.expires_in) return Date.now() + Number(j.expires_in) * 1000;
+  if(prev) return prev;
+  try{ const tok = String((j && j.access_token) || ''); const p = JSON.parse(atob(tok.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))); if(p && p.exp) return p.exp * 1000; }catch(e){}
+  return 0;
+}
 function sbSaveSession(s){ try{ localStorage.setItem('mtgiLMSv3:session', JSON.stringify(s)); }catch(e){} }
 function sbLoadSession(){
   try{ const r = localStorage.getItem('mtgiLMSv3:session'); if(!r) return null; const s = JSON.parse(r); return (s && s.access_token && s.email) ? s : null; }catch(e){ return null; }
 }
-function sbClearSession(){ try{ localStorage.removeItem('mtgiLMSv3:session'); localStorage.removeItem('mtgiLMSv3:pending'); }catch(e){} window.__sbToken = null; }
+function sbClearSession(){ try{ localStorage.removeItem('mtgiLMSv3:session'); localStorage.removeItem('mtgiLMSv3:pending'); }catch(e){} window.__sbToken = null; if(__sbRefreshTimer){ clearTimeout(__sbRefreshTimer); __sbRefreshTimer = null; } }
+function sbSessionStale(s){ return !s || !s.expires_at || (s.expires_at - Date.now()) < SB_REFRESH_SKEW_MS; }
+function sbScheduleRefresh(){
+  if(__sbRefreshTimer){ clearTimeout(__sbRefreshTimer); __sbRefreshTimer = null; }
+  const s = sbLoadSession(); if(!s || !s.expires_at || !s.refresh_token) return;
+  const wait = Math.min(Math.max(10000, s.expires_at - Date.now() - SB_REFRESH_SKEW_MS), 2147483647);
+  __sbRefreshTimer = setTimeout(()=>{ sbRefreshSession(); }, wait);
+}
+async function sbRefreshSession(){
+  if(__sbRefreshing) return __sbRefreshing;
+  __sbRefreshing = (async ()=>{
+    try{
+      const s = sbLoadSession();
+      if(!s || !s.refresh_token) return null;
+      const r = await sbRefreshToken(s.refresh_token);
+      if(r.session){
+        const ns = { access_token: r.session.access_token, refresh_token: r.session.refresh_token || s.refresh_token, email: s.email, nama: s.nama, expires_at: sbExpiresAt(r.session, 0) };
+        sbSaveSession(ns); window.__sbToken = ns.access_token; sbScheduleRefresh();
+        return ns;
+      }
+      return r.definitive ? false : null;
+    }catch(e){ return null; }
+    finally{ __sbRefreshing = null; }
+  })();
+  return __sbRefreshing;
+}
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ const s = sbLoadSession(); if(s && s.refresh_token && sbSessionStale(s)) sbRefreshSession(); } });
 async function sbFetchUser(token){
   try{ const r = await fetch(SUPABASE_CFG.url + '/auth/v1/user', { headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token } });
     if(!r.ok) return null; return await r.json(); }catch(e){ return null; }
 }
-async function sbRefresh(refreshToken){
+async function sbRefreshToken(refreshToken){
   try{ const r = await fetch(SUPABASE_CFG.url + '/auth/v1/token?grant_type=refresh_token', { method:'POST',
     headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Content-Type':'application/json' },
     body: JSON.stringify({ refresh_token: refreshToken }) });
-    if(!r.ok) return null; const j = await r.json(); return (j && j.access_token) ? j : null; }catch(e){ return null; }
+    if(!r.ok) return { session: null, definitive: (r.status === 400 || r.status === 401 || r.status === 403), status: r.status };
+    const j = await r.json(); return { session: (j && j.access_token) ? j : null, definitive: false, status: r.status };
+  }catch(e){ return { session: null, definitive: false, status: 0 }; }
 }
+async function sbRefresh(refreshToken){ const r = await sbRefreshToken(refreshToken); return r.session; }
 async function sbMyName(token){
   try{ const r = await fetch(SUPABASE_CFG.url + '/rest/v1/rpc/my_registered_name', { method:'POST',
     headers:{ 'apikey': SUPABASE_CFG.anonKey, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body: '{}' });
@@ -477,10 +526,12 @@ function enterApp(nama){
 }
 async function sbStartSession(sess){
   window.__sbToken = sess.access_token;
+  sess.expires_at = sbExpiresAt(sess, sess.expires_at || 0);
   let nama = sess.nama || null;
   if(!nama) nama = await sbMyName(sess.access_token);
   if(!nama) nama = sess.email;
   sess.nama = nama; sbSaveSession(sess);
+  sbScheduleRefresh();
   enterApp(nama);
 }
 
@@ -824,27 +875,41 @@ function printRaport(){
   // 1) Tangkap sesi dari tautan masuk (token pada hash URL)
   if(location.hash && location.hash.indexOf('access_token=') >= 0){
     const p = new URLSearchParams(location.hash.slice(1));
-    const at = p.get('access_token'), rt = p.get('refresh_token');
+    const at = p.get('access_token'), rt = p.get('refresh_token'), ei = p.get('expires_in'), ea = p.get('expires_at');
     if(at){
       let pending = null; try{ pending = JSON.parse(localStorage.getItem('mtgiLMSv3:pending') || 'null'); }catch(e){}
       const usr = await sbFetchUser(at);
       const email = (usr && usr.email) ? String(usr.email).toLowerCase() : ((pending && pending.email) || '');
       try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
-      if(email){ await sbStartSession({ access_token: at, refresh_token: rt, email: email, nama: (pending && pending.email === email) ? pending.nama : null }); return; }
+      if(email){ await sbStartSession({ access_token: at, refresh_token: rt, expires_in: ei ? Number(ei) : null, expires_at: ea ? Number(ea) : null, email: email, nama: (pending && pending.email === email) ? pending.nama : null }); return; }
     }
   }
-  // 2) Pulihkan sesi tersimpan di perangkat ini
+  // 2) Pulihkan sesi tersimpan di perangkat ini (SESI-01: segarkan dulu
+  //    bila token akses kedaluwarsa / hampir habis; sesi tersimpan hanya
+  //    dihapus bila server menolak token penyegar secara definitif)
   const s = sbLoadSession();
   if(s){
-    const usr = await sbFetchUser(s.access_token);
-    if(usr){ window.__sbToken = s.access_token; enterApp(s.nama || s.email); return; }
-    if(s.refresh_token){
-      const j = await sbRefresh(s.refresh_token);
-      if(j){ await sbStartSession({ access_token: j.access_token, refresh_token: j.refresh_token || s.refresh_token, email: s.email, nama: s.nama }); return; }
+    if(!sbSessionStale(s)){
+      window.__sbToken = s.access_token; sbScheduleRefresh(); enterApp(s.nama || s.email); return;
     }
-    sbClearSession();
-    const msg = document.getElementById('login-msg');
-    if(msg) msg.textContent = 'Sesi masuk kita sudah berakhir. Silakan minta tautan masuk baru ya.';
+    if(s.refresh_token){
+      const ns = await sbRefreshSession();
+      if(ns){ enterApp(ns.nama || ns.email); return; }
+      if(ns === false){
+        sbClearSession();
+        const msg = document.getElementById('login-msg');
+        if(msg) msg.textContent = 'Sesi masuk kita sudah berakhir. Silakan minta tautan masuk baru ya.';
+      } else {
+        const msg = document.getElementById('login-msg');
+        if(msg) msg.textContent = 'Koneksi internet kita sedang terganggu, jadi sesi belum dapat diperiksa. Sesi masuk kita tetap tersimpan di perangkat ini — mari kita coba buka lagi sebentar lagi ya.';
+      }
+    } else {
+      const usr = await sbFetchUser(s.access_token);
+      if(usr){ window.__sbToken = s.access_token; enterApp(s.nama || s.email); return; }
+      sbClearSession();
+      const msg = document.getElementById('login-msg');
+      if(msg) msg.textContent = 'Sesi masuk kita sudah berakhir. Silakan minta tautan masuk baru ya.';
+    }
   } else {
     // Sesi lama format nama saja (sebelum login email terdaftar) tidak lagi berlaku
     try{
