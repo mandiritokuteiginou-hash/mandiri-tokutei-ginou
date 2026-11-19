@@ -1,6 +1,6 @@
 {
- "snapshot": "2026-11-18",
- "snapshotLabel": "18 November 2026",
+ "snapshot": "2026-11-19",
+ "snapshotLabel": "19 November 2026",
  "jobs": [
   {
    "bidang": "Konstruksi",
@@ -84,25 +84,6 @@
    "domLabel": "Khusus domisili Jepang (Kokunai)",
    "free": true,
    "kyujin": "kyujin/k04.png"
-  },
-  {
-   "bidang": "Konstruksi",
-   "posisi": "Pekerja Konstruksi (Saluran Udara/Duct)",
-   "lokasi": "Fukuoka — Kitakyushu-shi, Kokurakita-ku",
-   "gaji": 265000,
-   "gajiLabel": "¥265.000/bln",
-   "kuota": "2",
-   "visa": "Tokutei Ginou 1",
-   "bahasa": "JLPT N3",
-   "ssw": "Konstruksi",
-   "usia": "21–40",
-   "syarat": [
-    "Laki-laki"
-   ],
-   "domisili": "kokunai",
-   "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true,
-   "kyujin": "kyujin/k05.png"
   },
   {
    "bidang": "Konstruksi",
@@ -222,28 +203,6 @@
    "domLabel": "Khusus domisili Jepang (Kokunai)",
    "free": true,
    "kyujin": "kyujin/k11.png"
-  },
-  {
-   "bidang": "Konstruksi",
-   "posisi": "Pekerja Perbaikan Lahan (Teknik Sipil — Doboku)",
-   "lokasi": "Tokyo — Ota-ku",
-   "gaji": 216000,
-   "gajiLabel": "¥216.000/bln",
-   "kuota": "3",
-   "visa": "Tokutei Ginou 1",
-   "bahasa": "JLPT N4",
-   "ssw": "Konstruksi",
-   "usia": "21–40",
-   "syarat": [
-    "Laki-laki",
-    "Wajib pekerja konstruksi berpengalaman",
-    "Tokutei Ginou 2 disambut",
-    "Kualifikasi setara N3 / sertifikat operator kendaraan konstruksi disambut (preferensi tertulis)"
-   ],
-   "domisili": "kokunai",
-   "domLabel": "Khusus domisili Jepang (Kokunai)",
-   "free": true,
-   "kyujin": "kyujin/k12.png"
   },
   {
    "bidang": "Restoran",
