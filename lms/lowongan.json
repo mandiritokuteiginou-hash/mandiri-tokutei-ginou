@@ -1,6 +1,6 @@
 {
- "snapshot": "2026-11-19",
- "snapshotLabel": "19 November 2026",
+ "snapshot": "2026-11-20",
+ "snapshotLabel": "20 November 2026",
  "jobs": [
   {
    "bidang": "Konstruksi",
@@ -87,6 +87,47 @@
   },
   {
    "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi Kapal (Zousen) — Tanpa Pengalaman OK",
+   "lokasi": "Yamaguchi — Shimonoseki-shi",
+   "gaji": 260000,
+   "gajiLabel": "¥260.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–35",
+   "syarat": [
+    "WAJIB memiliki kualifikasi untuk bekerja di bidang konstruksi kapal (造船)",
+    "Laki-laki",
+    "Tanpa pengalaman OK"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false,
+   "kyujin": "kyujin/k42.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Perancah (Tobi) — Berpengalaman",
+   "lokasi": "Tochigi — Shimotsuga-gun, Nogi-machi",
+   "gaji": 251200,
+   "gajiLabel": "¥251.200/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–40",
+   "syarat": [
+    "WAJIB berpengalaman kerja konstruksi perancah (tobi)",
+    "Laki-laki"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false,
+   "kyujin": "kyujin/k41.png"
+  },
+  {
+   "bidang": "Konstruksi",
    "posisi": "とび／土工 — Konstruksi (Perancah & Pekerjaan Tanah)",
    "lokasi": "Saitama — Saitama-shi, Minuma-ku",
    "gaji": 250000,
@@ -104,6 +145,46 @@
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
    "free": false,
    "kyujin": "kyujin/k06.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Plester)",
+   "lokasi": "Tokushima — Mima-shi",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k36.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi Kedap Air (Bousui/Yanefuki)",
+   "lokasi": "Tokyo — Higashikurume-shi",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "20–30",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB mampu berkomunikasi bahasa Jepang",
+    "Preferensi tertulis (bukan syarat): berpengalaman konstruksi/kedap air, pemegang SIM, berniat bekerja jangka panjang"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k40.png"
   },
   {
    "bidang": "Konstruksi",
@@ -148,6 +229,28 @@
   },
   {
    "bidang": "Konstruksi",
+   "posisi": "Pekerja Teknik Sipil & Pertamanan (Doboku)",
+   "lokasi": "Kanagawa — Yokohama-shi, Izumi-ku",
+   "gaji": 237864,
+   "gajiLabel": "¥237.864/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 2",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "maks 40",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB berniat mengajukan Tokutei Ginou 2 & bekerja jangka panjang di Jepang tanpa meninggalkan Jepang tanpa izin",
+    "Berkomunikasi bahasa Jepang tanpa masalah",
+    "Preferensi tertulis (bukan syarat): berpengalaman sejenis, pemegang SIM"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k39.png"
+  },
+  {
+   "bidang": "Konstruksi",
    "posisi": "Pekerja Konstruksi (Doboku)",
    "lokasi": "Kagoshima — Kagoshima-shi",
    "gaji": 225900,
@@ -178,7 +281,10 @@
    "bahasa": "tidak tertulis",
    "ssw": "Konstruksi",
    "usia": "20–35",
-   "syarat": [],
+   "syarat": [
+    "WAJIB berpengalaman pelatihan teknis di bidang konstruksi",
+    "Kualifikasi kepala pekerja asbes nilai plus"
+   ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
    "free": true,
@@ -205,6 +311,45 @@
    "kyujin": "kyujin/k11.png"
   },
   {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Kayu)",
+   "lokasi": "Kumamoto — Kumamoto-shi, Higashi-ku",
+   "gaji": 210000,
+   "gajiLabel": "¥210.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "22–32",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k38.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Doboku)",
+   "lokasi": "Fukuoka — Nakama-shi",
+   "gaji": 190000,
+   "gajiLabel": "¥190.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–32",
+   "syarat": [
+    "Laki-laki",
+    "Preferensi tertulis (bukan syarat): pengalaman teknik sipil disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k37.png"
+  },
+  {
    "bidang": "Restoran",
    "posisi": "Manajer Restoran",
    "lokasi": "Okinawa — Naha-shi",
@@ -215,7 +360,9 @@
    "bahasa": "JLPT N3",
    "ssw": "Restoran",
    "usia": "21–45",
-   "syarat": [],
+   "syarat": [
+    "WAJIB berpengalaman manajemen restoran (posisi kandidat manajer toko)"
+   ],
    "domisili": "kokunai",
    "domLabel": "Khusus domisili Jepang (Kokunai)",
    "free": true,
@@ -491,7 +638,7 @@
    "kuota": "3",
    "visa": "Tokutei Ginou 1",
    "bahasa": "tidak tertulis",
-   "ssw": "Pertanian",
+   "ssw": "Peternakan",
    "usia": "",
    "syarat": [
     "WAJIB berkomunikasi bahasa Jepang dengan lancar & memahami instruksi kerja, berniat bekerja jangka panjang, kerja sama tim & tekun",
@@ -501,6 +648,26 @@
    "domLabel": "Khusus domisili Jepang (Kokunai)",
    "free": true,
    "kyujin": "kyujin/k27.png"
+  },
+  {
+   "bidang": "Pertanian",
+   "posisi": "Pekerja Peternakan Sapi Perah (Rakunou)",
+   "lokasi": "Hokkaido — Notsuke-gun, Betsukai-cho",
+   "gaji": 206501,
+   "gajiLabel": "¥206.501/bln",
+   "kuota": "1",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Peternakan",
+   "usia": "20–30",
+   "syarat": [
+    "WAJIB memiliki kualifikasi untuk bekerja di bidang peternakan sapi perah (酪農)",
+    "Wanita"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k43.png"
   },
   {
    "bidang": "Pertanian",
