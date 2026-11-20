@@ -79,8 +79,10 @@ footer{max-width:920px;margin:0 auto;padding:10px 16px 50px;color:var(--muted);f
 .job-btns{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px}
 .job-btn{display:inline-block;padding:9px 14px;border-radius:10px;border:1px solid #b98a1c;background:#fdf6e0;color:#6b4e00;font-weight:700;font-size:14px;cursor:pointer;text-decoration:none}
 .job-btn:hover{background:#f7e8bd}
-.job-poster{width:100%;max-width:420px;height:auto;display:block;border-radius:12px;margin:10px auto 4px;cursor:zoom-in;border:1px solid var(--line)}
-.job-poster-cap{text-align:center;font-size:.82rem;color:var(--muted);margin:0 0 6px}
+.job-flex{display:flex;gap:14px;align-items:flex-start;margin-top:10px}
+.job-poster{width:150px;height:auto;display:block;border-radius:10px;cursor:zoom-in;border:1px solid var(--line);flex:none}
+.job-isi{flex:1;min-width:0}
+@media(max-width:640px){.job-flex{flex-direction:column}}
 #kyujin-viewer{position:fixed;inset:0;background:rgba(10,14,24,.94);z-index:9999;display:flex;flex-direction:column}
 #kyujin-viewer.hidden{display:none}
 #kyujin-viewer .kv-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;color:#fff;flex-wrap:wrap}
@@ -484,7 +486,9 @@ function renderJobs(fromFetch){
   shown.forEach((j,ji)=>{
     if(j.bidang !== lastBidang){ lastBidang = j.bidang; h += '<h2 class="cat">' + lbEsc(j.bidang) + '</h2>'; }
     h += '<div class="prog-row"><div class="t">' + lbEsc(j.posisi) + '</div>'
-      + (j.poster ? '<img class="job-poster" src="' + lbEsc(j.poster) + '" alt="Poster lowongan ' + lbEsc(j.posisi) + '" loading="lazy" decoding="async" onclick="openPoster(' + ji + ')"><div class="job-poster-cap">Poster lowongan — ketuk gambar untuk memperbesar</div>' : '')
+      + '<div class="job-flex">'
+      + (j.poster ? '<img class="job-poster" src="' + lbEsc(j.poster) + '" alt="Poster lowongan ' + lbEsc(j.posisi) + '" loading="lazy" decoding="async" onclick="openPoster(' + ji + ')">' : '')
+      + '<div class="job-isi">'
       + '<p>📍 ' + lbEsc(j.lokasi) + ' · 💴 Gaji pokok ' + lbEsc(j.gajiLabel) + (j.kuota ? ' · 👥 Kuota ' + lbEsc(j.kuota) + ' orang' : '') + '<br>'
       + '🛂 ' + lbEsc(j.visa) + ' · 🗣️ Bahasa: ' + lbEsc(j.bahasa) + ' · 🛠️ SSW: ' + lbEsc(j.ssw) + (j.usia ? ' · 🎂 Usia: ' + lbEsc(j.usia) : '') + '<br>'
       + '🏠 ' + lbEsc(j.domLabel) + (j.free ? ' · <strong>Shoukai Free</strong>' : '') + '</p>'
@@ -493,6 +497,7 @@ function renderJobs(fromFetch){
       + (j.kyujin ? '<button type="button" class="job-btn" onclick="openKyujin(' + ji + ')">📄 Lihat Kyujinhyou</button> ' : '')
       + '<a class="job-btn" href="https://docs.google.com/forms/d/e/1FAIpQLScxpi8ws3AzKGrhDA5rZr8yM99fNSess0r89_6Dw2wW_AKzCQ/viewform" target="_blank" rel="noopener">📝 Isi Form CV</a>'
       + '</p>'
+      + '</div></div>'
       + '</div>';
   });
   h += '<div class="prog-row"><p class="note">Potret data per ' + lbEsc(__jobsData.snapshotLabel || '') + ' — ' + jobs.length + ' lowongan tampil. Lowongan dapat terisi atau berubah sewaktu-waktu; rincian resmi dibaca dari dokumen lowongan saat proses lamaran. Bila ada lowongan yang cocok dengan syarat kita, mari sampaikan minat kita lewat bimbingan di kelas dan grup bidang kita.</p></div>';
