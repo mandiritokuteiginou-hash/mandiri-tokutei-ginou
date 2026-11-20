@@ -150,7 +150,8 @@
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
    "free": false,
-   "kyujin": "kyujin/k06.png"
+   "kyujin": "kyujin/k06.png",
+   "poster": "poster/p06.png"
   },
   {
    "bidang": "Konstruksi",
@@ -760,7 +761,8 @@
    "domisili": "kokugai",
    "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
    "free": false,
-   "kyujin": "kyujin/k30.png"
+   "kyujin": "kyujin/k30.png",
+   "poster": "poster/p30.png"
   },
   {
    "bidang": "Manufaktur Produk Industri",
