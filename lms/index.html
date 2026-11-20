@@ -488,6 +488,7 @@ function renderJobs(fromFetch){
       + (j.syarat && j.syarat.length ? '<p>Syarat tertulis: ' + j.syarat.map(s=>lbEsc(s)).join('; ') + '.</p>' : '')
       + '<p class="job-btns">'
       + (j.kyujin ? '<button type="button" class="job-btn" onclick="openKyujin(' + ji + ')">📄 Lihat Kyujinhyou</button> ' : '')
+      + (j.poster ? '<button type="button" class="job-btn" onclick="openPoster(' + ji + ')">🖼️ Lihat Poster</button> ' : '')
       + '<a class="job-btn" href="https://docs.google.com/forms/d/e/1FAIpQLScxpi8ws3AzKGrhDA5rZr8yM99fNSess0r89_6Dw2wW_AKzCQ/viewform" target="_blank" rel="noopener">📝 Isi Form CV</a>'
       + '</p>'
       + '</div>';
@@ -509,6 +510,13 @@ function openKyujin(i){
   __kvZoom = 100;
   const img = document.getElementById('kv-img'); img.src = j.kyujin; img.style.width = '100%';
   document.getElementById('kv-title').textContent = 'Kyujinhyou — ' + j.posisi;
+  document.getElementById('kyujin-viewer').classList.remove('hidden');
+}
+function openPoster(i){
+  const j = (window.__jobsShown || [])[i]; if(!j || !j.poster) return;
+  __kvZoom = 100;
+  const img = document.getElementById('kv-img'); img.src = j.poster; img.style.width = '100%';
+  document.getElementById('kv-title').textContent = 'Poster — ' + j.posisi;
   document.getElementById('kyujin-viewer').classList.remove('hidden');
 }
 function kvZoom(d){
