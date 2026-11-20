@@ -28,6 +28,27 @@ body.hide-furigana rt{display:none}
 .latihan>li{margin:0 0 16px;line-height:1.55}
 .latihan .opsi{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 10px}
 .latihan .opsi li{margin:0;padding:5px 12px;border:1px solid #d8dee9;border-radius:999px;background:#f6f8fc;font-size:.95em}
+
+.kana-tap{font:inherit;color:inherit;background:none;border:none;border-bottom:2px dotted var(--gold);cursor:pointer;padding:0 1px}
+.kana-hint{background:#eef4ff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:.93rem}
+.kana-overlay{position:fixed;inset:0;background:rgba(15,25,45,.55);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+.kana-overlay[hidden]{display:none}
+.kana-sheet{background:#fff;border-radius:18px;max-width:360px;width:100%;padding:16px;box-shadow:0 18px 50px rgba(0,0,0,.35);text-align:center}
+.kana-stage{background:#fff;border:2px solid #7aa2e0;border-radius:8px;width:230px;height:230px;margin:4px auto}
+.kana-stage svg{width:100%;height:100%;display:block}
+.kana-meta{font-weight:700;color:var(--navy);margin-top:8px}
+.kana-actions{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.kana-actions button,.kana-close{border:1.5px solid #c6cede;background:#fff;border-radius:999px;padding:7px 14px;font-weight:600;color:var(--navy);cursor:pointer}
+.kana-close{float:right}
+.kana-note{font-size:.88rem;color:var(--muted);margin:10px 0 2px}
+.kana-atribusi{font-size:.82rem;color:var(--muted)}
+.latihan .opsi li{cursor:pointer;transition:background .15s,border-color .15s}
+.latihan .opsi li:hover{border-color:var(--gold)}
+.latihan .opsi li.benar{background:#e2f4e5;border-color:#3d9e57;color:#14532d;font-weight:700}
+.latihan .opsi li.salah{background:#fdeaea;border-color:#d66;color:#7f1d1d}
+.latihan .opsi li.kunci{border-color:#3d9e57;box-shadow:0 0 0 2px #3d9e57 inset}
+.kuis-hasil{background:#fff7dd;border:1.5px solid var(--gold);border-radius:12px;padding:12px 14px;margin:14px 0;font-weight:600}
+.kuis-hasil button{margin-left:10px;border:1.5px solid #c6cede;background:#fff;border-radius:999px;padding:6px 13px;font-weight:600;color:var(--navy);cursor:pointer}
 </style></head>
 <body>
 <header><div class="brand">Mandiri Tokutei Ginou</div><h1>Modul Hiragana &amp; Katakana — Dasar &amp; Urutan Goresan</h1></header>
@@ -71,36 +92,40 @@ body.hide-furigana rt{display:none}
 Apapun media belajarnya, yang terpenting adalah rajin berlatih dan komitmen dalam belajar. Meskipun kelihatannya sulit, kalau kita banyak berlatih, pasti bisa. Selamat berlatih huruf hiragana dan katakana~!</blockquote>
 <hr>
 <h3>Bagian 3 — Tabel Huruf Hiragana (46 Huruf Dasar)</h3>
+<p class="kana-hint">👆 Mari ketuk hurufnya — kita bisa melihat urutan goresannya bergerak dan mendengar bunyinya.</p>
+
 <p>Setiap sel berisi huruf, cara bacanya (romaji), dan jumlah goresannya menurut lembar urutan goresan. Mari kita baca dengan suara lantang, baris demi baris.</p>
 <div class="tbl"><table>
 <tr><th>Deret</th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr>
-<tr><td><strong>Vokal</strong></td><td><span class="kana-big">あ</span><br>a · 3 goresan</td><td><span class="kana-big">い</span><br>i · 2 goresan</td><td><span class="kana-big">う</span><br>u · 2 goresan</td><td><span class="kana-big">え</span><br>e · 2 goresan</td><td><span class="kana-big">お</span><br>o · 3 goresan</td></tr>
-<tr><td><strong>K</strong></td><td><span class="kana-big">か</span><br>ka · 3 goresan</td><td><span class="kana-big">き</span><br>ki · 4 goresan</td><td><span class="kana-big">く</span><br>ku · 1 goresan</td><td><span class="kana-big">け</span><br>ke · 3 goresan</td><td><span class="kana-big">こ</span><br>ko · 2 goresan</td></tr>
-<tr><td><strong>S</strong></td><td><span class="kana-big">さ</span><br>sa · 3 goresan</td><td><span class="kana-big">し</span><br>shi · 1 goresan</td><td><span class="kana-big">す</span><br>su · 2 goresan</td><td><span class="kana-big">せ</span><br>se · 3 goresan</td><td><span class="kana-big">そ</span><br>so · 1 goresan</td></tr>
-<tr><td><strong>T</strong></td><td><span class="kana-big">た</span><br>ta · 4 goresan</td><td><span class="kana-big">ち</span><br>chi · 2 goresan</td><td><span class="kana-big">つ</span><br>tsu · 1 goresan</td><td><span class="kana-big">て</span><br>te · 1 goresan</td><td><span class="kana-big">と</span><br>to · 2 goresan</td></tr>
-<tr><td><strong>N</strong></td><td><span class="kana-big">な</span><br>na · 4 goresan</td><td><span class="kana-big">に</span><br>ni · 3 goresan</td><td><span class="kana-big">ぬ</span><br>nu · 2 goresan</td><td><span class="kana-big">ね</span><br>ne · 2 goresan</td><td><span class="kana-big">の</span><br>no · 1 goresan</td></tr>
-<tr><td><strong>H</strong></td><td><span class="kana-big">は</span><br>ha · 3 goresan</td><td><span class="kana-big">ひ</span><br>hi · 1 goresan</td><td><span class="kana-big">ふ</span><br>fu · 4 goresan</td><td><span class="kana-big">へ</span><br>he · 1 goresan</td><td><span class="kana-big">ほ</span><br>ho · 4 goresan</td></tr>
-<tr><td><strong>M</strong></td><td><span class="kana-big">ま</span><br>ma · 3 goresan</td><td><span class="kana-big">み</span><br>mi · 2 goresan</td><td><span class="kana-big">む</span><br>mu · 3 goresan</td><td><span class="kana-big">め</span><br>me · 2 goresan</td><td><span class="kana-big">も</span><br>mo · 3 goresan</td></tr>
-<tr><td><strong>Y</strong></td><td><span class="kana-big">や</span><br>ya · 3 goresan</td><td><span class="kana-big">ゆ</span><br>yu · 2 goresan</td><td><span class="kana-big">よ</span><br>yo · 2 goresan</td><td>—</td><td>—</td></tr>
-<tr><td><strong>R</strong></td><td><span class="kana-big">ら</span><br>ra · 2 goresan</td><td><span class="kana-big">り</span><br>ri · 2 goresan</td><td><span class="kana-big">る</span><br>ru · 1 goresan</td><td><span class="kana-big">れ</span><br>re · 2 goresan</td><td><span class="kana-big">ろ</span><br>ro · 1 goresan</td></tr>
-<tr><td><strong>W</strong></td><td><span class="kana-big">わ</span><br>wa · 2 goresan</td><td><span class="kana-big">を</span><br>wo · 3 goresan</td><td><span class="kana-big">ん</span><br>n · 1 goresan</td><td>—</td><td>—</td></tr>
+<tr><td><strong>Vokal</strong></td><td><button type="button" class="kana-big kana-tap" data-k="あ" aria-label="Lihat cara menulis dan dengar bunyi huruf あ">あ</button><br>a · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="い" aria-label="Lihat cara menulis dan dengar bunyi huruf い">い</button><br>i · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="う" aria-label="Lihat cara menulis dan dengar bunyi huruf う">う</button><br>u · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="え" aria-label="Lihat cara menulis dan dengar bunyi huruf え">え</button><br>e · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="お" aria-label="Lihat cara menulis dan dengar bunyi huruf お">お</button><br>o · 3 goresan</td></tr>
+<tr><td><strong>K</strong></td><td><button type="button" class="kana-big kana-tap" data-k="か" aria-label="Lihat cara menulis dan dengar bunyi huruf か">か</button><br>ka · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="き" aria-label="Lihat cara menulis dan dengar bunyi huruf き">き</button><br>ki · 4 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="く" aria-label="Lihat cara menulis dan dengar bunyi huruf く">く</button><br>ku · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="け" aria-label="Lihat cara menulis dan dengar bunyi huruf け">け</button><br>ke · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="こ" aria-label="Lihat cara menulis dan dengar bunyi huruf こ">こ</button><br>ko · 2 goresan</td></tr>
+<tr><td><strong>S</strong></td><td><button type="button" class="kana-big kana-tap" data-k="さ" aria-label="Lihat cara menulis dan dengar bunyi huruf さ">さ</button><br>sa · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="し" aria-label="Lihat cara menulis dan dengar bunyi huruf し">し</button><br>shi · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="す" aria-label="Lihat cara menulis dan dengar bunyi huruf す">す</button><br>su · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="せ" aria-label="Lihat cara menulis dan dengar bunyi huruf せ">せ</button><br>se · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="そ" aria-label="Lihat cara menulis dan dengar bunyi huruf そ">そ</button><br>so · 1 goresan</td></tr>
+<tr><td><strong>T</strong></td><td><button type="button" class="kana-big kana-tap" data-k="た" aria-label="Lihat cara menulis dan dengar bunyi huruf た">た</button><br>ta · 4 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ち" aria-label="Lihat cara menulis dan dengar bunyi huruf ち">ち</button><br>chi · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="つ" aria-label="Lihat cara menulis dan dengar bunyi huruf つ">つ</button><br>tsu · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="て" aria-label="Lihat cara menulis dan dengar bunyi huruf て">て</button><br>te · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="と" aria-label="Lihat cara menulis dan dengar bunyi huruf と">と</button><br>to · 2 goresan</td></tr>
+<tr><td><strong>N</strong></td><td><button type="button" class="kana-big kana-tap" data-k="な" aria-label="Lihat cara menulis dan dengar bunyi huruf な">な</button><br>na · 4 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="に" aria-label="Lihat cara menulis dan dengar bunyi huruf に">に</button><br>ni · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ぬ" aria-label="Lihat cara menulis dan dengar bunyi huruf ぬ">ぬ</button><br>nu · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ね" aria-label="Lihat cara menulis dan dengar bunyi huruf ね">ね</button><br>ne · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="の" aria-label="Lihat cara menulis dan dengar bunyi huruf の">の</button><br>no · 1 goresan</td></tr>
+<tr><td><strong>H</strong></td><td><button type="button" class="kana-big kana-tap" data-k="は" aria-label="Lihat cara menulis dan dengar bunyi huruf は">は</button><br>ha · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ひ" aria-label="Lihat cara menulis dan dengar bunyi huruf ひ">ひ</button><br>hi · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ふ" aria-label="Lihat cara menulis dan dengar bunyi huruf ふ">ふ</button><br>fu · 4 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="へ" aria-label="Lihat cara menulis dan dengar bunyi huruf へ">へ</button><br>he · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ほ" aria-label="Lihat cara menulis dan dengar bunyi huruf ほ">ほ</button><br>ho · 4 goresan</td></tr>
+<tr><td><strong>M</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ま" aria-label="Lihat cara menulis dan dengar bunyi huruf ま">ま</button><br>ma · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="み" aria-label="Lihat cara menulis dan dengar bunyi huruf み">み</button><br>mi · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="む" aria-label="Lihat cara menulis dan dengar bunyi huruf む">む</button><br>mu · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="め" aria-label="Lihat cara menulis dan dengar bunyi huruf め">め</button><br>me · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="も" aria-label="Lihat cara menulis dan dengar bunyi huruf も">も</button><br>mo · 3 goresan</td></tr>
+<tr><td><strong>Y</strong></td><td><button type="button" class="kana-big kana-tap" data-k="や" aria-label="Lihat cara menulis dan dengar bunyi huruf や">や</button><br>ya · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ゆ" aria-label="Lihat cara menulis dan dengar bunyi huruf ゆ">ゆ</button><br>yu · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="よ" aria-label="Lihat cara menulis dan dengar bunyi huruf よ">よ</button><br>yo · 2 goresan</td><td>—</td><td>—</td></tr>
+<tr><td><strong>R</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ら" aria-label="Lihat cara menulis dan dengar bunyi huruf ら">ら</button><br>ra · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="り" aria-label="Lihat cara menulis dan dengar bunyi huruf り">り</button><br>ri · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="る" aria-label="Lihat cara menulis dan dengar bunyi huruf る">る</button><br>ru · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="れ" aria-label="Lihat cara menulis dan dengar bunyi huruf れ">れ</button><br>re · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ろ" aria-label="Lihat cara menulis dan dengar bunyi huruf ろ">ろ</button><br>ro · 1 goresan</td></tr>
+<tr><td><strong>W</strong></td><td><button type="button" class="kana-big kana-tap" data-k="わ" aria-label="Lihat cara menulis dan dengar bunyi huruf わ">わ</button><br>wa · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="を" aria-label="Lihat cara menulis dan dengar bunyi huruf を">を</button><br>wo · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ん" aria-label="Lihat cara menulis dan dengar bunyi huruf ん">ん</button><br>n · 1 goresan</td><td>—</td><td>—</td></tr>
 </table></div>
 <p>Catatan: huruf を (wo) dipakai terutama sebagai partikel dan umumnya dibaca "o"; huruf ん (n) adalah satu-satunya huruf yang berdiri sebagai bunyi nasal tanpa vokal.</p>
 <hr>
 <h3>Bagian 4 — Tabel Huruf Katakana (46 Huruf Dasar)</h3>
+<p class="kana-hint">👆 Mari ketuk hurufnya — kita bisa melihat urutan goresannya bergerak dan mendengar bunyinya.</p>
+
 <p>Katakana mempunyai bunyi yang sama dengan hiragana, tetapi bentuknya lebih tegas dan bersudut. Huruf-huruf ini dipakai untuk menulis kata serapan asing, nama asing, dan penekanan bunyi.</p>
 <div class="tbl"><table>
 <tr><th>Deret</th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th></tr>
-<tr><td><strong>Vokal</strong></td><td><span class="kana-big">ア</span><br>a · 2 goresan</td><td><span class="kana-big">イ</span><br>i · 2 goresan</td><td><span class="kana-big">ウ</span><br>u · 3 goresan</td><td><span class="kana-big">エ</span><br>e · 3 goresan</td><td><span class="kana-big">オ</span><br>o · 3 goresan</td></tr>
-<tr><td><strong>K</strong></td><td><span class="kana-big">カ</span><br>ka · 2 goresan</td><td><span class="kana-big">キ</span><br>ki · 3 goresan</td><td><span class="kana-big">ク</span><br>ku · 2 goresan</td><td><span class="kana-big">ケ</span><br>ke · 3 goresan</td><td><span class="kana-big">コ</span><br>ko · 2 goresan</td></tr>
-<tr><td><strong>S</strong></td><td><span class="kana-big">サ</span><br>sa · 3 goresan</td><td><span class="kana-big">シ</span><br>shi · 3 goresan</td><td><span class="kana-big">ス</span><br>su · 2 goresan</td><td><span class="kana-big">セ</span><br>se · 2 goresan</td><td><span class="kana-big">ソ</span><br>so · 2 goresan</td></tr>
-<tr><td><strong>T</strong></td><td><span class="kana-big">タ</span><br>ta · 3 goresan</td><td><span class="kana-big">チ</span><br>chi · 3 goresan</td><td><span class="kana-big">ツ</span><br>tsu · 3 goresan</td><td><span class="kana-big">テ</span><br>te · 3 goresan</td><td><span class="kana-big">ト</span><br>to · 2 goresan</td></tr>
-<tr><td><strong>N</strong></td><td><span class="kana-big">ナ</span><br>na · 2 goresan</td><td><span class="kana-big">ニ</span><br>ni · 2 goresan</td><td><span class="kana-big">ヌ</span><br>nu · 2 goresan</td><td><span class="kana-big">ネ</span><br>ne · 4 goresan</td><td><span class="kana-big">ノ</span><br>no · 1 goresan</td></tr>
-<tr><td><strong>H</strong></td><td><span class="kana-big">ハ</span><br>ha · 2 goresan</td><td><span class="kana-big">ヒ</span><br>hi · 2 goresan</td><td><span class="kana-big">フ</span><br>fu · 1 goresan</td><td><span class="kana-big">ヘ</span><br>he · 1 goresan</td><td><span class="kana-big">ホ</span><br>ho · 4 goresan</td></tr>
-<tr><td><strong>M</strong></td><td><span class="kana-big">マ</span><br>ma · 2 goresan</td><td><span class="kana-big">ミ</span><br>mi · 3 goresan</td><td><span class="kana-big">ム</span><br>mu · 2 goresan</td><td><span class="kana-big">メ</span><br>me · 2 goresan</td><td><span class="kana-big">モ</span><br>mo · 3 goresan</td></tr>
-<tr><td><strong>Y</strong></td><td><span class="kana-big">ヤ</span><br>ya · 2 goresan</td><td><span class="kana-big">ユ</span><br>yu · 2 goresan</td><td><span class="kana-big">ヨ</span><br>yo · 3 goresan</td><td>—</td><td>—</td></tr>
-<tr><td><strong>R</strong></td><td><span class="kana-big">ラ</span><br>ra · 2 goresan</td><td><span class="kana-big">リ</span><br>ri · 2 goresan</td><td><span class="kana-big">ル</span><br>ru · 2 goresan</td><td><span class="kana-big">レ</span><br>re · 1 goresan</td><td><span class="kana-big">ロ</span><br>ro · 3 goresan</td></tr>
-<tr><td><strong>W</strong></td><td><span class="kana-big">ワ</span><br>wa · 2 goresan</td><td><span class="kana-big">ヲ</span><br>wo · 3 goresan</td><td><span class="kana-big">ン</span><br>n · 2 goresan</td><td>—</td><td>—</td></tr>
+<tr><td><strong>Vokal</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ア" aria-label="Lihat cara menulis dan dengar bunyi huruf ア">ア</button><br>a · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="イ" aria-label="Lihat cara menulis dan dengar bunyi huruf イ">イ</button><br>i · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ウ" aria-label="Lihat cara menulis dan dengar bunyi huruf ウ">ウ</button><br>u · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="エ" aria-label="Lihat cara menulis dan dengar bunyi huruf エ">エ</button><br>e · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="オ" aria-label="Lihat cara menulis dan dengar bunyi huruf オ">オ</button><br>o · 3 goresan</td></tr>
+<tr><td><strong>K</strong></td><td><button type="button" class="kana-big kana-tap" data-k="カ" aria-label="Lihat cara menulis dan dengar bunyi huruf カ">カ</button><br>ka · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="キ" aria-label="Lihat cara menulis dan dengar bunyi huruf キ">キ</button><br>ki · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ク" aria-label="Lihat cara menulis dan dengar bunyi huruf ク">ク</button><br>ku · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ケ" aria-label="Lihat cara menulis dan dengar bunyi huruf ケ">ケ</button><br>ke · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="コ" aria-label="Lihat cara menulis dan dengar bunyi huruf コ">コ</button><br>ko · 2 goresan</td></tr>
+<tr><td><strong>S</strong></td><td><button type="button" class="kana-big kana-tap" data-k="サ" aria-label="Lihat cara menulis dan dengar bunyi huruf サ">サ</button><br>sa · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="シ" aria-label="Lihat cara menulis dan dengar bunyi huruf シ">シ</button><br>shi · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ス" aria-label="Lihat cara menulis dan dengar bunyi huruf ス">ス</button><br>su · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="セ" aria-label="Lihat cara menulis dan dengar bunyi huruf セ">セ</button><br>se · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ソ" aria-label="Lihat cara menulis dan dengar bunyi huruf ソ">ソ</button><br>so · 2 goresan</td></tr>
+<tr><td><strong>T</strong></td><td><button type="button" class="kana-big kana-tap" data-k="タ" aria-label="Lihat cara menulis dan dengar bunyi huruf タ">タ</button><br>ta · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="チ" aria-label="Lihat cara menulis dan dengar bunyi huruf チ">チ</button><br>chi · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ツ" aria-label="Lihat cara menulis dan dengar bunyi huruf ツ">ツ</button><br>tsu · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="テ" aria-label="Lihat cara menulis dan dengar bunyi huruf テ">テ</button><br>te · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ト" aria-label="Lihat cara menulis dan dengar bunyi huruf ト">ト</button><br>to · 2 goresan</td></tr>
+<tr><td><strong>N</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ナ" aria-label="Lihat cara menulis dan dengar bunyi huruf ナ">ナ</button><br>na · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ニ" aria-label="Lihat cara menulis dan dengar bunyi huruf ニ">ニ</button><br>ni · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ヌ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヌ">ヌ</button><br>nu · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ネ" aria-label="Lihat cara menulis dan dengar bunyi huruf ネ">ネ</button><br>ne · 4 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ノ" aria-label="Lihat cara menulis dan dengar bunyi huruf ノ">ノ</button><br>no · 1 goresan</td></tr>
+<tr><td><strong>H</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ハ" aria-label="Lihat cara menulis dan dengar bunyi huruf ハ">ハ</button><br>ha · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ヒ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヒ">ヒ</button><br>hi · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="フ" aria-label="Lihat cara menulis dan dengar bunyi huruf フ">フ</button><br>fu · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ヘ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヘ">ヘ</button><br>he · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ホ" aria-label="Lihat cara menulis dan dengar bunyi huruf ホ">ホ</button><br>ho · 4 goresan</td></tr>
+<tr><td><strong>M</strong></td><td><button type="button" class="kana-big kana-tap" data-k="マ" aria-label="Lihat cara menulis dan dengar bunyi huruf マ">マ</button><br>ma · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ミ" aria-label="Lihat cara menulis dan dengar bunyi huruf ミ">ミ</button><br>mi · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ム" aria-label="Lihat cara menulis dan dengar bunyi huruf ム">ム</button><br>mu · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="メ" aria-label="Lihat cara menulis dan dengar bunyi huruf メ">メ</button><br>me · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="モ" aria-label="Lihat cara menulis dan dengar bunyi huruf モ">モ</button><br>mo · 3 goresan</td></tr>
+<tr><td><strong>Y</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ヤ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヤ">ヤ</button><br>ya · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ユ" aria-label="Lihat cara menulis dan dengar bunyi huruf ユ">ユ</button><br>yu · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ヨ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヨ">ヨ</button><br>yo · 3 goresan</td><td>—</td><td>—</td></tr>
+<tr><td><strong>R</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ラ" aria-label="Lihat cara menulis dan dengar bunyi huruf ラ">ラ</button><br>ra · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="リ" aria-label="Lihat cara menulis dan dengar bunyi huruf リ">リ</button><br>ri · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ル" aria-label="Lihat cara menulis dan dengar bunyi huruf ル">ル</button><br>ru · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="レ" aria-label="Lihat cara menulis dan dengar bunyi huruf レ">レ</button><br>re · 1 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ロ" aria-label="Lihat cara menulis dan dengar bunyi huruf ロ">ロ</button><br>ro · 3 goresan</td></tr>
+<tr><td><strong>W</strong></td><td><button type="button" class="kana-big kana-tap" data-k="ワ" aria-label="Lihat cara menulis dan dengar bunyi huruf ワ">ワ</button><br>wa · 2 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ヲ" aria-label="Lihat cara menulis dan dengar bunyi huruf ヲ">ヲ</button><br>wo · 3 goresan</td><td><button type="button" class="kana-big kana-tap" data-k="ン" aria-label="Lihat cara menulis dan dengar bunyi huruf ン">ン</button><br>n · 2 goresan</td><td>—</td><td>—</td></tr>
 </table></div>
 <p>Perhatikan pasangan yang bentuknya mirip: シ (shi) dan ツ (tsu), ソ (so) dan ン (n) — arah goresan pertamanyalah yang membedakan. Kita latih pelan-pelan sampai terbiasa, ya.</p>
 <hr>
@@ -177,7 +202,7 @@ Apapun media belajarnya, yang terpenting adalah rajin berlatih dan komitmen dala
 <p><strong>Katakana:</strong> ソロ (soro — solo), センチ (senchi — sentimeter), テスト (tesuto — tes), ソフト (sofuto — lembut), ケア (kea — perawatan), メモ (memo — catatan), イオン (ion — ion).</p>
 <hr>
 <h3>Latihan Singkat — Mari Kita Coba Bersama</h3>
-<p>Pilih jawaban yang paling tepat. Kunci ada di bagian akhir modul — mari kita kerjakan dulu tanpa melihat kunci, ya.</p>
+<p>Ketuk jawaban yang paling tepat — hasilnya langsung terlihat, dan skor kita muncul sesudah semua soal terjawab. Mari kita kerjakan dengan jujur, ya.</p>
 <ol class="latihan"><li>Huruf yang digunakan untuk menulis kata-kata asli dalam bahasa Jepang adalah …<ul class="opsi"><li>a. hiragana</li><li>b. katakana</li><li>c. kanji</li></ul></li>
 <li>Huruf yang digunakan untuk menulis kosakata serapan asing adalah …<ul class="opsi"><li>a. hiragana</li><li>b. katakana</li><li>c. romaji</li></ul></li>
 <li>Cara membaca huruf し adalah …<ul class="opsi"><li>a. sa</li><li>b. su</li><li>c. shi</li></ul></li>
@@ -189,10 +214,144 @@ Apapun media belajarnya, yang terpenting adalah rajin berlatih dan komitmen dala
 <li>Kosakata katakana テスト artinya …<ul class="opsi"><li>a. tes / ujian</li><li>b. toilet</li><li>c. kamera</li></ul></li>
 <li>Tanda ー pada katakana berfungsi untuk …<ul class="opsi"><li>a. mengubah bunyi huruf</li><li>b. memanjangkan bunyi vokal</li><li>c. memisahkan kata</li></ul></li>
 </ol>
+<div id="kuis-hasil" class="kuis-hasil" hidden></div>
 <p><strong>Kunci latihan:</strong> 1-a, 2-b, 3-c, 4-a, 5-c, 6-a, 7-c, 8-b, 9-a, 10-b</p>
 <hr>
 <h3>Penutup — Fondasi Kita Sudah Diletakkan</h3>
 <p>Kita sudah mengenal tiga huruf Jepang, aturan urutan goresan, 46 hiragana, 46 katakana, tanda tenten &amp; maru, huruf kecil ゃゅょ, dan kosakata katakana dasar. Mari kita tulis ulang setiap huruf 5–10 kali di buku kotak besar, kita baca tabelnya dengan suara lantang setiap hari, dan kita lanjutkan ke Ebook Modern N5 sesudah huruf-huruf ini terasa akrab. Fondasi yang kuat membuat semua pelajaran berikutnya terasa jauh lebih ringan.</p>
 <p><em>Modul ini adalah materi suplemen belajar MTGI. Tabel huruf, jumlah goresan, dan urutan latihan mengikuti LKS Hiragana–Katakana dan lembar urutan goresan (hitsuzyun) yang dibagikan di kelas; penjelasan dan kalimat pendamping adalah karangan orisinal MTGI.</em></p>
+<p class="kana-atribusi"><em>Data urutan goresan pada modul ini bersumber dari KanjiVG (© Ulrich Apel dan kontributor), berlisensi CC BY-SA 3.0, digambar sebagai animasi oleh MTGI.</em></p>
 </main>
+
+<div id="kana-overlay" class="kana-overlay" hidden>
+  <div class="kana-sheet">
+    <button type="button" class="kana-close" id="kana-close">✕ Tutup</button>
+    <div class="kana-stage" id="kana-stage"></div>
+    <div class="kana-meta"><span id="kana-nama"></span> · <span id="kana-romaji"></span> · <span id="kana-jumlah"></span></div>
+    <div class="kana-actions">
+      <button type="button" id="kana-replay">▶ Putar ulang goresan</button>
+      <button type="button" id="kana-speak">🔊 Dengar bunyi</button>
+    </div>
+    <p class="kana-note">Mari kita ikuti urutan nomornya dan tulis di buku kotak besar kita, ya.</p>
+  </div>
+</div>
+<script src="kana-data.js"></script>
+<script>
+(function(){
+  var DATA = window.KANA_STROKES || {};
+  var NS = 'http://www.w3.org/2000/svg';
+  var ov = document.getElementById('kana-overlay');
+  var stage = document.getElementById('kana-stage');
+  var cur = null, animIv = 0;
+  function speak(k){
+    try{
+      var u = new SpeechSynthesisUtterance(k);
+      u.lang = 'ja-JP'; u.rate = 0.72;
+      var vs = window.speechSynthesis.getVoices();
+      for(var i=0;i<vs.length;i++){ if(vs[i].lang && vs[i].lang.indexOf('ja') === 0){ u.voice = vs[i]; break; } }
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function el(name, attrs){
+    var n = document.createElementNS(NS, name);
+    for(var k in attrs) n.setAttribute(k, attrs[k]);
+    return n;
+  }
+  function draw(k){
+    clearInterval(animIv);
+    var d = DATA[k]; if(!d) return;
+    stage.innerHTML = '';
+    var svg = el('svg', {viewBox: '0 0 109 109', role: 'img', 'aria-label': 'Urutan goresan huruf ' + k});
+    svg.appendChild(el('rect', {x: 1, y: 1, width: 107, height: 107, fill: 'none', stroke: '#c9d6f2', 'stroke-width': 1}));
+    svg.appendChild(el('line', {x1: 54.5, y1: 0, x2: 54.5, y2: 109, stroke: '#dbe4f5', 'stroke-width': 1, 'stroke-dasharray': '4 3'}));
+    svg.appendChild(el('line', {x1: 0, y1: 54.5, x2: 109, y2: 54.5, stroke: '#dbe4f5', 'stroke-width': 1, 'stroke-dasharray': '4 3'}));
+    var ghost = el('text', {x: 54.5, y: 56, 'text-anchor': 'middle', 'dominant-baseline': 'central', 'font-size': 88, fill: '#e9edf6'});
+    ghost.textContent = k; svg.appendChild(ghost);
+    var paths = [], badges = [];
+    d.p.forEach(function(dp, i){
+      var p = el('path', {d: dp, fill: 'none', stroke: '#14284b', 'stroke-width': 4.2, 'stroke-linecap': 'round', 'stroke-linejoin': 'round'});
+      svg.appendChild(p); paths.push(p);
+      var sx = Math.max(8, Math.min(101, d.s[i][0] - 7)), sy = Math.max(8, Math.min(101, d.s[i][1] - 7));
+      var g = el('g', {opacity: 0});
+      g.appendChild(el('circle', {cx: sx, cy: sy, r: 7.5, fill: '#c9a227'}));
+      var tx = el('text', {x: sx, y: sy + 3.4, 'text-anchor': 'middle', 'font-size': 9.5, 'font-weight': '700', fill: '#fff'});
+      tx.textContent = String(i + 1); g.appendChild(tx);
+      svg.appendChild(g); badges.push(g);
+    });
+    stage.appendChild(svg);
+    var lens = paths.map(function(p){
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = String(len); p.style.strokeDashoffset = String(len);
+      return len;
+    });
+    var mulai = Date.now();
+    animIv = setInterval(function(){
+      var now = Date.now() - mulai, done = true;
+      paths.forEach(function(p, i){
+        var delay = 300 + i * 600, dur = Math.max(280, Math.min(750, lens[i] * 5));
+        var pr = (now - delay) / dur;
+        if(pr < 0) pr = 0;
+        if(pr < 1) done = false;
+        if(now >= delay) badges[i].setAttribute('opacity', '1');
+        p.style.strokeDashoffset = String(lens[i] * (1 - Math.min(1, pr)));
+      });
+      if(done) clearInterval(animIv);
+    }, 40);
+    document.getElementById('kana-nama').textContent = k;
+    document.getElementById('kana-romaji').textContent = 'dibaca "' + d.r + '"';
+    document.getElementById('kana-jumlah').textContent = d.p.length + ' goresan';
+  }
+  function openKana(k){
+    if(!DATA[k]) return;
+    cur = k;
+    ov.hidden = false;
+    draw(k); speak(k);
+  }
+  function closeKana(){ ov.hidden = true; clearInterval(animIv); try{ window.speechSynthesis.cancel(); }catch(e){} }
+  document.querySelectorAll('.kana-tap').forEach(function(b){
+    b.addEventListener('click', function(){ openKana(b.getAttribute('data-k')); });
+  });
+  document.getElementById('kana-close').addEventListener('click', closeKana);
+  ov.addEventListener('click', function(e){ if(e.target === ov) closeKana(); });
+  document.getElementById('kana-replay').addEventListener('click', function(){ if(cur) draw(cur); });
+  document.getElementById('kana-speak').addEventListener('click', function(){ if(cur) speak(cur); });
+
+  /* ===== Kuis interaktif Latihan Singkat ===== */
+  var KEY = [0, 1, 2, 0, 2, 0, 2, 1, 0, 1];
+  var ol = document.querySelector('ol.latihan');
+  var hasil = document.getElementById('kuis-hasil');
+  if(ol && hasil){
+    document.querySelectorAll('p').forEach(function(p){
+      if(p.textContent.indexOf('Kunci latihan:') === 0) p.style.display = 'none';
+    });
+    var terjawab = 0, skor = 0;
+    var soal = ol.querySelectorAll(':scope > li');
+    soal.forEach(function(li, qi){
+      var opsi = li.querySelectorAll('.opsi li');
+      var kunci = KEY[qi];
+      var selesai = false;
+      opsi.forEach(function(op, oi){
+        op.setAttribute('role', 'button');
+        op.addEventListener('click', function(){
+          if(selesai) return;
+          selesai = true;
+          if(oi === kunci){ op.classList.add('benar'); skor++; }
+          else { op.classList.add('salah'); opsi[kunci].classList.add('kunci'); }
+          terjawab++;
+          if(terjawab === soal.length){
+            var pesan = skor === soal.length ? 'Sempurna — semua benar. Kerja yang bagus, mari kita lanjutkan ke materi berikutnya.'
+              : (skor >= 7 ? 'Bagus sekali — hampir semua benar. Mari kita periksa lagi soal yang masih keliru, ya.'
+              : 'Tidak apa-apa, kita belajar bersama. Mari kita baca lagi tabel hurufnya, lalu coba sekali lagi.');
+            hasil.hidden = false;
+            hasil.innerHTML = 'Skor kita: ' + skor + ' dari ' + soal.length + '. ' + pesan + ' <button type="button" id="kuis-ulang">↺ Ulangi latihan</button>';
+            try{ localStorage.setItem('mtgiLatihan:kana1', JSON.stringify({score: skor, total: soal.length, ts: Date.now()})); }catch(e){}
+            document.getElementById('kuis-ulang').addEventListener('click', function(){ location.reload(); });
+          }
+        });
+      });
+    });
+  }
+})();
+</script>
 </body></html>
