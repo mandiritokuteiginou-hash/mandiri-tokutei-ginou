@@ -1,6 +1,6 @@
 {
- "snapshot": "2026-11-20",
- "snapshotLabel": "20 November 2026",
+ "snapshot": "2026-11-22",
+ "snapshotLabel": "22 November 2026",
  "jobs": [
   {
    "bidang": "Konstruksi",
@@ -91,25 +91,113 @@
   },
   {
    "bidang": "Konstruksi",
-   "posisi": "Pekerja Konstruksi Kapal (Zousen) — Tanpa Pengalaman OK",
-   "lokasi": "Yamaguchi — Shimonoseki-shi",
-   "gaji": 260000,
-   "gajiLabel": "¥260.000/bln",
+   "posisi": "Pekerja Konstruksi (Waterproofing)",
+   "lokasi": "Tokyo — Koto-ku",
+   "gaji": 270000,
+   "gajiLabel": "¥270.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Konstruksi",
+   "usia": "25–30",
+   "syarat": [
+    "Laki-laki",
+    "PREFERENSI tertulis (歓迎条件 sumber): pengalaman sealing 3–5 tahun sebagai pemagang teknik di Jepang & kepemilikan SIM",
+    "Wajib bahasa Jepang N3 atau lebih",
+    "Bahasa Jepang N3 atau lebih (tertulis)"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k44.png",
+   "poster": "poster/p44.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Operator Crane (Konstruksi)",
+   "lokasi": "Tokyo — Arakawa-ku",
+   "gaji": 270000,
+   "gajiLabel": "¥270.000/bln",
    "kuota": "2",
    "visa": "Tokutei Ginou 1",
    "bahasa": "JLPT N4",
    "ssw": "Konstruksi",
    "usia": "21–35",
    "syarat": [
-    "WAJIB memiliki kualifikasi untuk bekerja di bidang konstruksi kapal (造船)",
     "Laki-laki",
-    "Tanpa pengalaman OK"
+    "WAJIB kualifikasi pelatihan keterampilan/operator mesin konstruksi (pekerjaan pondasi) & SIM kendaraan ukuran sedang (batas 8 ton) atau lebih tinggi",
+    "Preferensi tertulis (bukan syarat): operator mesin pancang berpengalaman disambut"
    ],
-   "domisili": "kokugai",
-   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false,
-   "kyujin": "kyujin/k42.png",
-   "poster": "poster/p42.png"
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k45.png",
+   "poster": "poster/p45.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Waterproofing)",
+   "lokasi": "Tokyo — Itabashi-ku",
+   "gaji": 265000,
+   "gajiLabel": "¥265.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "hingga 35",
+   "syarat": [
+    "Laki-laki",
+    "Wajib mampu berkomunikasi lancar dalam bahasa Jepang",
+    "Preferensi tertulis (bukan syarat): pengalaman sealing/waterproofing disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k46.png",
+   "poster": "poster/p46.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Doboku)",
+   "lokasi": "Nagano — Matsumoto-shi",
+   "gaji": 260000,
+   "gajiLabel": "¥260.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "hingga 35",
+   "syarat": [
+    "Laki-laki",
+    "WAJIB memiliki SIM yang masih berlaku, mampu berkomunikasi lancar dalam bahasa Jepang, & mencari pekerjaan jangka panjang di Jepang",
+    "Preferensi tertulis (bukan syarat): pengalaman teknik sipil disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k47.png",
+   "poster": "poster/p47.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Curtain Wall)",
+   "lokasi": "Tokyo — Chuo-ku",
+   "gaji": 255200,
+   "gajiLabel": "¥255.200/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N3",
+   "ssw": "Konstruksi",
+   "usia": "25–33",
+   "syarat": [
+    "Laki-laki",
+    "Preferensi tertulis (bukan syarat): berpengalaman lembaran logam/panel disambut"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k48.png",
+   "poster": "poster/p48.png"
   },
   {
    "bidang": "Konstruksi",
@@ -126,9 +214,9 @@
     "WAJIB berpengalaman kerja konstruksi perancah (tobi)",
     "Laki-laki"
    ],
-   "domisili": "kokugai",
-   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false,
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
    "kyujin": "kyujin/k41.png",
    "poster": "poster/p41.png"
   },
@@ -172,6 +260,26 @@
    "free": true,
    "kyujin": "kyujin/k36.png",
    "poster": "poster/p36.png"
+  },
+  {
+   "bidang": "Konstruksi",
+   "posisi": "Pekerja Konstruksi (Waterproofing)",
+   "lokasi": "Saitama — Tokorozawa-shi",
+   "gaji": 250000,
+   "gajiLabel": "¥250.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Konstruksi",
+   "usia": "21–35",
+   "syarat": [
+    "Laki-laki"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k49.png",
+   "poster": "poster/p49.png"
   },
   {
    "bidang": "Konstruksi",
@@ -581,6 +689,29 @@
    "poster": "poster/p22.png"
   },
   {
+   "bidang": "Restoran",
+   "posisi": "Staf Restoran (Dapur & Hall) — Sapporo",
+   "lokasi": "Hokkaido — Sapporo-shi, Chuo-ku",
+   "gaji": 187000,
+   "gajiLabel": "¥187.000/bln",
+   "kuota": "6",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "tidak tertulis",
+   "ssw": "Restoran",
+   "usia": "",
+   "syarat": [
+    "WAJIB mampu berkomunikasi dalam bahasa Jepang DAN bahasa Inggris (melayani pelanggan inbound)",
+    "Pengalaman restoran dihargai (bukan syarat)",
+    "Bisa memasak",
+    "Hijab TIDAK boleh saat bekerja"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k50.png",
+   "poster": "poster/p50.png"
+  },
+  {
    "bidang": "Kaigo",
    "posisi": "Staf Kaigo",
    "lokasi": "Osaka — Higashiosaka-shi",
@@ -596,8 +727,8 @@
     "Prioritas domisili Jepang (Indonesia tetap boleh)",
     "Hijab tidak boleh saat bekerja"
    ],
-   "domisili": "kokugai",
-   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "domisili": "keduanya",
+   "domLabel": "Bisa dari Indonesia & domisili Jepang",
    "free": false,
    "kyujin": "kyujin/k23.png",
    "poster": "poster/p23.png"
@@ -782,8 +913,8 @@
     "Jalur berpengalaman (BUKAN gerbang semua pelamar — jalur pemula tanpa pengalaman tetap terbuka): min. 3 tahun NC lathe/machining center, mampu baca gambar kerja, setup & pengukuran (caliper/mikrometer)",
     "Nilai plus: FANUC, program NC, pengalaman perusahaan Jepang"
    ],
-   "domisili": "kokugai",
-   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "domisili": "keduanya",
+   "domLabel": "Bisa dari Indonesia & domisili Jepang",
    "free": false,
    "kyujin": "kyujin/k31.png",
    "poster": "poster/p31.png"
@@ -872,6 +1003,49 @@
    "free": false,
    "kyujin": "kyujin/k35.png",
    "poster": "poster/p35.png"
+  },
+  {
+   "bidang": "Perawatan Mobil",
+   "posisi": "Mekanik Truk (Perawatan Mobil)",
+   "lokasi": "Fukuoka — Yanagawa-shi",
+   "gaji": 215200,
+   "gajiLabel": "¥215.200/bln",
+   "kuota": "1",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4 / JFT-Basic A2",
+   "ssw": "Perawatan Mobil",
+   "usia": "22–40",
+   "syarat": [
+    "WAJIB berpengalaman perawatan mobil (truk)",
+    "Laki-laki"
+   ],
+   "domisili": "kokugai",
+   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
+   "free": false,
+   "kyujin": "kyujin/k51.png",
+   "poster": "poster/p51.png"
+  },
+  {
+   "bidang": "Perkapalan",
+   "posisi": "Pekerja Konstruksi Kapal (Zousen) — Tanpa Pengalaman OK",
+   "lokasi": "Yamaguchi — Shimonoseki-shi",
+   "gaji": 260000,
+   "gajiLabel": "¥260.000/bln",
+   "kuota": "2",
+   "visa": "Tokutei Ginou 1",
+   "bahasa": "JLPT N4",
+   "ssw": "Perkapalan",
+   "usia": "21–35",
+   "syarat": [
+    "WAJIB memiliki kualifikasi untuk bekerja di bidang konstruksi kapal (造船)",
+    "Laki-laki",
+    "Tanpa pengalaman OK"
+   ],
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
+   "kyujin": "kyujin/k42.png",
+   "poster": "poster/p42.png"
   }
  ]
 }
