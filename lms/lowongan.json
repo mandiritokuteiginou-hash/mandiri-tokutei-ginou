@@ -1,6 +1,6 @@
 {
- "snapshot": "2026-11-22",
- "snapshotLabel": "22 November 2026",
+ "snapshot": "2026-11-23",
+ "snapshotLabel": "23 November 2026",
  "jobs": [
   {
    "bidang": "Konstruksi",
@@ -976,9 +976,9 @@
     "Laki-laki",
     "WAJIB memiliki SIM truk Jepang kelas menengah atau besar （中型・大型）"
    ],
-   "domisili": "kokugai",
-   "domLabel": "Bisa dilamar dari Indonesia (Kokugai)",
-   "free": false,
+   "domisili": "kokunai",
+   "domLabel": "Khusus domisili Jepang (Kokunai)",
+   "free": true,
    "kyujin": "kyujin/k34.png",
    "poster": "poster/p34.png"
   },
