@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cek Status Proses Kandidat — Mandiri Tokutei Ginou</title>
+<meta name="description" content="Lihat tahap proses Job Matching Anda di Mandiri Tokutei Ginou dengan nomor WhatsApp dan tanggal lahir.">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<style>
+  :root{--navy:#0b2239;--navy2:#102e4d;--gold:#c9a227;--gold-light:#e8c85a;--ink:#1c2733;--mut:#5a6a7a;--bg:#f4f6f9;--card:#ffffff;--line:#dde4ec;--ok:#1e7d46;--radius:14px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+  header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:34px 20px 30px;text-align:center}
+  header .brand{font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-light);font-weight:700}
+  header h1{font-size:1.65rem;margin:8px 0 6px}
+  header p{color:#cfdce9;font-size:.98rem;max-width:560px;margin:0 auto}
+  main{max-width:640px;margin:0 auto;padding:22px 16px 48px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:0 2px 10px rgba(11,34,57,.05)}
+  label{display:block;font-weight:600;font-size:.92rem;margin:14px 0 6px}
+  label:first-child{margin-top:0}
+  input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;font-size:1rem;background:#fff}
+  input:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+  .hint{font-size:.82rem;color:var(--mut);margin-top:4px}
+  button{width:100%;margin-top:20px;padding:13px;border:none;border-radius:10px;background:var(--navy);color:#fff;font-size:1.02rem;font-weight:700;cursor:pointer}
+  button:hover{background:var(--navy2)}
+  button:disabled{opacity:.6;cursor:wait}
+  .privacy{font-size:.83rem;color:var(--mut);margin-top:14px;text-align:center}
+  #hasil{margin-top:20px;display:none}
+  .nama{font-size:1.25rem;font-weight:800;color:var(--navy)}
+  .meta{color:var(--mut);font-size:.9rem;margin-top:2px}
+  .tahap-box{margin-top:16px;background:#fbf7e8;border:1px solid #eadfae;border-radius:10px;padding:14px 16px}
+  .tahap-box .lbl{font-size:.8rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8a6d1a}
+  .tahap-box .val{font-size:1.12rem;font-weight:800;color:var(--navy);margin-top:2px}
+  .tahap-box .desc{font-size:.93rem;margin-top:6px}
+  .spine{list-style:none;margin-top:18px}
+  .spine li{display:flex;gap:12px;align-items:flex-start;padding:7px 0;border-bottom:1px dashed var(--line)}
+  .spine li:last-child{border-bottom:none}
+  .dot{flex:0 0 26px;height:26px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--mut);background:#fff;margin-top:1px}
+  li.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  li.now .dot{background:var(--gold);border-color:var(--gold);color:#fff;font-weight:800}
+  li .t{font-weight:600}
+  li.done .t{color:var(--ok)}
+  li.now .t{color:var(--navy);font-weight:800}
+  li.todo{color:var(--mut)}
+  li .s{font-size:.8rem;color:var(--mut)}
+  .kurang{margin-top:18px}
+  .kurang h3{font-size:1rem;color:var(--navy);margin-bottom:8px}
+  .kurang ul{list-style:none}
+  .kurang li{background:#fdf2f2;border:1px solid #f0d4d4;border-radius:10px;padding:10px 14px;margin-bottom:8px;font-size:.93rem}
+  .lengkap{background:#eef7f1;border:1px solid #cfe6d8;border-radius:10px;padding:12px 16px;font-size:.95rem;margin-top:18px}
+  .err{display:none;margin-top:20px;background:#fdf2f2;border:1px solid #f0d4d4;border-radius:10px;padding:14px 16px;font-size:.95rem}
+  .foot{margin-top:18px;font-size:.83rem;color:var(--mut);text-align:center}
+  .foot a, .kurang a{color:var(--navy);font-weight:600}
+  .back{display:inline-block;margin-top:14px;color:var(--gold-light);text-decoration:none;font-size:.9rem}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Mandiri Tokutei Ginou</div>
+  <h1>🔎 Cek Status Proses Saya</h1>
+  <p>Lihat tahap proses Job Matching Anda saat ini dan apa saja yang masih perlu dilengkapi — cukup dengan nomor WhatsApp dan tanggal lahir.</p>
+  <a class="back" href="/">← Kembali ke Beranda</a>
+</header>
+<main>
+  <div class="card">
+    <form id="form-cek" autocomplete="off">
+      <label for="wa">Nomor WhatsApp (yang dipakai saat mendaftar)</label>
+      <input id="wa" type="tel" inputmode="tel" placeholder="Contoh: 0812 3456 7890" required>
+      <div class="hint">Boleh ditulis dengan awalan 08, 628, atau +62.</div>
+      <label for="dob">Tanggal Lahir</label>
+      <input id="dob" type="date" required>
+      <button id="btn" type="submit">Lihat Status Saya</button>
+      <p class="privacy">🔒 Halaman ini hanya menampilkan data Anda sendiri setelah nomor WhatsApp dan tanggal lahir cocok. Data kandidat lain tidak pernah ditampilkan.</p>
+    </form>
+    <div class="err" id="err"></div>
+    <div id="hasil">
+      <div class="nama" id="r-nama"></div>
+      <div class="meta" id="r-meta"></div>
+      <div class="tahap-box">
+        <div class="lbl">Tahap Anda Saat Ini</div>
+        <div class="val" id="r-tahap"></div>
+        <div class="desc" id="r-desc"></div>
+      </div>
+      <ul class="spine" id="r-spine"></ul>
+      <div class="kurang" id="r-kurang"></div>
+      <p class="foot" id="r-updated"></p>
+    </div>
+  </div>
+  <p class="foot">Belum mendaftar? Isi <a href="https://docs.google.com/forms/d/e/1FAIpQLSciHXEBvXaQzPP0ficRnlu2JCFWKnTGiZs-IO-XYM8obsw4eA/viewform" target="_blank" rel="noopener">Form Lamaran Kerja</a> terlebih dahulu.<br>
+  Ada kendala? <a href="https://wa.me/818074181493" target="_blank" rel="noopener">Chat Admin via WhatsApp</a>.</p>
+</main>
+<script>
+const SUPABASE_URL = 'https://wqasnzrshrxgrfeaxtom.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxYXNuenJzaHJ4Z3JmZWF4dG9tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ3NDQyMDYsImV4cCI6MjExMDMyMDIwNn0.bwxB0EosuETkOncXV26Lh4JpeN_frUPtJBmnURqSdq4';
+const SPINE = ['Pencocokan','Ditawari','Menunggu Jawaban','Wawancara Internal','Form CV','Diajukan ke Mitra','Mensetsu','Hasil'];
+const DESC = {
+  0:'Data Anda sudah kami terima. Saat ini kami mencocokkan profil Anda dengan lowongan yang sesuai.',
+  1:'Anda sudah dicocokkan dengan lowongan yang sesuai.',
+  2:'Anda sudah dicocokkan dengan lowongan. Saat ini kami menunggu langkah berikutnya dari Anda — silakan periksa bagian "Yang Perlu Dilengkapi" di bawah.',
+  3:'Anda berada di tahap wawancara (mendan). Tim kami akan menghubungi Anda untuk penjadwalannya.',
+  4:'Form CV Anda sudah kami terima dan sedang diproses untuk pengajuan.',
+  5:'Berkas Anda sudah diajukan. Saat ini kami menunggu proses berikutnya dari perusahaan.',
+  6:'Anda berada di tahap mensetsu (wawancara dengan perusahaan). Persiapkan diri dengan baik — semoga berhasil.',
+  7:'Proses Anda sudah mencapai tahap hasil. Tim kami akan menghubungi Anda secara langsung untuk langkah berikutnya.'
+};
+const FORMCV_URL = 'https://docs.google.com/forms/d/e/1FAIpQLScxpi8ws3AzKGrhDA5rZr8yM99fNSess0r89_6Dw2wW_AKzCQ/viewform';
+const BLOCKERS = {
+  'FORMCV':'Form Pembuatan CV belum diisi. Silakan isi di sini: <a href="' + FORMCV_URL + '" target="_blank" rel="noopener">Form Pembuatan CV</a> — tanpa formulir ini, proses belum bisa berlanjut.',
+  'DOKVERIF':'Dokumen pendaftaran Anda belum lengkap terverifikasi di data kami. Bila sudah pernah mengirim dokumen, sampaikan lewat WhatsApp admin agar segera dicek.',
+  'BAHASA-BUKTI':'Bukti sertifikat bahasa (JLPT / JFT-Basic) belum tercatat terverifikasi di data kami. Bila sudah memilikinya, kirimkan foto atau file sertifikatnya lewat WhatsApp admin.',
+  'SSW-BUKTI':'Bukti sertifikat SSW belum tercatat terverifikasi di data kami. Bila sudah memilikinya, kirimkan foto atau file sertifikatnya lewat WhatsApp admin.',
+  'PENGALAMAN':'Bukti pengalaman kerja yang diminta lowongan belum terverifikasi. Bila Anda memiliki bukti pengalaman (surat keterangan kerja / sertifikat magang), kirimkan lewat WhatsApp admin.',
+  'KENSHUU':'Bukti pelatihan (kenshuu) yang diminta lowongan belum terverifikasi. Bila Anda memilikinya, kirimkan lewat WhatsApp admin.',
+  'DOKUMEN':'Ada dokumen pendukung yang diminta lowongan (misalnya SIM) yang belum terbukti. Silakan lengkapi lewat WhatsApp admin.'
+};
+const form = document.getElementById('form-cek');
+const btn = document.getElementById('btn');
+const errBox = document.getElementById('err');
+const hasil = document.getElementById('hasil');
+function showErr(msg){ errBox.textContent = msg; errBox.style.display = 'block'; hasil.style.display = 'none'; }
+function esc(s){ const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  errBox.style.display = 'none'; hasil.style.display = 'none';
+  const wa = document.getElementById('wa').value.trim();
+  const dob = document.getElementById('dob').value;
+  if (!wa || !dob) { showErr('Mohon isi nomor WhatsApp dan tanggal lahir.'); return; }
+  btn.disabled = true; btn.textContent = 'Memeriksa…';
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/rpc/check_candidate_status', {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON, 'Authorization': 'Bearer ' + SUPABASE_ANON, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_wa: wa, p_dob: dob })
+    });
+    if (!res.ok) throw new Error('http ' + res.status);
+    const rows = await res.json();
+    if (!rows || rows.length === 0) {
+      showErr('Data tidak ditemukan. Periksa kembali nomor WhatsApp (gunakan nomor yang sama seperti saat mendaftar) dan tanggal lahir Anda. Bila masih tidak ditemukan, hubungi admin via WhatsApp — bisa jadi tanggal lahir Anda belum tercatat di data kami.');
+      return;
+    }
+    const r = rows[0];
+    document.getElementById('r-nama').textContent = r.nama;
+    document.getElementById('r-meta').textContent = r.bidang ? ('Bidang yang dilamar: ' + r.bidang) : '';
+    document.getElementById('r-tahap').textContent = SPINE[r.stage_idx] || '-';
+    document.getElementById('r-desc').textContent = DESC[r.stage_idx] || '';
+    const spine = document.getElementById('r-spine');
+    spine.innerHTML = SPINE.map((s, i) => {
+      const cls = i < r.stage_idx ? 'done' : (i === r.stage_idx ? 'now' : 'todo');
+      const mark = i < r.stage_idx ? '✓' : (i + 1);
+      const st = i < r.stage_idx ? 'Selesai' : (i === r.stage_idx ? 'Tahap Anda saat ini' : 'Menunggu');
+      return '<li class="' + cls + '"><span class="dot">' + mark + '</span><span><span class="t">' + esc(s) + '</span><br><span class="s">' + st + '</span></span></li>';
+    }).join('');
+    const kBox = document.getElementById('r-kurang');
+    const codes = (r.blockers || []).filter(c => BLOCKERS[c]);
+    if (codes.length) {
+      kBox.innerHTML = '<h3>📌 Yang Perlu Dilengkapi</h3><ul>' + codes.map(c => '<li>' + BLOCKERS[c] + '</li>').join('') + '</ul>';
+    } else {
+      kBox.innerHTML = '<div class="lengkap">✅ Saat ini tidak ada yang kurang dari Anda. Mohon menunggu proses berikutnya — kami akan menghubungi Anda lewat WhatsApp bila ada perkembangan.</div>';
+    }
+    const upd = new Date(r.updated_on + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+    document.getElementById('r-updated').textContent = 'Data per ' + upd + '. Status dapat berubah mengikuti proses terbaru.';
+    hasil.style.display = 'block';
+    hasil.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    showErr('Maaf, pemeriksaan belum berhasil. Silakan coba lagi beberapa saat, atau hubungi admin via WhatsApp.');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Lihat Status Saya';
+  }
+});
+</script>
+</body>
+</html>
